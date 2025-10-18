@@ -5,12 +5,16 @@ import os
 # Load environment variables
 load_dotenv()
 
+print("SECRET_KEY:", os.getenv('SECRET_KEY'))
+print("DATABASE_URL:", os.getenv('DATABASE_URL'))
+print("Current directory:", os.getcwd())
+
 # Initialize Flask app
 app = Flask(__name__)
 
 # Configure SQLAlchemy
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('SQLALCHEMY_DATABASE_URI')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 from models.user import db
@@ -20,6 +24,12 @@ jwt = JWTManager(app)
 
 from routes.auth import auth_bp
 app.register_blueprint(auth_bp, url_prefix='/api/auth')
+
+from routes.transactions import transactions_bp
+app.register_blueprint(transactions_bp, url_prefix='/api/transactions')
+
+from routes.analytics import analytics_bp
+app.register_blueprint(analytics_bp, url_prefix='/api/analytics')
 
 @app.route('/')
 def moneyMindWorks(): 
