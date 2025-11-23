@@ -1,0 +1,133 @@
+<div class="budget-container">
+  <!-- Add Budget Form -->
+  <mat-card class="add-budget-card">
+    <mat-card-header>
+      <mat-card-title>Create Recurring Monthly Budget</mat-card-title>
+      <mat-card-subtitle>Set a budget that applies to every month. Update it anytime!</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="budget-form">
+        <mat-form-field appearance="outline">
+          <mat-label>Category</mat-label>
+          <mat-select [(ngModel)]="newBudget.category">
+            <mat-option *ngFor="let cat of categories" [value]="cat">
+              {{ cat | titlecase }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Monthly Amount</mat-label>
+          <input matInput type="number" [(ngModel)]="newBudget.amount" placeholder="500">
+          <span matPrefix>$&nbsp;</span>
+          <mat-hint>This budget will apply every month</mat-hint>
+        </mat-form-field>
+
+        <button mat-raised-button color="primary" (click)="addBudget()">
+          Add Budget
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Budget Progress Table -->
+  <mat-card class="progress-card">
+    <mat-card-header>
+      <mat-card-title>Budget Progress ({{ budgetProgress[0]?.month }}/{{ budgetProgress[0]?.year || 'Current Month' }})</mat-card-title>
+      <mat-card-subtitle>Track your spending against your monthly budgets</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <table mat-table [dataSource]="budgetProgress" class="budget-table">
+        
+        <!-- Category Column -->
+        <ng-container matColumnDef="category">
+          <th mat-header-cell *matHeaderCellDef>Category</th>
+          <td mat-cell *matCellDef="let item">
+            <span class="category-name">{{ item.category | titlecase }}</span>
+          </td>
+        </ng-container>
+
+        <!-- Budgeted Column -->
+        <ng-container matColumnDef="budgeted">
+          <th mat-header-cell *matHeaderCellDef>Monthly Budget</th>
+          <td mat-cell *matCellDef="let item">
+            <div *ngIf="!isEditing(item)">
+              ${{ item.budgeted | number:'1.2-2' }}
+            </div>
+            <mat-form-field *ngIf="isEditing(item)" appearance="outline" class="inline-edit">
+              <input matInput type="number" [(ngModel)]="editingBudget.amount">
+              <span matPrefix>$&nbsp;</span>
+            </mat-form-field>
+          </td>
+        </ng-container>
+
+        <!-- Spent Column -->
+        <ng-container matColumnDef="spent">
+          <th mat-header-cell *matHeaderCellDef>Spent</th>
+          <td mat-cell *matCellDef="let item">
+            <span [class.over-budget]="isOverBudget(item)">
+              ${{ item.spent | number:'1.2-2' }}
+            </span>
+          </td>
+        </ng-container>
+
+        <!-- Remaining Column -->
+        <ng-container matColumnDef="remaining">
+          <th mat-header-cell *matHeaderCellDef>Remaining</th>
+          <td mat-cell *matCellDef="let item">
+            <span [class.negative]="item.remaining < 0" [class.positive]="item.remaining >= 0">
+              ${{ item.remaining | number:'1.2-2' }}
+            </span>
+          </td>
+        </ng-container>
+
+        <!-- Progress Column -->
+        <ng-container matColumnDef="progress">
+          <th mat-header-cell *matHeaderCellDef>Progress</th>
+          <td mat-cell *matCellDef="let item">
+            <div class="progress-container">
+              <mat-progress-bar 
+                mode="determinate" 
+                [value]="item.percentage > 100 ? 100 : item.percentage"
+                [color]="getProgressColor(item.percentage)">
+              </mat-progress-bar>
+              <span class="progress-text" [class.over-budget]="isOverBudget(item)">
+                {{ item.percentage | number:'1.0-0' }}%
+              </span>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Actions Column -->
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef>Actions</th>
+          <td mat-cell *matCellDef="let item">
+            <div *ngIf="!isEditing(item)" class="action-buttons">
+              <button mat-icon-button color="primary" (click)="startEdit(item)">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button color="warn" (click)="deleteBudget(item.budget_id)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+            <div *ngIf="isEditing(item)" class="action-buttons">
+              <button mat-icon-button color="primary" (click)="saveEdit()">
+                <mat-icon>check</mat-icon>
+              </button>
+              <button mat-icon-button (click)="cancelEdit()">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+
+      <p *ngIf="budgetProgress.length === 0" class="no-data">
+        No budgets set yet. Create your first recurring budget above!
+      </p>
+    </mat-card-content>
+  </mat-card>
+</div>

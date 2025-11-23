@@ -1,0 +1,53 @@
+<h2 mat-dialog-title>{{ data?.transaction ? 'Edit' : 'Add' }} Transaction</h2>
+
+<mat-dialog-content>
+  <form>
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Amount</mat-label>
+      <input matInput type="number" [(ngModel)]="transaction.amount" name="amount" required>
+      <span matPrefix>$&nbsp;</span>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Description</mat-label>
+      <input matInput [(ngModel)]="transaction.description" name="description" required>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Category</mat-label>
+      <mat-select [(ngModel)]="transaction.category" name="category" required>
+        <mat-option *ngFor="let cat of categories" [value]="cat">
+          {{ cat | titlecase }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Type</mat-label>
+      <mat-select [(ngModel)]="transaction.transaction_type" name="type" required>
+        <mat-option value="expense">Expense</mat-option>
+        <mat-option value="income">Income</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Date</mat-label>
+      <input matInput [matDatepicker]="picker" [(ngModel)]="transaction.transaction_date" name="date" required>
+      <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+      <mat-datepicker #picker></mat-datepicker>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Notes (Optional)</mat-label>
+      <textarea matInput [(ngModel)]="transaction.transaction_notes" name="notes" rows="3"></textarea>
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">Cancel</button>
+  <button mat-raised-button color="primary" (click)="onSave()" 
+          [disabled]="!transaction.amount || !transaction.description || !transaction.category">
+    Save
+  </button>
+</mat-dialog-actions>

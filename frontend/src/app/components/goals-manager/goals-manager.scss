@@ -1,0 +1,190 @@
+.goals-container {
+    padding: 24px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  
+  .add-goal-card {
+    margin-bottom: 32px;
+  }
+  
+  .goal-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    align-items: start;
+  
+    .full-width {
+      grid-column: 1 / -1;
+    }
+  
+    button {
+      height: 56px;
+      margin-top: 0;
+    }
+  }
+  
+  .goals-section {
+    margin-bottom: 32px;
+  
+    h2 {
+      margin-bottom: 16px;
+      color: #333;
+    }
+  }
+  
+  .goals-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 24px;
+  }
+  
+  .goal-card {
+    display: flex;
+    flex-direction: column;
+  
+    &.completed {
+      background-color: #f1f8f4;
+      border-left: 4px solid #4caf50;
+    }
+  
+    mat-card-header {
+      margin-bottom: 16px;
+    }
+  
+    mat-card-content {
+      flex: 1;
+    }
+  }
+  
+  .progress-info {
+    margin-bottom: 16px;
+  
+    .amount-display {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      margin-bottom: 8px;
+  
+      .current-amount {
+        font-size: 28px;
+        font-weight: bold;
+        color: #1976d2;
+      }
+  
+      .separator {
+        font-size: 20px;
+        color: #757575;
+      }
+  
+      .target-amount {
+        font-size: 20px;
+        color: #757575;
+      }
+  
+      .completed-amount {
+        font-size: 28px;
+        font-weight: bold;
+        color: #4caf50;
+      }
+    }
+  
+    .remaining-amount {
+      color: #757575;
+      font-size: 14px;
+    }
+  
+    .completed-date {
+      color: #4caf50;
+      font-size: 14px;
+      font-weight: 500;
+    }
+  }
+  
+  .progress-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  
+    mat-progress-bar {
+      flex: 1;
+      height: 8px;
+      border-radius: 4px;
+    }
+  
+    .progress-text {
+      font-weight: 500;
+      min-width: 45px;
+    }
+  }
+  
+  .deadline-info {
+    margin-bottom: 16px;
+  
+    mat-chip {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+  
+      &.overdue {
+        background-color: #ffebee;
+        color: #c62828;
+      }
+    }
+  }
+  
+  .add-progress-section {
+    display: flex;
+    gap: 8px;
+    align-items: start;
+  
+    .progress-input {
+      flex: 1;
+      margin: 0;
+    }
+  
+    button {
+      height: 56px;
+    }
+  }
+  
+  .edit-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  
+  .inline-edit {
+    width: 100%;
+    margin: 0;
+  
+    &:not(.full-width) {
+      margin-bottom: 8px;
+    }
+  }
+  
+  .completed-icon {
+    color: #4caf50;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+  
+  mat-card-actions {
+    padding: 16px;
+    border-top: 1px solid #e0e0e0;
+  
+    button {
+      mat-icon {
+        margin-right: 4px;
+      }
+    }
+  }
+  
+  .no-data {
+    text-align: center;
+    color: #757575;
+    padding: 40px 0;
+    font-size: 16px;
+  }

@@ -1,0 +1,165 @@
+<div class="dashboard-container">
+    <div class="dashboard-content" *ngIf="!loading">
+      <!-- Summary Cards -->
+      <div class="summary-section">
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Total Expenses</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <h2 class="amount expense">${{ summary.total_expenses || 0 | number:'1.2-2' }}</h2>
+          </mat-card-content>
+        </mat-card>
+  
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Total Income</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <h2 class="amount income">${{ summary.total_income || 0 | number:'1.2-2' }}</h2>
+          </mat-card-content>
+        </mat-card>
+  
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Net</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <h2 class="amount" [class.income]="summary.net >= 0" [class.expense]="summary.net < 0">
+              ${{ summary.net || 0 | number:'1.2-2' }}
+            </h2>
+          </mat-card-content>
+        </mat-card>
+  
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Transactions</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <h2>{{ summary.transaction_count || 0 }}</h2>
+          </mat-card-content>
+        </mat-card>
+      </div>
+  
+      <!-- Transactions Table -->
+      <mat-card class="section-card">
+        <mat-card-header>
+          <mat-card-title>Recent Transactions</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <table mat-table [dataSource]="transactions" class="transactions-table">
+            
+            <!-- Date Column -->
+            <ng-container matColumnDef="date">
+              <th mat-header-cell *matHeaderCellDef>Date</th>
+              <td mat-cell *matCellDef="let transaction">
+                {{ transaction.transaction_date | date:'shortDate' }}
+              </td>
+            </ng-container>
+  
+            <!-- Description Column -->
+            <ng-container matColumnDef="description">
+              <th mat-header-cell *matHeaderCellDef>Description</th>
+              <td mat-cell *matCellDef="let transaction">{{ transaction.description }}</td>
+            </ng-container>
+  
+            <!-- Category Column -->
+            <ng-container matColumnDef="category">
+              <th mat-header-cell *matHeaderCellDef>Category</th>
+              <td mat-cell *matCellDef="let transaction">
+                <span class="category-badge">{{ transaction.category }}</span>
+              </td>
+            </ng-container>
+  
+            <!-- Amount Column -->
+            <ng-container matColumnDef="amount">
+              <th mat-header-cell *matHeaderCellDef>Amount</th>
+              <td mat-cell *matCellDef="let transaction">
+                <span [class.expense-text]="transaction.transaction_type === 'expense'" 
+                      [class.income-text]="transaction.transaction_type === 'income'">
+                  ${{ transaction.amount | number:'1.2-2' }}
+                </span>
+              </td>
+            </ng-container>
+            <!-- Type Column -->
+            <ng-container matColumnDef="type">
+              <th mat-header-cell *matHeaderCellDef>Type</th>
+              <td mat-cell *matCellDef="let transaction">
+                <span class="type-badge" [class.expense-badge]="transaction.transaction_type === 'expense'"
+                      [class.income-badge]="transaction.transaction_type === 'income'">
+                  {{ transaction.transaction_type }}
+                </span>
+              </td>
+            </ng-container>
+  
+            <!-- Source Column -->
+            <ng-container matColumnDef="source">
+              <th mat-header-cell *matHeaderCellDef>Source</th>
+              <td mat-cell *matCellDef="let transaction">
+                <span class="source-badge">{{ transaction.source }}</span>
+              </td>
+            </ng-container>
+  
+            <!-- Actions Column -->
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>Actions</th>
+              <td mat-cell *matCellDef="let transaction">
+                <button mat-icon-button color="primary" (click)="editTransaction(transaction)" 
+                        *ngIf="transaction.source === 'manual'">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" (click)="deleteTransaction(transaction.id)"
+                        *ngIf="transaction.source === 'manual'">
+                  <mat-icon>delete</mat-icon>
+                </button>
+                <span *ngIf="transaction.source === 'plaid'" class="plaid-locked">
+                  <mat-icon>lock</mat-icon>
+                </span>
+              </td>
+            </ng-container>
+  
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+          </table>
+  
+          <p *ngIf="transactions.length === 0" class="no-data">No transactions yet. Add one to get started!</p>
+        </mat-card-content>
+      </mat-card>
+  
+      <!-- Spending by Category -->
+      <mat-card class="section-card">
+        <mat-card-header>
+          <mat-card-title>Spending by Category</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div *ngIf="spendingByCategory.length > 0">
+            <div *ngFor="let item of spendingByCategory" class="category-item">
+              <span class="category-name">{{ item.category }}</span>
+              <span class="category-amount">${{ item.total | number:'1.2-2' }}</span>
+            </div>
+          </div>
+          <p *ngIf="spendingByCategory.length === 0">No spending data available</p>
+        </mat-card-content>
+      </mat-card>
+  
+      <!-- Monthly Spending -->
+      <mat-card class="section-card">
+        <mat-card-header>
+          <mat-card-title>Monthly Spending (2025)</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div *ngIf="monthlySpending.length > 0">
+            <div *ngFor="let item of monthlySpending" class="month-item">
+              <span class="month-name">{{ item.month_name }}</span>
+              <span class="month-amount">${{ item.total | number:'1.2-2' }}</span>
+            </div>
+          </div>
+          <p *ngIf="monthlySpending.length === 0">No monthly data available</p>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  
+    <div class="dashboard-content" *ngIf="loading">
+      <p>Loading analytics...</p>
+    </div>
+  </div>

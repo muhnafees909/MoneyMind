@@ -1,0 +1,210 @@
+<div class="goals-container">
+    <!-- Add Goal Form -->
+    <mat-card class="add-goal-card">
+      <mat-card-header>
+        <mat-card-title>Create New Financial Goal</mat-card-title>
+        <mat-card-subtitle>Set a savings target and track your progress</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="goal-form">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Goal Name</mat-label>
+            <input matInput [(ngModel)]="newGoal.name" placeholder="Emergency Fund">
+          </mat-form-field>
+  
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Description (Optional)</mat-label>
+            <textarea matInput [(ngModel)]="newGoal.description" rows="2"></textarea>
+          </mat-form-field>
+  
+          <mat-form-field appearance="outline">
+            <mat-label>Target Amount</mat-label>
+            <input matInput type="number" [(ngModel)]="newGoal.target_amount">
+            <span matPrefix>$&nbsp;</span>
+          </mat-form-field>
+  
+          <mat-form-field appearance="outline">
+            <mat-label>Starting Amount</mat-label>
+            <input matInput type="number" [(ngModel)]="newGoal.current_amount">
+            <span matPrefix>$&nbsp;</span>
+          </mat-form-field>
+  
+          <mat-form-field appearance="outline">
+            <mat-label>Target Date (Optional)</mat-label>
+            <input matInput [matDatepicker]="picker" [(ngModel)]="newGoal.target_date">
+            <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-datepicker #picker></mat-datepicker>
+          </mat-form-field>
+  
+          <button mat-raised-button color="primary" (click)="createGoal()">
+            Create Goal
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  
+    <!-- Active Goals -->
+    <div class="goals-section">
+      <h2>Active Goals ({{ activeGoals.length }})</h2>
+      
+      <div class="goals-grid">
+        <mat-card *ngFor="let goal of activeGoals" class="goal-card">
+          <mat-card-header>
+            <mat-card-title>
+              <span *ngIf="!isEditing(goal)">{{ goal.name }}</span>
+              <mat-form-field *ngIf="isEditing(goal)" appearance="outline" class="inline-edit">
+                <input matInput [(ngModel)]="editingGoal.name">
+              </mat-form-field>
+            </mat-card-title>
+            <mat-card-subtitle *ngIf="!isEditing(goal) && goal.description">
+              {{ goal.description }}
+            </mat-card-subtitle>
+            <mat-card-subtitle *ngIf="isEditing(goal)">
+              <mat-form-field appearance="outline" class="inline-edit full-width">
+                <textarea matInput [(ngModel)]="editingGoal.description" rows="2"></textarea>
+              </mat-form-field>
+            </mat-card-subtitle>
+          </mat-card-header>
+  
+          <mat-card-content>
+            <!-- Progress Info -->
+            <div class="progress-info" *ngIf="!isEditing(goal)">
+              <div class="amount-display">
+                <span class="current-amount">${{ goal.current_amount | number:'1.2-2' }}</span>
+                <span class="separator">/</span>
+                <span class="target-amount">${{ goal.target_amount | number:'1.2-2' }}</span>
+              </div>
+              <div class="remaining-amount">
+                ${{ goal.remaining_amount | number:'1.2-2' }} remaining
+              </div>
+            </div>
+  
+            <!-- Edit Form -->
+            <div class="edit-form" *ngIf="isEditing(goal)">
+              <mat-form-field appearance="outline">
+                <mat-label>Target Amount</mat-label>
+                <input matInput type="number" [(ngModel)]="editingGoal.target_amount">
+                <span matPrefix>$&nbsp;</span>
+              </mat-form-field>
+  
+              <mat-form-field appearance="outline">
+                <mat-label>Current Amount</mat-label>
+                <input matInput type="number" [(ngModel)]="editingGoal.current_amount">
+                <span matPrefix>$&nbsp;</span>
+              </mat-form-field>
+  
+              <mat-form-field appearance="outline">
+                <mat-label>Target Date</mat-label>
+                <input matInput [matDatepicker]="editPicker" [(ngModel)]="editingGoal.target_date">
+                <mat-datepicker-toggle matSuffix [for]="editPicker"></mat-datepicker-toggle>
+                <mat-datepicker #editPicker></mat-datepicker>
+              </mat-form-field>
+            </div>
+  
+            <!-- Progress Bar -->
+            <div class="progress-section" *ngIf="!isEditing(goal)">
+              <mat-progress-bar 
+                mode="determinate" 
+                [value]="goal.progress_percentage"
+                [color]="getProgressColor(goal.progress_percentage)">
+              </mat-progress-bar>
+              <span class="progress-text">{{ goal.progress_percentage | number:'1.0-0' }}%</span>
+            </div>
+  
+            <!-- Deadline Info -->
+            <div class="deadline-info" *ngIf="!isEditing(goal) && goal.target_date">
+              <mat-chip-set>
+                <mat-chip [class.overdue]="getDaysRemaining(goal.target_date)! < 0">
+                  <mat-icon>event</mat-icon>
+                  <span *ngIf="getDaysRemaining(goal.target_date)! >= 0">
+                    {{ goal.target_date | date:'mediumDate' }} ({{ getDaysRemaining(goal.target_date) }} days left)
+                  </span>
+                  <span *ngIf="getDaysRemaining(goal.target_date)! < 0">
+                    {{ goal.target_date | date:'mediumDate' }} ({{ -getDaysRemaining(goal.target_date)! }} days overdue)
+                  </span>
+                </mat-chip>
+              </mat-chip-set>
+            </div>
+  
+            <!-- Add Progress -->
+            <div class="add-progress-section" *ngIf="!isEditing(goal)">
+              <mat-form-field appearance="outline" class="progress-input">
+                <mat-label>Add Progress</mat-label>
+                <input matInput type="number" [(ngModel)]="addingProgress[goal.id]" placeholder="100">
+                <span matPrefix>$&nbsp;</span>
+              </mat-form-field>
+              <button mat-raised-button color="primary" (click)="addProgressToGoal(goal.id)">
+                Add
+              </button>
+            </div>
+          </mat-card-content>
+  
+          <mat-card-actions>
+            <div *ngIf="!isEditing(goal)">
+              <button mat-button color="primary" (click)="startEdit(goal)">
+                <mat-icon>edit</mat-icon>
+                Edit
+              </button>
+              <button mat-button color="warn" (click)="deleteGoal(goal.id, goal.name)">
+                <mat-icon>delete</mat-icon>
+                Delete
+              </button>
+            </div>
+            <div *ngIf="isEditing(goal)">
+              <button mat-button color="primary" (click)="saveEdit()">
+                <mat-icon>check</mat-icon>
+                Save
+              </button>
+              <button mat-button (click)="cancelEdit()">
+                <mat-icon>close</mat-icon>
+                Cancel
+              </button>
+            </div>
+          </mat-card-actions>
+        </mat-card>
+      </div>
+  
+      <p *ngIf="activeGoals.length === 0" class="no-data">
+        No active goals yet. Create your first financial goal above!
+      </p>
+    </div>
+  
+    <!-- Completed Goals -->
+    <div class="goals-section" *ngIf="completedGoals.length > 0">
+      <h2>Completed Goals ({{ completedGoals.length }}) 🎉</h2>
+      
+      <div class="goals-grid">
+        <mat-card *ngFor="let goal of completedGoals" class="goal-card completed">
+          <mat-card-header>
+            <mat-card-title>
+              {{ goal.name }}
+              <mat-icon class="completed-icon">check_circle</mat-icon>
+            </mat-card-title>
+            <mat-card-subtitle *ngIf="goal.description">
+              {{ goal.description }}
+            </mat-card-subtitle>
+          </mat-card-header>
+  
+          <mat-card-content>
+            <div class="progress-info">
+              <div class="amount-display">
+                <span class="completed-amount">${{ goal.current_amount | number:'1.2-2' }}</span>
+              </div>
+              <div class="completed-date">
+                Completed on {{ goal.completed_at | date:'mediumDate' }}
+              </div>              
+            </div>
+  
+            <mat-progress-bar mode="determinate" [value]="100" color="primary"></mat-progress-bar>
+          </mat-card-content>
+  
+          <mat-card-actions>
+            <button mat-button color="warn" (click)="deleteGoal(goal.id, goal.name)">
+              <mat-icon>delete</mat-icon>
+              Delete
+            </button>
+          </mat-card-actions>
+        </mat-card>
+      </div>
+    </div>
+  </div>

@@ -13,7 +13,8 @@ class Transaction(db.Model):
     transaction_type = db.Column(db.String(20), nullable=False)
     transaction_date = db.Column(db.DateTime, nullable=False)
     transaction_notes = db.Column(db.String(255), nullable=False)
-
+    source = db.Column(db.String(20), default='manual')  # 'manual' or 'plaid'
+    plaid_transaction_id = db.Column(db.String(255), unique=True, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def to_dict(self):
@@ -26,6 +27,8 @@ class Transaction(db.Model):
             'transaction_type': self.transaction_type,
             'transaction_date': self.transaction_date.isoformat(),
             'transaction_notes': self.transaction_notes,
+            'source': self.source,
+            'plaid_transaction_id': self.plaid_transaction_id,
             'created_at': self.created_at.isoformat()
         }
 
