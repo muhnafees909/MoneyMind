@@ -18,8 +18,14 @@ db.init_app(app)
 
 jwt = JWTManager(app)
 
+# Import models so they are registered with SQLAlchemy
+from models.financial import Transaction, Budget, Goal, Category, Income
+
 from routes.auth import auth_bp
+from routes.chat import chat_bp
+
 app.register_blueprint(auth_bp, url_prefix='/api/auth')
+app.register_blueprint(chat_bp, url_prefix='/api/chat')
 
 @app.route('/')
 def moneyMindWorks(): 
