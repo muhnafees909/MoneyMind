@@ -1,0 +1,12 @@
+<mat-toolbar color="primary" *ngIf="isLoggedIn()">
+    <span class="logo" routerLink="/dashboard">MoneyMind</span>
+    <span class="spacer"></span>
+    <button mat-button routerLink="/dashboard">Dashboard</button>
+    <button mat-button routerLink="/budgets">Budgets</button>
+    <button mat-button routerLink="/goals">Goals</button>
+    <button mat-button routerLink="/chat">
+      <mat-icon>chat</mat-icon>
+      AI Advisor
+    </button>
+    <button mat-button (click)="logout()">Logout</button>
+</mat-toolbar>

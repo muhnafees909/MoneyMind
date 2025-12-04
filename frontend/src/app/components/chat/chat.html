@@ -1,0 +1,61 @@
+<div class="chat-container">
+  <!-- Header -->
+  <div class="chat-header">
+    <h2>Financial Advisor</h2>
+    <button
+      mat-icon-button
+      (click)="clearChat()"
+      matTooltip="Clear chat history"
+      class="clear-button">
+      <mat-icon>refresh</mat-icon>
+    </button>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="hasError" class="error-banner">
+    <mat-icon>error_outline</mat-icon>
+    <span>{{ error }}</span>
+  </div>
+
+  <!-- Messages Container -->
+  <div class="messages-container" #messagesContainer>
+    <div *ngFor="let message of messages" [ngClass]="'message ' + message.role">
+      <mat-card [ngClass]="'message-bubble ' + message.role">
+        <p>{{ message.content }}</p>
+        <small class="message-timestamp">{{ message.timestamp | date: 'short' }}</small>
+      </mat-card>
+    </div>
+
+    <!-- Loading Indicator -->
+    <div *ngIf="loading" class="message assistant">
+      <mat-card class="message-bubble assistant loading">
+        <div class="loading-animation">
+          <mat-spinner diameter="24"></mat-spinner>
+          <span>AI is thinking...</span>
+        </div>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Input Area -->
+  <div class="input-area">
+    <mat-form-field appearance="outline" class="message-input-field">
+      <mat-label>Ask a financial question...</mat-label>
+      <input
+        matInput
+        [(ngModel)]="userInput"
+        (keyup.enter)="sendMessage()"
+        [disabled]="loading"
+        placeholder="e.g., Should I increase my grocery budget?">
+    </mat-form-field>
+    <button
+      mat-raised-button
+      color="primary"
+      (click)="sendMessage()"
+      [disabled]="isInputDisabled"
+      class="send-button">
+      <mat-icon>send</mat-icon>
+      Send
+    </button>
+  </div>
+</div>

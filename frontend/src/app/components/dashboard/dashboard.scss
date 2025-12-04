@@ -1,0 +1,68 @@
+.dashboard-container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: #f5f5f5;
+  }
+  
+  .spacer {
+    flex: 1 1 auto;
+  }
+  
+  .dashboard-content {
+    padding: 24px;
+    flex: 1;
+    overflow-y: auto;
+  }
+  
+  .summary-section {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  
+  .amount {
+    font-size: 32px;
+    font-weight: bold;
+    margin: 8px 0;
+    
+    &.income {
+      color: #4caf50;
+    }
+    
+    &.expense {
+      color: #f44336;
+    }
+  }
+  
+  .section-card {
+    margin-bottom: 24px;
+  }
+  
+  .category-item, .month-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid #e0e0e0;
+    
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+  
+  .category-name, .month-name {
+    font-weight: 500;
+    text-transform: capitalize;
+  }
+  
+  .category-amount, .month-amount {
+    font-weight: bold;
+    color: #1976d2;
+  }
+
+  mat-toolbar button {
+    margin-left: 8px;
+  }
+
+  

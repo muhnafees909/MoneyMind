@@ -1,0 +1,89 @@
+.budget-container {
+    padding: 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .add-budget-card {
+    margin-bottom: 24px;
+  }
+  
+  .budget-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 16px;
+    align-items: start;
+  
+    button {
+      height: 56px;
+      margin-top: 0;
+    }
+  }
+  
+  .progress-card {
+    margin-bottom: 24px;
+  }
+  
+  .budget-table {
+    width: 100%;
+  }
+  
+  .category-name {
+    font-weight: 500;
+  }
+  
+  .over-budget {
+    color: #d32f2f;
+    font-weight: 600;
+  }
+  
+  .negative {
+    color: #d32f2f;
+    font-weight: 500;
+  }
+  
+  .positive {
+    color: #388e3c;
+    font-weight: 500;
+  }
+  
+  .progress-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    
+    mat-progress-bar {
+      flex: 1;
+      height: 8px;
+      border-radius: 4px;
+    }
+  }
+  
+  .progress-text {
+    min-width: 45px;
+    font-weight: 500;
+    
+    &.over-budget {
+      color: #d32f2f;
+    }
+  }
+  
+  .no-data {
+    text-align: center;
+    color: #757575;
+    padding: 40px 0;
+  }
+  
+  .inline-edit {
+    width: 120px;
+    margin: 0;
+    
+    ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+      display: none;
+    }
+  }
+  
+  .action-buttons {
+    display: flex;
+    gap: 4px;
+  }
