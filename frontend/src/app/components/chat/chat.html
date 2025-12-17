@@ -1,61 +1,115 @@
 <div class="chat-container">
   <!-- Header -->
   <div class="chat-header">
-    <h2>Financial Advisor</h2>
-    <button
-      mat-icon-button
-      (click)="clearChat()"
-      matTooltip="Clear chat history"
-      class="clear-button">
-      <mat-icon>refresh</mat-icon>
+    <div class="header-left">
+      <div class="header-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+      </div>
+      <div class="header-info">
+        <h2>Financial Advisor</h2>
+        <span class="header-subtitle">AI-powered financial guidance</span>
+      </div>
+    </div>
+    <button class="clear-btn" (click)="clearChat()" title="Clear chat history">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="23 4 23 10 17 10"/>
+        <polyline points="1 20 1 14 7 14"/>
+        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+      </svg>
+      <span>Clear</span>
     </button>
   </div>
 
   <!-- Error Message -->
   <div *ngIf="hasError" class="error-banner">
-    <mat-icon>error_outline</mat-icon>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"/>
+      <line x1="12" y1="8" x2="12" y2="12"/>
+      <line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
     <span>{{ error }}</span>
+    <button class="dismiss-btn" (click)="hasError">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="18" y1="6" x2="6" y2="18"/>
+        <line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
   </div>
 
   <!-- Messages Container -->
   <div class="messages-container" #messagesContainer>
-    <div *ngFor="let message of messages" [ngClass]="'message ' + message.role">
-      <mat-card [ngClass]="'message-bubble ' + message.role">
-        <p>{{ message.content }}</p>
-        <small class="message-timestamp">{{ message.timestamp | date: 'short' }}</small>
-      </mat-card>
+    <!-- Welcome Message (shown when no messages) -->
+    <div *ngIf="messages.length === 0 && !loading" class="welcome-state">
+      <div class="welcome-icon">🤖</div>
+      <h3>How can I help you today?</h3>
+      <p>Ask me anything about your finances, budgets, spending habits, or savings goals.</p>
+      <div class="suggestion-chips">
+        <button class="suggestion-chip" (click)="userInput = 'How am I doing on my budget this month?'; sendMessage()">
+          <span>📊</span> Budget analysis
+        </button>
+        <button class="suggestion-chip" (click)="userInput = 'Where can I cut expenses?'; sendMessage()">
+          <span>✂️</span> Cut expenses
+        </button>
+        <button class="suggestion-chip" (click)="userInput = 'How can I save more money?'; sendMessage()">
+          <span>💰</span> Saving tips
+        </button>
+      </div>
+    </div>
+
+    <!-- Messages -->
+    <div *ngFor="let message of messages" class="message" [ngClass]="message.role">
+      <div class="message-avatar" *ngIf="message.role === 'assistant'">
+        <span>🤖</span>
+      </div>
+      
+      <div class="message-bubble" [ngClass]="message.role">
+        <p class="message-content">{{ message.content }}</p>
+        <span class="message-timestamp">{{ message.timestamp | date: 'shortTime' }}</span>
+      </div>
+
+      <div class="message-avatar" *ngIf="message.role === 'user'">
+        <span>👤</span>
+      </div>
     </div>
 
     <!-- Loading Indicator -->
     <div *ngIf="loading" class="message assistant">
-      <mat-card class="message-bubble assistant loading">
-        <div class="loading-animation">
-          <mat-spinner diameter="24"></mat-spinner>
-          <span>AI is thinking...</span>
+      <div class="message-avatar">
+        <span>🤖</span>
+      </div>
+      <div class="message-bubble assistant loading">
+        <div class="typing-indicator">
+          <span></span>
+          <span></span>
+          <span></span>
         </div>
-      </mat-card>
+        <span class="loading-text">AI is thinking...</span>
+      </div>
     </div>
   </div>
 
   <!-- Input Area -->
   <div class="input-area">
-    <mat-form-field appearance="outline" class="message-input-field">
-      <mat-label>Ask a financial question...</mat-label>
+    <div class="input-wrapper">
       <input
-        matInput
+        type="text"
         [(ngModel)]="userInput"
         (keyup.enter)="sendMessage()"
         [disabled]="loading"
-        placeholder="e.g., Should I increase my grocery budget?">
-    </mat-form-field>
-    <button
-      mat-raised-button
-      color="primary"
-      (click)="sendMessage()"
-      [disabled]="isInputDisabled"
-      class="send-button">
-      <mat-icon>send</mat-icon>
-      Send
-    </button>
+        placeholder="Ask a financial question...">
+      <button
+        class="send-btn"
+        (click)="sendMessage()"
+        [disabled]="isInputDisabled"
+        [class.disabled]="isInputDisabled">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="22" y1="2" x2="11" y2="13"/>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+        </svg>
+      </button>
+    </div>
+    <span class="input-hint">Press Enter to send</span>
   </div>
 </div>

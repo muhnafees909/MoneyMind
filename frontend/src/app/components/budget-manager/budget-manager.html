@@ -1,49 +1,94 @@
 <div class="budget-container">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-left">
+      <h1>Budget Manager</h1>
+      <p class="subtitle">Set and track your monthly spending limits</p>
+    </div>
+  </div>
+
   <!-- Add Budget Form -->
-  <mat-card class="add-budget-card">
-    <mat-card-header>
-      <mat-card-title>Create Recurring Monthly Budget</mat-card-title>
-      <mat-card-subtitle>Set a budget that applies to every month. Update it anytime!</mat-card-subtitle>
-    </mat-card-header>
-    <mat-card-content>
+  <div class="section-card add-budget-card">
+    <div class="section-header">
+      <div class="section-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="16"/>
+          <line x1="8" y1="12" x2="16" y2="12"/>
+        </svg>
+        <div class="title-group">
+          <h3>Create Recurring Monthly Budget</h3>
+          <span class="section-subtitle">Set a budget that applies to every month. Update it anytime!</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-content">
       <div class="budget-form">
-        <mat-form-field appearance="outline">
-          <mat-label>Category</mat-label>
-          <mat-select [(ngModel)]="newBudget.category">
-            <mat-option *ngFor="let cat of categories" [value]="cat">
-              {{ cat | titlecase }}
-            </mat-option>
-          </mat-select>
-        </mat-form-field>
+        <div class="form-group">
+          <label>Category</label>
+          <div class="select-wrapper">
+            <select [(ngModel)]="newBudget.category">
+              <option value="" disabled selected>Select category</option>
+              <option *ngFor="let cat of categories" [value]="cat">
+                {{ cat | titlecase }}
+              </option>
+            </select>
+            <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </div>
+        </div>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Monthly Amount</mat-label>
-          <input matInput type="number" [(ngModel)]="newBudget.amount" placeholder="500">
-          <span matPrefix>$&nbsp;</span>
-          <mat-hint>This budget will apply every month</mat-hint>
-        </mat-form-field>
+        <div class="form-group">
+          <label>Monthly Amount</label>
+          <div class="input-wrapper">
+            <span class="input-prefix">$</span>
+            <input 
+              type="number" 
+              [(ngModel)]="newBudget.amount" 
+              placeholder="500"
+              min="0"
+              step="10">
+          </div>
+          <span class="input-hint">This budget will apply every month</span>
+        </div>
 
-        <button mat-raised-button color="primary" (click)="addBudget()">
-          Add Budget
+        <button class="submit-btn" (click)="addBudget()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="16"/>
+            <line x1="8" y1="12" x2="16" y2="12"/>
+          </svg>
+          <span>Add Budget</span>
         </button>
       </div>
-    </mat-card-content>
-  </mat-card>
+    </div>
+  </div>
 
-  <!-- Budget Progress Table -->
-  <mat-card class="progress-card">
-    <mat-card-header>
-      <mat-card-title>Budget Progress ({{ budgetProgress[0]?.month }}/{{ budgetProgress[0]?.year || 'Current Month' }})</mat-card-title>
-      <mat-card-subtitle>Track your spending against your monthly budgets</mat-card-subtitle>
-    </mat-card-header>
-    <mat-card-content>
+  <!-- Budget Progress Section -->
+  <div class="section-card progress-card">
+    <div class="section-header">
+      <div class="section-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21.21 15.89A10 10 0 1 1 8 2.83"/>
+          <path d="M22 12A10 10 0 0 0 12 2v10z"/>
+        </svg>
+        <div class="title-group">
+          <h3>Budget Progress <span class="month-badge">{{ budgetProgress[0]?.month }}/{{ budgetProgress[0]?.year || 'Current Month' }}</span></h3>
+          <span class="section-subtitle">Track your spending against your monthly budgets</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-container">
       <table mat-table [dataSource]="budgetProgress" class="budget-table">
         
         <!-- Category Column -->
         <ng-container matColumnDef="category">
           <th mat-header-cell *matHeaderCellDef>Category</th>
           <td mat-cell *matCellDef="let item">
-            <span class="category-name">{{ item.category | titlecase }}</span>
+            <span class="category-badge">{{ item.category | titlecase }}</span>
           </td>
         </ng-container>
 
@@ -51,13 +96,15 @@
         <ng-container matColumnDef="budgeted">
           <th mat-header-cell *matHeaderCellDef>Monthly Budget</th>
           <td mat-cell *matCellDef="let item">
-            <div *ngIf="!isEditing(item)">
+            <div *ngIf="!isEditing(item)" class="budget-amount">
               ${{ item.budgeted | number:'1.2-2' }}
             </div>
-            <mat-form-field *ngIf="isEditing(item)" appearance="outline" class="inline-edit">
-              <input matInput type="number" [(ngModel)]="editingBudget.amount">
-              <span matPrefix>$&nbsp;</span>
-            </mat-form-field>
+            <div *ngIf="isEditing(item)" class="inline-edit">
+              <div class="input-wrapper small">
+                <span class="input-prefix">$</span>
+                <input type="number" [(ngModel)]="editingBudget.amount" min="0">
+              </div>
+            </div>
           </td>
         </ng-container>
 
@@ -65,7 +112,7 @@
         <ng-container matColumnDef="spent">
           <th mat-header-cell *matHeaderCellDef>Spent</th>
           <td mat-cell *matCellDef="let item">
-            <span [class.over-budget]="isOverBudget(item)">
+            <span class="spent-amount" [class.over-budget]="isOverBudget(item)">
               ${{ item.spent | number:'1.2-2' }}
             </span>
           </td>
@@ -75,8 +122,11 @@
         <ng-container matColumnDef="remaining">
           <th mat-header-cell *matHeaderCellDef>Remaining</th>
           <td mat-cell *matCellDef="let item">
-            <span [class.negative]="item.remaining < 0" [class.positive]="item.remaining >= 0">
-              ${{ item.remaining | number:'1.2-2' }}
+            <span class="remaining-amount" 
+                  [class.negative]="item.remaining < 0" 
+                  [class.positive]="item.remaining >= 0">
+              <span class="amount-sign">{{ item.remaining < 0 ? '-' : '+' }}</span>
+              ${{ (item.remaining < 0 ? -item.remaining : item.remaining) | number:'1.2-2' }}
             </span>
           </td>
         </ng-container>
@@ -85,12 +135,14 @@
         <ng-container matColumnDef="progress">
           <th mat-header-cell *matHeaderCellDef>Progress</th>
           <td mat-cell *matCellDef="let item">
-            <div class="progress-container">
-              <mat-progress-bar 
-                mode="determinate" 
-                [value]="item.percentage > 100 ? 100 : item.percentage"
-                [color]="getProgressColor(item.percentage)">
-              </mat-progress-bar>
+            <div class="progress-wrapper">
+              <div class="progress-bar-container">
+                <div class="progress-bar-fill" 
+                     [style.width.%]="item.percentage > 100 ? 100 : item.percentage"
+                     [class.warning]="item.percentage >= 75 && item.percentage < 100"
+                     [class.danger]="item.percentage >= 100">
+                </div>
+              </div>
               <span class="progress-text" [class.over-budget]="isOverBudget(item)">
                 {{ item.percentage | number:'1.0-0' }}%
               </span>
@@ -103,19 +155,32 @@
           <th mat-header-cell *matHeaderCellDef>Actions</th>
           <td mat-cell *matCellDef="let item">
             <div *ngIf="!isEditing(item)" class="action-buttons">
-              <button mat-icon-button color="primary" (click)="startEdit(item)">
-                <mat-icon>edit</mat-icon>
+              <button class="icon-btn edit" (click)="startEdit(item)" title="Edit">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
               </button>
-              <button mat-icon-button color="warn" (click)="deleteBudget(item.budget_id)">
-                <mat-icon>delete</mat-icon>
+              <button class="icon-btn delete" (click)="deleteBudget(item.budget_id)" title="Delete">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"/>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                  <line x1="10" y1="11" x2="10" y2="17"/>
+                  <line x1="14" y1="11" x2="14" y2="17"/>
+                </svg>
               </button>
             </div>
             <div *ngIf="isEditing(item)" class="action-buttons">
-              <button mat-icon-button color="primary" (click)="saveEdit()">
-                <mat-icon>check</mat-icon>
+              <button class="icon-btn save" (click)="saveEdit()" title="Save">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
               </button>
-              <button mat-icon-button (click)="cancelEdit()">
-                <mat-icon>close</mat-icon>
+              <button class="icon-btn cancel" (click)="cancelEdit()" title="Cancel">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"/>
+                  <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
               </button>
             </div>
           </td>
@@ -124,10 +189,12 @@
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
         <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
       </table>
+    </div>
 
-      <p *ngIf="budgetProgress.length === 0" class="no-data">
-        No budgets set yet. Create your first recurring budget above!
-      </p>
-    </mat-card-content>
-  </mat-card>
+    <div *ngIf="budgetProgress.length === 0" class="empty-state">
+      <div class="empty-icon">📊</div>
+      <p>No budgets set yet</p>
+      <span>Create your first recurring budget above!</span>
+    </div>
+  </div>
 </div>

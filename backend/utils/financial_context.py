@@ -3,13 +3,14 @@ Utility module for gathering user financial context for AI chatbot.
 Provides functions to aggregate user's budgets, goals, transactions, and spending data.
 """
 
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal
 from sqlalchemy import func, extract
 from models.user import db
 from models.transaction import Transaction
 from models.budget import Budget
 from models.goal import FinancialGoal
+import calendar
 
 
 def get_user_budgets(user_id):
@@ -237,6 +238,94 @@ def get_spending_by_category(user_id):
     return category_list
 
 
+def get_spending_trends(user_id):
+    """
+    Calculate spending trends and month-end projections.
+
+    Returns dict with:
+    - highest_category: Category with most spending this month
+    - highest_amount: Amount in highest category
+    - month_growth_percent: Change from last month (positive = higher spending)
+    - days_remaining: Days left in current month
+    - projected_month_total: Projected month-end total based on current pace
+    - last_month_spending: Total spending last month
+    - budget_alerts: List of budgets that are over-budget
+    """
+    try:
+        current_date = date.today()
+
+        # 1. Find highest spending category this month
+        categories = get_spending_by_category(user_id)
+        highest_category = max(categories, key=lambda x: x['amount']) if categories else None
+
+        # 2. Get current month spending
+        summary = get_spending_summary(user_id)
+        current_month_spending = summary['month_spending']
+
+        # 3. Get last month spending for comparison
+        # Calculate first and last day of last month
+        first_day_this_month = date(current_date.year, current_date.month, 1)
+        last_day_last_month = first_day_this_month - timedelta(days=1)
+        first_day_last_month = date(last_day_last_month.year, last_day_last_month.month, 1)
+
+        last_month_spending = db.session.query(
+            func.sum(Transaction.amount)
+        ).filter(
+            Transaction.user_id == int(user_id),
+            Transaction.transaction_type == 'expense',
+            Transaction.transaction_date >= first_day_last_month,
+            Transaction.transaction_date < first_day_this_month
+        ).scalar() or 0
+        last_month_spending = float(last_month_spending)
+
+        # 4. Calculate month-over-month growth percentage
+        if last_month_spending > 0:
+            month_growth = ((current_month_spending - last_month_spending) / last_month_spending) * 100
+        else:
+            month_growth = 0
+
+        # 5. Calculate days remaining in month
+        days_in_month = calendar.monthrange(current_date.year, current_date.month)[1]
+        days_elapsed = current_date.day
+        days_remaining = days_in_month - days_elapsed
+
+        # 6. Project month-end total
+        if days_elapsed > 0:
+            daily_average = current_month_spending / days_elapsed
+            projected_total = daily_average * days_in_month
+        else:
+            projected_total = 0
+
+        # 7. Get budget alerts (categories that are over budget)
+        budgets = get_user_budgets(user_id)
+        alerts = [b for b in budgets if b['is_over_budget']]
+
+        return {
+            'highest_category': highest_category['category'] if highest_category else None,
+            'highest_amount': highest_category['amount'] if highest_category else 0,
+            'month_growth_percent': round(month_growth, 1),
+            'days_remaining': days_remaining,
+            'days_in_month': days_in_month,
+            'projected_month_total': round(projected_total, 2),
+            'last_month_spending': round(last_month_spending, 2),
+            'budget_alerts': alerts,
+            'current_spending': round(current_month_spending, 2)
+        }
+    except Exception as e:
+        print(f"Error calculating spending trends: {str(e)}")
+        return {
+            'highest_category': None,
+            'highest_amount': 0,
+            'month_growth_percent': 0,
+            'days_remaining': 0,
+            'days_in_month': 0,
+            'projected_month_total': 0,
+            'last_month_spending': 0,
+            'budget_alerts': [],
+            'current_spending': 0
+        }
+
+
 def format_context_for_llm(user_id):
     """
     Gather all financial context and format it into a structured
@@ -281,64 +370,123 @@ def format_context_for_llm(user_id):
         print(f"Error getting spending by category: {e}")
         spending_by_category = []
 
+    try:
+        spending_trends = get_spending_trends(user_id)
+    except Exception as e:
+        print(f"Error getting spending trends: {e}")
+        spending_trends = {
+            'highest_category': None,
+            'highest_amount': 0,
+            'month_growth_percent': 0,
+            'days_remaining': 0,
+            'days_in_month': 0,
+            'projected_month_total': 0,
+            'last_month_spending': 0,
+            'budget_alerts': [],
+            'current_spending': 0
+        }
+
     return {
         'budgets': budgets,
         'goals': goals,
         'spending_summary': spending_summary,
         'recent_transactions': recent_transactions,
-        'spending_by_category': spending_by_category
+        'spending_by_category': spending_by_category,
+        'spending_trends': spending_trends
     }
 
 
 def build_context_string(context):
     """
-    Convert financial context dict into a readable string for inclusion
-    in the LLM system prompt.
+    Convert financial context dict into a readable, scannable string for inclusion
+    in the LLM system prompt. Uses clear sections and formatting for readability.
 
     Returns formatted string suitable for inclusion in ChatGPT prompt.
     """
-    lines = ["User's Current Financial Context:"]
-    lines.append("=" * 50)
+    lines = []
 
-    # Spending Summary
-    summary = context['spending_summary']
-    lines.append("\nSpending Summary (Current Month):")
-    lines.append(f"  Income: ${summary['month_income']:.2f}")
-    lines.append(f"  Spending: ${summary['month_spending']:.2f}")
-    lines.append(f"  Net: ${summary['month_net']:.2f}")
-    lines.append(f"  Average Monthly Spending (All-time): ${summary['average_monthly_spending']:.2f}")
+    # Get data with safe defaults
+    summary = context.get('spending_summary', {})
+    transactions = context.get('recent_transactions', [])
+    budgets = context.get('budgets', [])
+    goals = context.get('goals', [])
+    categories = context.get('spending_by_category', [])
+    trends = context.get('spending_trends', {})
 
-    # Spending by Category
-    if context['spending_by_category']:
-        lines.append("\nSpending by Category (This Month):")
-        for cat in context['spending_by_category']:
-            lines.append(f"  {cat['category'].title()}: ${cat['amount']:.2f} ({cat['transaction_count']} transactions)")
+    current_date = date.today()
+    month_name = current_date.strftime("%B %Y")
 
-    # Budgets
-    if context['budgets']:
-        lines.append("\nActive Budgets:")
-        for budget in context['budgets']:
-            status = "OVER" if budget['is_over_budget'] else "OK"
+    # Header
+    lines.append(f"USER FINANCIAL SNAPSHOT ({month_name})")
+    lines.append("=" * 60)
+
+    # 1. MONTHLY SUMMARY SECTION
+    lines.append("\n📊 MONTHLY SUMMARY")
+    lines.append(f"  Income: ${summary.get('month_income', 0):,.2f}")
+    lines.append(f"  Spending: ${summary.get('month_spending', 0):,.2f}")
+    lines.append(f"  Net: ${summary.get('month_net', 0):,.2f}")
+    lines.append(f"  Days remaining: {trends.get('days_remaining', 0)} of {trends.get('days_in_month', 30)}")
+
+    # 2. ALERTS SECTION (if any budgets are over)
+    alerts = trends.get('budget_alerts', [])
+    if alerts:
+        lines.append("\n⚠️ IMMEDIATE ALERTS")
+        for alert in alerts:
+            over_by = alert['spent_this_month'] - alert['budget_amount']
+            lines.append(f"  🔴 {alert['category'].title()}: OVER BUDGET by ${over_by:,.2f}")
+        lines.append(f"  📈 Projected month-end: ${trends.get('projected_month_total', 0):,.2f}")
+
+    # 3. SPENDING BREAKDOWN SECTION
+    if categories:
+        lines.append("\n💰 SPENDING BREAKDOWN (This Month)")
+        for cat in sorted(categories, key=lambda x: x['amount'], reverse=True):
+            lines.append(f"  {cat['category'].title()}: ${cat['amount']:,.2f} ({cat['transaction_count']} tx)")
+
+        highest_cat = trends.get('highest_category')
+        if highest_cat:
+            growth = trends.get('month_growth_percent', 0)
+            lines.append(f"\n  Top category: {highest_cat.title()} at ${trends.get('highest_amount', 0):,.2f}")
+            lines.append(f"  Spending trend: {growth:+.1f}% vs last month")
+
+    # 4. BUDGET STATUS SECTION
+    if budgets:
+        lines.append("\n📈 BUDGET STATUS")
+        for budget in budgets:
+            status_emoji = "✅" if not budget['is_over_budget'] else "🔴"
+            remaining = budget['budget_amount'] - budget['spent_this_month']
+            status_text = f"${remaining:,.2f} left" if remaining >= 0 else f"${abs(remaining):,.2f} over"
             lines.append(
-                f"  {budget['category'].title()}: ${budget['budget_amount']:.2f} "
-                f"(spent ${budget['spent_this_month']:.2f}, {budget['progress_percentage']:.1f}%) [{status}]"
+                f"  {status_emoji} {budget['category'].title()}: "
+                f"${budget['spent_this_month']:,.2f}/${budget['budget_amount']:,.2f} ({status_text})"
             )
     else:
-        lines.append("\nActive Budgets: None set yet")
+        lines.append("\n📈 BUDGET STATUS: No budgets set yet")
 
-    # Goals
-    if context['goals']:
-        lines.append("\nFinancial Goals:")
-        for goal in context['goals']:
+    # 5. FINANCIAL GOALS SECTION
+    if goals:
+        lines.append("\n🎯 FINANCIAL GOALS")
+        for goal in goals:
+            status_emoji = "✅" if goal['status'] == 'completed' else "📍"
+            remaining = goal['target_amount'] - goal['current_amount']
             lines.append(
-                f"  {goal['name']}: ${goal['current_amount']:.2f} / ${goal['target_amount']:.2f} "
-                f"({goal['progress_percentage']:.1f}%) - {goal['status'].upper()}"
+                f"  {status_emoji} {goal['name']}: "
+                f"${goal['current_amount']:,.2f}/${goal['target_amount']:,.2f} ({goal['progress_percentage']:.1f}%)"
             )
-            if goal['days_until_target']:
-                lines.append(f"    Target date: {goal['days_until_target']} days away")
-    else:
-        lines.append("\nFinancial Goals: None set yet")
 
-    lines.append("\n" + "=" * 50)
+            if goal['days_until_target'] and goal['days_until_target'] > 0 and remaining > 0:
+                daily_need = remaining / goal['days_until_target']
+                lines.append(f"     → Need ${daily_need:,.2f}/day for {goal['days_until_target']} more days")
+    else:
+        lines.append("\n🎯 FINANCIAL GOALS: None set yet")
+
+    # 6. RECENT TRANSACTIONS SECTION
+    if transactions:
+        lines.append("\n💳 RECENT TRANSACTIONS (Last 10)")
+        for tx in transactions[:10]:
+            tx_emoji = "💸" if tx['type'] == 'expense' else "💰"
+            tx_date = tx['date'][:10] if 'T' in tx['date'] else tx['date']  # Extract date part if ISO format
+            lines.append(f"  {tx_emoji} {tx_date}: {tx['description']} - ${tx['amount']:,.2f} ({tx['category'].title()})")
+
+    lines.append("\n" + "=" * 60)
 
     return "\n".join(lines)

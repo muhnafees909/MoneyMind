@@ -36,6 +36,10 @@ export class TransactionForm {
     transaction_notes: ''
   };
 
+  dateInput: string = '';
+  showCategoryDropdown: boolean = false;
+  showTypeDropdown: boolean = false;
+
   categories = [
     'groceries',
     'dining',
@@ -60,13 +64,50 @@ export class TransactionForm {
         this.transaction.transaction_date = new Date(this.transaction.transaction_date);
       }
     }
+
+    // Format date for input[type="date"]
+    this.dateInput = this.formatDateForInput(this.transaction.transaction_date);
   }
-  
+
+  formatDateForInput(date: any): string {
+    if (!date) return '';
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  toggleCategoryDropdown(): void {
+    this.showCategoryDropdown = !this.showCategoryDropdown;
+    this.showTypeDropdown = false;
+  }
+
+  toggleTypeDropdown(): void {
+    this.showTypeDropdown = !this.showTypeDropdown;
+    this.showCategoryDropdown = false;
+  }
+
+  selectCategory(category: string): void {
+    this.transaction.category = category;
+    this.showCategoryDropdown = false;
+  }
+
+  selectType(type: string): void {
+    this.transaction.transaction_type = type;
+    this.showTypeDropdown = false;
+  }
+
   onCancel(): void {
     this.dialogRef.close();
   }
 
   onSave(): void {
+    // Update transaction_date from dateInput
+    if (this.dateInput) {
+      this.transaction.transaction_date = new Date(this.dateInput);
+    }
+
     // Format date as YYYY-MM-DD
     const formattedTransaction = {
       ...this.transaction,

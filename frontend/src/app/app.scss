@@ -1,0 +1,457 @@
+// ============================================
+// MoneyMind Global App Styles
+// Dark Theme with Purple Gradient Accents
+// ============================================
+
+// Color Variables
+$primary-gradient-start: #667eea;
+$primary-gradient-end: #764ba2;
+$dark-bg-primary: #1a1a1a;
+$dark-bg-secondary: #2d2d2d;
+$white-base: #ffffff;
+$text-dark: #1a1a1a;
+$text-light: #f5f5f5;
+$text-secondary: #666666;
+$text-tertiary: #999999;
+
+// Status Colors
+$success: #4caf50;
+$error: #f44336;
+$error-light: #ff6b6b;
+$warning: #ff9800;
+$info: #2196f3;
+
+// Transparent Overlays
+$white-transparent-5: rgba(255, 255, 255, 0.05);
+$white-transparent-10: rgba(255, 255, 255, 0.1);
+$white-transparent-20: rgba(255, 255, 255, 0.2);
+$white-transparent-70: rgba(255, 255, 255, 0.7);
+$primary-transparent-10: rgba(102, 126, 234, 0.1);
+$primary-transparent-15: rgba(102, 126, 234, 0.15);
+$primary-transparent-20: rgba(102, 126, 234, 0.2);
+$primary-transparent-40: rgba(102, 126, 234, 0.4);
+
+// Border Radius
+$border-radius-sm: 8px;
+$border-radius-md: 12px;
+$border-radius-lg: 16px;
+$border-radius-xl: 24px;
+
+// Shadows
+$shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
+$shadow-md: 0 4px 15px rgba(102, 126, 234, 0.4);
+$shadow-lg: 0 8px 32px rgba(102, 126, 234, 0.3);
+$shadow-elevation: 0 8px 24px rgba(102, 126, 234, 0.4);
+
+// Transitions
+$transition-fast: all 0.2s ease;
+$transition-default: all 0.3s ease;
+$transition-slow: all 0.5s ease;
+
+// Gradients
+$gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+$gradient-dark: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+
+// ============================================
+// Global App Container
+// ============================================
+
+app-root {
+  display: block;
+  min-height: 100vh;
+  background: $gradient-dark;
+  color: $text-light;
+  transition: $transition-default;
+}
+
+// ============================================
+// Material Card Override
+// ============================================
+
+mat-card {
+  background: $white-transparent-5 !important;
+  backdrop-filter: blur(10px);
+  border-radius: $border-radius-lg !important;
+  border: 1px solid $white-transparent-10;
+  box-shadow: $shadow-lg;
+  transition: $transition-default;
+
+  &:hover {
+    background: $white-transparent-10 !important;
+    box-shadow: 0 12px 40px $primary-transparent-20;
+    transform: translateY(-2px);
+  }
+}
+
+mat-card-header {
+  color: $text-light;
+}
+
+mat-card-title {
+  color: $text-light;
+  font-weight: 600;
+}
+
+mat-card-subtitle {
+  color: $white-transparent-70;
+}
+
+mat-card-content {
+  color: $text-light;
+}
+
+// ============================================
+// Scrollbar Styling
+// ============================================
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: $white-transparent-5;
+}
+
+::-webkit-scrollbar-thumb {
+  background: $gradient-primary;
+  border-radius: 4px;
+
+  &:hover {
+    background: linear-gradient(135deg, $primary-gradient-end 0%, $primary-gradient-start 100%);
+  }
+}
+
+// ============================================
+// Text Utilities
+// ============================================
+
+p, span, label, button {
+  color: $text-light;
+}
+
+a {
+  color: $primary-gradient-start;
+  transition: $transition-fast;
+
+  &:hover {
+    color: $primary-gradient-end;
+  }
+}
+
+// ============================================
+// Form Elements
+// ============================================
+
+input, textarea, select {
+  background-color: $white-transparent-5 !important;
+  color: $text-light !important;
+  border-color: $white-transparent-10 !important;
+  transition: $transition-default;
+
+  &:focus {
+    border-color: $primary-gradient-start !important;
+    box-shadow: 0 0 0 4px $primary-transparent-10 !important;
+    outline: none !important;
+  }
+
+  &::placeholder {
+    color: $white-transparent-70 !important;
+  }
+}
+
+// ============================================
+// Material Form Field Override
+// ============================================
+
+::ng-deep {
+  .mat-mdc-form-field {
+    .mat-mdc-form-field-label {
+      color: $white-transparent-70 !important;
+    }
+
+    .mdc-notched-outline {
+      .mdc-notched-outline__leading,
+      .mdc-notched-outline__notch,
+      .mdc-notched-outline__trailing {
+        border-color: $white-transparent-10 !important;
+      }
+    }
+
+    .mat-mdc-text-field-wrapper input,
+    .mat-mdc-text-field-wrapper textarea {
+      color: $text-light !important;
+    }
+
+    &.mat-focused {
+      .mdc-notched-outline__leading,
+      .mdc-notched-outline__notch,
+      .mdc-notched-outline__trailing {
+        border-color: $primary-gradient-start !important;
+      }
+
+      .mat-mdc-form-field-label {
+        color: $primary-gradient-start !important;
+      }
+    }
+  }
+
+  .mat-mdc-select {
+    .mat-mdc-select-trigger {
+      color: $text-light !important;
+    }
+
+    .mdc-notched-outline {
+      .mdc-notched-outline__leading,
+      .mdc-notched-outline__notch,
+      .mdc-notched-outline__trailing {
+        border-color: $white-transparent-10 !important;
+      }
+    }
+
+    &.mat-focused {
+      .mdc-notched-outline__leading,
+      .mdc-notched-outline__notch,
+      .mdc-notched-outline__trailing {
+        border-color: $primary-gradient-start !important;
+      }
+    }
+  }
+
+  .mat-mdc-option {
+    color: $text-dark !important;
+
+    &.mat-selected {
+      background: $primary-transparent-10 !important;
+      color: $primary-gradient-start !important;
+    }
+
+    &:hover {
+      background: $primary-transparent-15 !important;
+    }
+  }
+
+  .mat-mdc-menu-panel {
+    background: rgba($dark-bg-secondary, 0.95) !important;
+    backdrop-filter: blur(10px);
+    border: 1px solid $white-transparent-10 !important;
+    border-radius: $border-radius-md !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+
+    .mat-mdc-menu-content {
+      padding: 8px 0 !important;
+    }
+
+    .mat-mdc-menu-item {
+      color: $text-light !important;
+
+      &:hover {
+        background: $primary-transparent-15 !important;
+      }
+
+      &.mat-selected {
+        background: $primary-transparent-25 !important;
+        color: $primary-gradient-start !important;
+      }
+    }
+  }
+
+  .mat-mdc-dialog-container {
+    background: rgba($dark-bg-secondary, 0.95) !important;
+    backdrop-filter: blur(10px);
+    border: 1px solid $white-transparent-10 !important;
+    border-radius: $border-radius-xl !important;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  }
+
+  .mat-mdc-button,
+  .mat-mdc-raised-button,
+  .mat-mdc-stroked-button {
+    &:not(.mat-primary):not(.mat-accent):not(.mat-warn) {
+      color: $text-light !important;
+      transition: $transition-default;
+
+      &:hover {
+        background: $primary-transparent-15 !important;
+      }
+    }
+
+    &.mat-primary {
+      background: $gradient-primary !important;
+      color: white !important;
+      box-shadow: $shadow-md !important;
+      transition: $transition-default;
+
+      &:hover {
+        box-shadow: 0 6px 20px $primary-transparent-40 !important;
+        transform: translateY(-2px);
+      }
+    }
+  }
+
+  .mat-progress-bar {
+    background: $white-transparent-10 !important;
+
+    .mat-mdc-progress-bar-buffer {
+      background: $white-transparent-10 !important;
+    }
+
+    .mdc-linear-progress__bar-inner {
+      background: $gradient-primary !important;
+    }
+  }
+
+  .mat-mdc-checkbox {
+    .mdc-checkbox__background {
+      border-color: $white-transparent-10 !important;
+    }
+
+    &.mat-checked .mdc-checkbox__background {
+      background: $gradient-primary !important;
+      border-color: $primary-gradient-start !important;
+    }
+  }
+
+  .mat-mdc-radio-button {
+    &.mat-checked {
+      .mdc-radio__outer-circle {
+        border-color: $primary-gradient-start !important;
+      }
+
+      .mdc-radio__inner-circle {
+        border-color: $primary-gradient-start !important;
+        background: $primary-gradient-start !important;
+      }
+    }
+  }
+
+  .mat-mdc-tab-nav-bar,
+  .mat-mdc-tab-header {
+    background: $white-transparent-5 !important;
+    border-bottom: 1px solid $white-transparent-10 !important;
+
+    .mat-mdc-tab {
+      color: $white-transparent-70 !important;
+
+      &.mat-mdc-tab-active {
+        color: $primary-gradient-start !important;
+      }
+
+      .mdc-tab-indicator__content {
+        border-bottom-color: $gradient-primary !important;
+      }
+    }
+  }
+
+  .mdc-text-field--filled .mdc-text-field__input {
+    background-color: $white-transparent-5 !important;
+    color: $text-light !important;
+
+    &:focus {
+      background-color: $white-transparent-10 !important;
+    }
+  }
+
+  .mat-mdc-table {
+    background: transparent !important;
+
+    .mat-mdc-header-cell {
+      background: $primary-transparent-10 !important;
+      color: $text-light !important;
+      font-weight: 600 !important;
+    }
+
+    .mat-mdc-cell {
+      color: $text-light !important;
+      border-bottom: 1px solid $white-transparent-10 !important;
+    }
+
+    .mat-mdc-row {
+      transition: $transition-fast;
+
+      &:hover {
+        background: $primary-transparent-10 !important;
+      }
+    }
+  }
+
+  .mat-mdc-tooltip {
+    background: rgba($dark-bg-secondary, 0.95) !important;
+    border: 1px solid $white-transparent-10 !important;
+    border-radius: $border-radius-sm !important;
+    color: $text-light !important;
+  }
+
+  .mat-badge-content {
+    background: $error-light !important;
+    color: white !important;
+  }
+}
+
+// ============================================
+// Utility Classes
+// ============================================
+
+.glass-effect {
+  background: $white-transparent-5;
+  backdrop-filter: blur(10px);
+  border: 1px solid $white-transparent-10;
+  border-radius: $border-radius-lg;
+  box-shadow: $shadow-lg;
+}
+
+.gradient-text {
+  background: $gradient-primary;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-button {
+  background: $gradient-primary;
+  color: white;
+  border: none;
+  border-radius: $border-radius-md;
+  box-shadow: $shadow-md;
+  transition: $transition-default;
+  cursor: pointer;
+
+  &:hover {
+    box-shadow: 0 6px 20px $primary-transparent-40;
+    transform: translateY(-2px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.text-light {
+  color: $text-light;
+}
+
+.text-secondary {
+  color: $white-transparent-70;
+}
+
+.text-tertiary {
+  color: $text-tertiary;
+}
+
+.error-text {
+  color: $error-light;
+}
+
+.success-text {
+  color: $success;
+}
+
+// ============================================
+// Responsive Design
+// ============================================
+
+@media (max-width: 768px) {
+  app-root {
+    padding: 0;
+  }
+}

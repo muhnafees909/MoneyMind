@@ -1,190 +1,1080 @@
+/* goals.component.scss */
+
+// ============================================
+// VARIABLES - Dark Fintech Theme
+// ============================================
+$bg-primary: #0f1219;
+$bg-secondary: #1a1f2e;
+$bg-card: #232a3b;
+$bg-input: #1e2433;
+$bg-hover: #2a3347;
+
+$accent-orange: #f97316;
+$accent-orange-hover: #fb923c;
+$accent-purple: #a855f7;
+$accent-coral: #ff6b6b;
+$accent-green: #22c55e;
+$accent-green-light: #4ade80;
+$accent-blue: #3b82f6;
+$accent-yellow: #eab308;
+
+$text-primary: #ffffff;
+$text-secondary: #94a3b8;
+$text-muted: #64748b;
+
+$border-color: rgba(148, 163, 184, 0.1);
+$border-color-hover: rgba(148, 163, 184, 0.2);
+
+$gradient-primary: linear-gradient(135deg, $accent-orange 0%, $accent-purple 100%);
+$gradient-green: linear-gradient(135deg, #22c55e 0%, #10b981 100%);
+$gradient-warning: linear-gradient(135deg, #eab308 0%, #f97316 100%);
+$gradient-success: linear-gradient(135deg, #22c55e 0%, #14b8a6 100%);
+
+$shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+$shadow-md: 0 4px 20px rgba(0, 0, 0, 0.3);
+$shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.4);
+$shadow-glow-orange: 0 0 30px rgba(249, 115, 22, 0.15);
+$shadow-glow-green: 0 0 30px rgba(34, 197, 94, 0.2);
+
+$radius-sm: 8px;
+$radius-md: 12px;
+$radius-lg: 16px;
+$radius-xl: 24px;
+$radius-pill: 50px;
+
+$font-primary: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+
+$transition-fast: 0.15s ease;
+$transition-base: 0.25s ease;
+
+// ============================================
+// IMPORTS
+// ============================================
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+// ============================================
+// BASE CONTAINER - FULL WIDTH
+// ============================================
 .goals-container {
-    padding: 24px;
-    max-width: 1400px;
-    margin: 0 auto;
-  }
-  
-  .add-goal-card {
-    margin-bottom: 32px;
-  }
-  
-  .goal-form {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
-    align-items: start;
-  
-    .full-width {
-      grid-column: 1 / -1;
+  min-height: 100vh;
+  background: $bg-primary;
+  font-family: $font-primary;
+  padding: 32px;
+  box-sizing: border-box;
+}
+
+// ============================================
+// PAGE HEADER
+// ============================================
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+  gap: 16px;
+
+  .header-left {
+    h1 {
+      font-size: 32px;
+      font-weight: 800;
+      color: $text-primary;
+      margin: 0 0 8px 0;
+      letter-spacing: -0.03em;
     }
-  
-    button {
-      height: 56px;
-      margin-top: 0;
+
+    .subtitle {
+      font-size: 15px;
+      color: $text-secondary;
+      margin: 0;
     }
   }
-  
-  .goals-section {
-    margin-bottom: 32px;
-  
-    h2 {
-      margin-bottom: 16px;
-      color: #333;
-    }
-  }
-  
-  .goals-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    gap: 24px;
-  }
-  
-  .goal-card {
+
+  .header-stats {
     display: flex;
-    flex-direction: column;
-  
-    &.completed {
-      background-color: #f1f8f4;
-      border-left: 4px solid #4caf50;
+    gap: 12px;
+  }
+}
+
+.stat-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: $bg-card;
+  border: 1px solid $border-color;
+  border-radius: $radius-pill;
+  font-size: 14px;
+  font-weight: 600;
+  color: $text-secondary;
+
+  .stat-icon {
+    font-size: 16px;
+  }
+
+  &.completed {
+    background: rgba($accent-green, 0.1);
+    border-color: rgba($accent-green, 0.3);
+    color: $accent-green;
+  }
+}
+
+// ============================================
+// SECTION CARD
+// ============================================
+.section-card {
+  background: $bg-card;
+  border: 1px solid $border-color;
+  border-radius: $radius-lg;
+  margin-bottom: 32px;
+  overflow: hidden;
+}
+
+.section-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid $border-color;
+
+  .section-title {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+
+    > svg {
+      width: 24px;
+      height: 24px;
+      color: $accent-orange;
+      flex-shrink: 0;
+      margin-top: 2px;
     }
-  
-    mat-card-header {
-      margin-bottom: 16px;
-    }
-  
-    mat-card-content {
-      flex: 1;
+
+    .title-group {
+      h3 {
+        font-size: 18px;
+        font-weight: 700;
+        color: $text-primary;
+        margin: 0 0 4px 0;
+      }
+
+      .section-subtitle {
+        font-size: 14px;
+        color: $text-muted;
+      }
     }
   }
-  
-  .progress-info {
-    margin-bottom: 16px;
-  
-    .amount-display {
-      display: flex;
-      align-items: baseline;
-      gap: 8px;
-      margin-bottom: 8px;
-  
-      .current-amount {
-        font-size: 28px;
-        font-weight: bold;
-        color: #1976d2;
-      }
-  
-      .separator {
-        font-size: 20px;
-        color: #757575;
-      }
-  
-      .target-amount {
-        font-size: 20px;
-        color: #757575;
-      }
-  
-      .completed-amount {
-        font-size: 28px;
-        font-weight: bold;
-        color: #4caf50;
-      }
+}
+
+.card-content {
+  padding: 24px;
+}
+
+// ============================================
+// GOAL FORM
+// ============================================
+.goal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-row {
+  display: flex;
+  gap: 20px;
+
+  &.three-col {
+    .form-group {
+      flex: 1;
+      min-width: 180px;
     }
-  
-    .remaining-amount {
-      color: #757575;
-      font-size: 14px;
+  }
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  &.full-width {
+    flex: 1;
+  }
+
+  label {
+    font-size: 13px;
+    font-weight: 600;
+    color: $text-secondary;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  .input-icon {
+    position: absolute;
+    left: 16px;
+    width: 18px;
+    height: 18px;
+    color: $text-muted;
+    pointer-events: none;
+  }
+
+  input {
+    width: 100%;
+    padding: 14px 16px;
+    background: $bg-input;
+    border: 1px solid $border-color;
+    border-radius: 25px 0 0 25px;
+    border-right: none;
+    font-family: $font-primary;
+    font-size: 15px;
+    color: $text-primary;
+    outline: none;
+    transition: $transition-base;
+
+    &::placeholder {
+      color: $text-muted;
     }
-  
-    .completed-date {
-      color: #4caf50;
-      font-size: 14px;
+
+    &:hover {
+      border-color: $border-color-hover;
+    }
+
+    &:focus {
+      border-color: $accent-orange;
+      box-shadow: 0 0 0 3px rgba($accent-orange, 0.1);
+    }
+  }
+
+  &.has-prefix {
+    .input-prefix {
+      position: absolute;
+      left: 16px;
+      color: $text-muted;
+      font-size: 15px;
       font-weight: 500;
     }
+
+    input {
+      padding-left: 32px;
+    }
   }
-  
-  .progress-section {
+
+  // Has icon
+  .input-icon + input {
+    padding-left: 44px;
+  }
+}
+
+.textarea-wrapper {
+  textarea {
+    width: 100%;
+    padding: 14px 16px;
+    background: $bg-input;
+    border: 1px solid $border-color;
+    border-radius: $radius-lg;
+    font-family: $font-primary;
+    font-size: 15px;
+    color: $text-primary;
+    outline: none;
+    resize: vertical;
+    min-height: 60px;
+    transition: $transition-base;
+
+    &::placeholder {
+      color: $text-muted;
+    }
+
+    &:hover {
+      border-color: $border-color-hover;
+    }
+
+    &:focus {
+      border-color: $accent-orange;
+      box-shadow: 0 0 0 3px rgba($accent-orange, 0.1);
+    }
+  }
+}
+
+// Datepicker wrapper
+.datepicker-wrapper {
+  .dark-datepicker {
+    width: 100%;
+
+    .mat-mdc-form-field-flex,
+    .mat-form-field-flex {
+      background: $bg-input;
+      border-radius: $radius-pill;
+      padding: 0 16px;
+    }
+
+    .mat-mdc-text-field-wrapper,
+    .mat-form-field-wrapper {
+      padding: 0;
+    }
+
+    .mdc-notched-outline,
+    .mat-form-field-outline {
+      display: none;
+    }
+
+    input {
+      color: $text-primary;
+      font-family: $font-primary;
+    }
+
+    .mat-datepicker-toggle {
+      color: $text-muted;
+    }
+
+    .mat-mdc-form-field-subscript-wrapper {
+      display: none;
+    }
+  }
+}
+
+// Remove number input spinners
+input[type="number"] {
+  -moz-appearance: textfield;
+
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-start;
+  padding-top: 8px;
+}
+
+.submit-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 32px;
+  background: $gradient-primary;
+  border: none;
+  border-radius: $radius-pill;
+  font-family: $font-primary;
+  font-size: 15px;
+  font-weight: 600;
+  color: $text-primary;
+  cursor: pointer;
+  transition: $transition-base;
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: $shadow-glow-orange, $shadow-md;
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+// ============================================
+// GOALS SECTION
+// ============================================
+.goals-section {
+  margin-bottom: 40px;
+}
+
+.section-title-row {
+  margin-bottom: 24px;
+
+  h2 {
     display: flex;
     align-items: center;
     gap: 12px;
-    margin-bottom: 16px;
-  
-    mat-progress-bar {
-      flex: 1;
-      height: 8px;
-      border-radius: 4px;
+    font-size: 22px;
+    font-weight: 800;
+    color: $text-primary;
+    margin: 0;
+
+    svg {
+      width: 24px;
+      height: 24px;
+      color: $accent-orange;
     }
-  
-    .progress-text {
-      font-weight: 500;
-      min-width: 45px;
-    }
-  }
-  
-  .deadline-info {
-    margin-bottom: 16px;
-  
-    mat-chip {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-  
-      &.overdue {
-        background-color: #ffebee;
-        color: #c62828;
-      }
+
+    .celebration {
+      font-size: 24px;
     }
   }
-  
-  .add-progress-section {
+}
+
+.goals-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 24px;
+}
+
+// ============================================
+// GOAL CARD
+// ============================================
+.goal-card {
+  background: $bg-card;
+  border: 1px solid $border-color;
+  border-radius: $radius-lg;
+  overflow: hidden;
+  transition: $transition-base;
+
+  &:hover {
+    border-color: $border-color-hover;
+    box-shadow: $shadow-md;
+  }
+
+  &.editing {
+    border-color: $accent-orange;
+    box-shadow: $shadow-glow-orange;
+  }
+
+  &.completed {
+    border-color: rgba($accent-green, 0.3);
+
+    &:hover {
+      box-shadow: $shadow-glow-green;
+    }
+
+    .goal-header h4 {
+      color: $accent-green;
+    }
+  }
+}
+
+.goal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 20px 20px 0;
+  gap: 16px;
+}
+
+.goal-title-section {
+  flex: 1;
+  min-width: 0;
+
+  h4 {
+    font-size: 18px;
+    font-weight: 700;
+    color: $text-primary;
+    margin: 0 0 6px 0;
     display: flex;
-    gap: 8px;
-    align-items: start;
-  
-    .progress-input {
-      flex: 1;
-      margin: 0;
-    }
-  
-    button {
-      height: 56px;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .goal-description {
+    font-size: 14px;
+    color: $text-muted;
+    margin: 0;
+    line-height: 1.5;
+  }
+}
+
+.completed-badge {
+  display: inline-flex;
+  color: $accent-green;
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.inline-edit-field {
+  margin-bottom: 12px;
+
+  input,
+  textarea {
+    width: 100%;
+    padding: 10px 14px;
+    background: $bg-input;
+    border: 1px solid $border-color;
+    border-radius: $radius-md;
+    font-family: $font-primary;
+    font-size: 15px;
+    color: $text-primary;
+    outline: none;
+    transition: $transition-base;
+
+    &:focus {
+      border-color: $accent-orange;
     }
   }
-  
-  .edit-form {
-    display: flex;
+
+  textarea {
+    resize: vertical;
+    min-height: 50px;
+  }
+}
+
+.goal-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.icon-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: $bg-hover;
+  border: 1px solid $border-color;
+  border-radius: $radius-sm;
+  cursor: pointer;
+  transition: $transition-fast;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  &.edit {
+    color: $accent-blue;
+
+    &:hover {
+      background: rgba($accent-blue, 0.15);
+      border-color: $accent-blue;
+    }
+  }
+
+  &.delete {
+    color: $accent-coral;
+
+    &:hover {
+      background: rgba($accent-coral, 0.15);
+      border-color: $accent-coral;
+    }
+  }
+
+  &.save {
+    color: $accent-green;
+
+    &:hover {
+      background: rgba($accent-green, 0.15);
+      border-color: $accent-green;
+    }
+  }
+
+  &.cancel {
+    color: $text-muted;
+
+    &:hover {
+      background: $bg-hover;
+      border-color: $border-color-hover;
+      color: $text-secondary;
+    }
+  }
+}
+
+// ============================================
+// GOAL CONTENT
+// ============================================
+.goal-content {
+  padding: 20px;
+}
+
+.amount-display {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.current-amount {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+
+  .amount-value {
+    font-size: 26px;
+    font-weight: 800;
+    color: $text-primary;
+  }
+
+  .amount-separator {
+    color: $text-muted;
+    font-size: 18px;
+  }
+
+  .target-value {
+    font-size: 16px;
+    font-weight: 600;
+    color: $text-muted;
+  }
+}
+
+.remaining-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: rgba($accent-purple, 0.1);
+  border-radius: $radius-pill;
+  font-size: 13px;
+  font-weight: 600;
+  color: $accent-purple;
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  &.almost-there {
+    background: rgba($accent-green, 0.1);
+    color: $accent-green;
+  }
+}
+
+// Progress Bar
+.progress-section {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.progress-bar-container {
+  flex: 1;
+  height: 10px;
+  background: $bg-hover;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  width: 0%;
+  background: $gradient-primary;
+  border-radius: 5px;
+  transition: width 0.6s ease;
+
+  &.warning {
+    background: $gradient-warning;
+  }
+
+  &.success,
+  &.complete {
+    background: $gradient-success;
+    width: 100%;
+  }
+}
+
+.progress-text {
+  font-size: 14px;
+  font-weight: 700;
+  color: $text-secondary;
+  min-width: 45px;
+  text-align: right;
+
+  &.success {
+    color: $accent-green;
+  }
+}
+
+// Deadline
+.deadline-section {
+  margin-bottom: 16px;
+}
+
+.deadline-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: $bg-hover;
+  border-radius: $radius-pill;
+  font-size: 13px;
+  color: $text-secondary;
+
+  svg {
+    width: 14px;
+    height: 14px;
+    color: $accent-orange;
+  }
+
+  &.urgent {
+    background: rgba($accent-yellow, 0.1);
+    color: $accent-yellow;
+
+    svg {
+      color: $accent-yellow;
+    }
+  }
+
+  &.overdue {
+    background: rgba($accent-coral, 0.1);
+    color: $accent-coral;
+
+    svg {
+      color: $accent-coral;
+    }
+  }
+}
+
+// Add Progress
+.add-progress-section {
+  display: flex;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid $border-color;
+  align-items: center;
+}
+
+.progress-input-wrapper {
+  position: relative;
+  flex: 1;
+
+  .input-prefix {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: $text-muted;
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  input {
+    width: 100%;
+    padding: 12px 14px 12px 30px;
+    background: $bg-input;
+    border: 1px solid $border-color;
+    border-radius: $radius-pill;
+    font-family: $font-primary;
+    font-size: 14px;
+    color: $text-primary;
+    outline: none;
+    transition: $transition-base;
+
+    &::placeholder {
+      color: $text-muted;
+    }
+
+    &:focus {
+      border-color: $accent-green;
+      box-shadow: 0 0 0 3px rgba($accent-green, 0.1);
+    }
+  }
+}
+
+.add-progress-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: $accent-green;
+  border: none;
+  border-radius: 25px 25px 25px 0;
+  z-index: 100;
+  font-family: $font-primary;
+  font-size: 14px;
+  font-weight: 600;
+  color: $text-primary;
+  cursor: pointer;
+  transition: $transition-base;
+  white-space: nowrap;
+  flex-shrink: 0;
+
+  svg {
+    width: 16px;
+    height: 16px;
+    display: block;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: $shadow-glow-green, $shadow-sm;
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+// Removed conflicting SVG display rules - SVG now displays naturally
+// ============================================
+// EDIT MODE
+// ============================================
+.edit-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 16px;
+
+  .form-group {
+    label {
+      font-size: 12px;
+      font-weight: 600;
+      color: $text-muted;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+    }
+  }
+
+  .input-wrapper input {
+    padding: 12px 14px 12px 28px;
+    font-size: 14px;
+  }
+
+  .input-prefix {
+    font-size: 14px;
+    left: 12px;
+  }
+}
+
+// ============================================
+// COMPLETED GOALS
+// ============================================
+.completed-section {
+  .section-title-row h2 svg {
+    color: $accent-green;
+  }
+}
+
+.completed-amount {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 16px;
+
+  .amount-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: $text-muted;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .amount-value {
+    font-size: 28px;
+    font-weight: 800;
+    color: $accent-green;
+  }
+}
+
+.completed-date {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: $text-muted;
+  margin-top: 12px;
+
+  svg {
+    width: 14px;
+    height: 14px;
+    color: $accent-green;
+  }
+}
+
+// ============================================
+// EMPTY STATE
+// ============================================
+.empty-state {
+  padding: 60px 24px;
+  text-align: center;
+  background: $bg-card;
+  border: 1px solid $border-color;
+  border-radius: $radius-lg;
+
+  .empty-icon {
+    font-size: 56px;
+    margin-bottom: 16px;
+  }
+
+  p {
+    font-size: 18px;
+    font-weight: 600;
+    color: $text-primary;
+    margin: 0 0 8px 0;
+  }
+
+  span {
+    font-size: 14px;
+    color: $text-muted;
+  }
+}
+
+// ============================================
+// RESPONSIVE DESIGN
+// ============================================
+@media (max-width: 900px) {
+  .form-row.three-col {
+    flex-wrap: wrap;
+
+    .form-group {
+      min-width: 100%;
+    }
+  }
+
+  .goals-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .goals-container {
+    padding: 20px 16px;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+
+    h1 {
+      font-size: 26px;
+    }
+  }
+
+  .section-header {
+    padding: 16px 20px;
+  }
+
+  .card-content {
+    padding: 20px;
+  }
+
+  .goal-header {
     flex-direction: column;
     gap: 12px;
-    margin-bottom: 16px;
   }
-  
-  .inline-edit {
+
+  .goal-actions {
+    align-self: flex-end;
+  }
+
+  .amount-display {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .current-amount .amount-value {
+    font-size: 22px;
+  }
+
+  .add-progress-section {
+    flex-direction: column;
+  }
+
+  .add-progress-btn {
     width: 100%;
-    margin: 0;
-  
-    &:not(.full-width) {
-      margin-bottom: 8px;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .edit-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .header-stats {
+    flex-direction: column;
+    width: 100%;
+
+    .stat-pill {
+      justify-content: center;
     }
   }
-  
-  .completed-icon {
-    color: #4caf50;
-    margin-left: 8px;
-    vertical-align: middle;
+}
+
+// ============================================
+// ANIMATIONS
+// ============================================
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
   }
-  
-  mat-card-actions {
-    padding: 16px;
-    border-top: 1px solid #e0e0e0;
-  
-    button {
-      mat-icon {
-        margin-right: 4px;
-      }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.section-card {
+  animation: fadeInUp 0.5s ease-out backwards;
+  animation-delay: 0.1s;
+}
+
+.goal-card {
+  animation: fadeInUp 0.5s ease-out backwards;
+
+  @for $i from 1 through 12 {
+    &:nth-child(#{$i}) {
+      animation-delay: #{0.15 + ($i * 0.08)}s;
     }
   }
-  
-  .no-data {
-    text-align: center;
-    color: #757575;
-    padding: 40px 0;
-    font-size: 16px;
+}
+
+// ============================================
+// MATERIAL DATEPICKER DARK THEME OVERRIDES
+// ============================================
+::ng-deep {
+  .mat-datepicker-content {
+    background: $bg-card;
+    border: 1px solid $border-color;
+    border-radius: $radius-lg;
+    box-shadow: $shadow-lg;
   }
+
+  .mat-calendar {
+    background: $bg-card;
+  }
+
+  .mat-calendar-header {
+    background: $bg-secondary;
+  }
+
+  .mat-calendar-body-label,
+  .mat-calendar-period-button,
+  .mat-calendar-arrow,
+  .mat-calendar-previous-button,
+  .mat-calendar-next-button {
+    color: $text-primary;
+  }
+
+  .mat-calendar-table-header th {
+    color: $text-muted;
+  }
+
+  .mat-calendar-body-cell-content {
+    color: $text-primary;
+  }
+
+  .mat-calendar-body-disabled > .mat-calendar-body-cell-content {
+    color: $text-muted;
+  }
+
+  .mat-calendar-body-selected {
+    background: $accent-orange;
+    color: $text-primary;
+  }
+
+  .mat-calendar-body-today:not(.mat-calendar-body-selected) {
+    border-color: $accent-orange;
+  }
+
+  .mat-calendar-body-cell:hover .mat-calendar-body-cell-content {
+    background: $bg-hover;
+  }
+
+  .mat-mdc-form-field-focus-overlay {
+    background: transparent;
+  }
+}

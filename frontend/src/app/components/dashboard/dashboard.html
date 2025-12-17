@@ -1,68 +1,173 @@
 <div class="dashboard-container">
-    <div class="dashboard-content" *ngIf="!loading">
-      <!-- Summary Cards -->
-      <div class="summary-section">
-        <mat-card>
-          <mat-card-header>
-            <mat-card-title>Total Expenses</mat-card-title>
-          </mat-card-header>
-          <mat-card-content>
-            <h2 class="amount expense">${{ summary.total_expenses || 0 | number:'1.2-2' }}</h2>
-          </mat-card-content>
-        </mat-card>
-  
-        <mat-card>
-          <mat-card-header>
-            <mat-card-title>Total Income</mat-card-title>
-          </mat-card-header>
-          <mat-card-content>
-            <h2 class="amount income">${{ summary.total_income || 0 | number:'1.2-2' }}</h2>
-          </mat-card-content>
-        </mat-card>
-  
-        <mat-card>
-          <mat-card-header>
-            <mat-card-title>Net</mat-card-title>
-          </mat-card-header>
-          <mat-card-content>
-            <h2 class="amount" [class.income]="summary.net >= 0" [class.expense]="summary.net < 0">
-              ${{ summary.net || 0 | number:'1.2-2' }}
-            </h2>
-          </mat-card-content>
-        </mat-card>
-  
-        <mat-card>
-          <mat-card-header>
-            <mat-card-title>Transactions</mat-card-title>
-          </mat-card-header>
-          <mat-card-content>
-            <h2>{{ summary.transaction_count || 0 }}</h2>
-          </mat-card-content>
-        </mat-card>
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="loading">
+    <div class="loading-spinner">
+      <div class="spinner"></div>
+      <p>Loading analytics...</p>
+    </div>
+  </div>
+
+  <!-- Dashboard Content -->
+  <div class="dashboard-content" *ngIf="!loading">
+    <!-- Page Header -->
+    <div class="page-header">
+      <div class="header-left">
+        <h1>Dashboard</h1>
+        <p class="subtitle">Your financial overview at a glance</p>
       </div>
-  
+      <div class="header-right">
+        <button class="add-transaction-btn" (click)="addTransaction()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          <span>Add Transaction</span>
+        </button>
+        <button class="connect-bank-btn" (click)="connectBank()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+          </svg>
+          <span>Link Bank Account</span>
+        </button>
+        <div class="date-display">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+          <span>{{ today | date:'mediumDate' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="summary-section">
+      <div class="summary-card expenses">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <polyline points="19 12 12 19 5 12"/>
+          </svg>
+        </div>
+        <div class="card-content">
+          <span class="card-label">Total Expenses</span>
+          <h2 class="card-value expense">${{ summary.total_expenses || 0 | number:'1.2-2' }}</h2>
+        </div>
+        <div class="card-trend negative">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/>
+            <polyline points="17 18 23 18 23 12"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="summary-card income">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="19" x2="12" y2="5"/>
+            <polyline points="5 12 12 5 19 12"/>
+          </svg>
+        </div>
+        <div class="card-content">
+          <span class="card-label">Total Income</span>
+          <h2 class="card-value income">${{ summary.total_income || 0 | number:'1.2-2' }}</h2>
+        </div>
+        <div class="card-trend positive">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+            <polyline points="17 6 23 6 23 12"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="summary-card net">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="1" x2="12" y2="23"/>
+            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+          </svg>
+        </div>
+        <div class="card-content">
+          <span class="card-label">Net Balance</span>
+          <h2 class="card-value" [class.income]="summary.net >= 0" [class.expense]="summary.net < 0">
+            ${{ summary.net || 0 | number:'1.2-2' }}
+          </h2>
+        </div>
+        <div class="card-trend" [class.positive]="summary.net >= 0" [class.negative]="summary.net < 0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" *ngIf="summary.net >= 0">
+            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+            <polyline points="17 6 23 6 23 12"/>
+          </svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" *ngIf="summary.net < 0">
+            <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/>
+            <polyline points="17 18 23 18 23 12"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="summary-card transactions">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <polyline points="10 9 9 9 8 9"/>
+          </svg>
+        </div>
+        <div class="card-content">
+          <span class="card-label">Transactions</span>
+          <h2 class="card-value neutral">{{ summary.transaction_count || 0 }}</h2>
+        </div>
+        <div class="card-trend neutral">
+          <span class="trend-text">Total</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Grid -->
+    <div class="main-grid">
       <!-- Transactions Table -->
-      <mat-card class="section-card">
-        <mat-card-header>
-          <mat-card-title>Recent Transactions</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
+      <div class="section-card transactions-section">
+        <div class="section-header">
+          <div class="section-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+              <line x1="1" y1="10" x2="23" y2="10"/>
+            </svg>
+            <h3>Recent Transactions</h3>
+          </div>
+          <div class="section-actions">
+            <button class="action-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+              </svg>
+              <span>Filter</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="table-container">
           <table mat-table [dataSource]="transactions" class="transactions-table">
             
             <!-- Date Column -->
             <ng-container matColumnDef="date">
               <th mat-header-cell *matHeaderCellDef>Date</th>
               <td mat-cell *matCellDef="let transaction">
-                {{ transaction.transaction_date | date:'shortDate' }}
+                <span class="date-cell">{{ transaction.transaction_date | date:'shortDate' }}</span>
               </td>
             </ng-container>
-  
+
             <!-- Description Column -->
             <ng-container matColumnDef="description">
               <th mat-header-cell *matHeaderCellDef>Description</th>
-              <td mat-cell *matCellDef="let transaction">{{ transaction.description }}</td>
+              <td mat-cell *matCellDef="let transaction">
+                <span class="description-cell">{{ transaction.description }}</span>
+              </td>
             </ng-container>
-  
+
             <!-- Category Column -->
             <ng-container matColumnDef="category">
               <th mat-header-cell *matHeaderCellDef>Category</th>
@@ -70,96 +175,160 @@
                 <span class="category-badge">{{ transaction.category }}</span>
               </td>
             </ng-container>
-  
+
             <!-- Amount Column -->
             <ng-container matColumnDef="amount">
               <th mat-header-cell *matHeaderCellDef>Amount</th>
               <td mat-cell *matCellDef="let transaction">
-                <span [class.expense-text]="transaction.transaction_type === 'expense'" 
-                      [class.income-text]="transaction.transaction_type === 'income'">
+                <span class="amount-cell" 
+                      [class.expense]="transaction.transaction_type === 'expense'" 
+                      [class.income]="transaction.transaction_type === 'income'">
+                  <span class="amount-sign">{{ transaction.transaction_type === 'expense' ? '-' : '+' }}</span>
                   ${{ transaction.amount | number:'1.2-2' }}
                 </span>
               </td>
             </ng-container>
+
             <!-- Type Column -->
             <ng-container matColumnDef="type">
               <th mat-header-cell *matHeaderCellDef>Type</th>
               <td mat-cell *matCellDef="let transaction">
-                <span class="type-badge" [class.expense-badge]="transaction.transaction_type === 'expense'"
+                <span class="type-badge" 
+                      [class.expense-badge]="transaction.transaction_type === 'expense'"
                       [class.income-badge]="transaction.transaction_type === 'income'">
+                  <span class="badge-dot"></span>
                   {{ transaction.transaction_type }}
                 </span>
               </td>
             </ng-container>
-  
+
             <!-- Source Column -->
             <ng-container matColumnDef="source">
               <th mat-header-cell *matHeaderCellDef>Source</th>
               <td mat-cell *matCellDef="let transaction">
-                <span class="source-badge">{{ transaction.source }}</span>
+                <span class="source-badge" [class.plaid]="transaction.source === 'plaid'">
+                  <svg *ngIf="transaction.source === 'plaid'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                  </svg>
+                  <svg *ngIf="transaction.source === 'manual'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                  </svg>
+                  {{ transaction.source }}
+                </span>
               </td>
             </ng-container>
-  
+
             <!-- Actions Column -->
             <ng-container matColumnDef="actions">
               <th mat-header-cell *matHeaderCellDef>Actions</th>
               <td mat-cell *matCellDef="let transaction">
-                <button mat-icon-button color="primary" (click)="editTransaction(transaction)" 
-                        *ngIf="transaction.source === 'manual'">
-                  <mat-icon>edit</mat-icon>
-                </button>
-                <button mat-icon-button color="warn" (click)="deleteTransaction(transaction.id)"
-                        *ngIf="transaction.source === 'manual'">
-                  <mat-icon>delete</mat-icon>
-                </button>
-                <span *ngIf="transaction.source === 'plaid'" class="plaid-locked">
-                  <mat-icon>lock</mat-icon>
-                </span>
+                <div class="action-buttons">
+                  <button class="icon-btn edit" (click)="editTransaction(transaction)" 
+                          *ngIf="transaction.source === 'manual'" title="Edit">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                  </button>
+                  <button class="icon-btn delete" (click)="deleteTransaction(transaction.id)"
+                          *ngIf="transaction.source === 'manual'" title="Delete">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="3 6 5 6 21 6"/>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                      <line x1="10" y1="11" x2="10" y2="17"/>
+                      <line x1="14" y1="11" x2="14" y2="17"/>
+                    </svg>
+                  </button>
+                  <span *ngIf="transaction.source === 'plaid'" class="locked-badge" title="Synced from Plaid">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
+                  </span>
+                </div>
               </td>
             </ng-container>
-  
+
             <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
             <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
           </table>
-  
-          <p *ngIf="transactions.length === 0" class="no-data">No transactions yet. Add one to get started!</p>
-        </mat-card-content>
-      </mat-card>
-  
-      <!-- Spending by Category -->
-      <mat-card class="section-card">
-        <mat-card-header>
-          <mat-card-title>Spending by Category</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <div *ngIf="spendingByCategory.length > 0">
-            <div *ngFor="let item of spendingByCategory" class="category-item">
-              <span class="category-name">{{ item.category }}</span>
+        </div>
+
+        <div *ngIf="transactions.length === 0" class="empty-state">
+          <div class="empty-icon">📊</div>
+          <p>No transactions yet</p>
+          <span>Add your first transaction to get started!</span>
+        </div>
+      </div>
+
+      <!-- Side Panel -->
+      <div class="side-panel">
+        <!-- Spending by Category -->
+        <div class="section-card category-section">
+          <div class="section-header">
+            <div class="section-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21.21 15.89A10 10 0 1 1 8 2.83"/>
+                <path d="M22 12A10 10 0 0 0 12 2v10z"/>
+              </svg>
+              <h3>Spending by Category</h3>
+            </div>
+          </div>
+
+          <div class="category-list" *ngIf="spendingByCategory.length > 0">
+            <div *ngFor="let item of spendingByCategory; let i = index" class="category-item">
+              <div class="category-info">
+                <span class="category-dot" [style.background]="getCategoryColor(i)"></span>
+                <span class="category-name">{{ item.category }}</span>
+              </div>
+              <div class="category-bar-container">
+                <div class="category-bar" 
+                     [style.width.%]="getCategoryPercentage(item.total)"
+                     [style.background]="getCategoryColor(i)">
+                </div>
+              </div>
               <span class="category-amount">${{ item.total | number:'1.2-2' }}</span>
             </div>
           </div>
-          <p *ngIf="spendingByCategory.length === 0">No spending data available</p>
-        </mat-card-content>
-      </mat-card>
-  
-      <!-- Monthly Spending -->
-      <mat-card class="section-card">
-        <mat-card-header>
-          <mat-card-title>Monthly Spending (2025)</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <div *ngIf="monthlySpending.length > 0">
+
+          <div *ngIf="spendingByCategory.length === 0" class="empty-state small">
+            <p>No spending data available</p>
+          </div>
+        </div>
+
+        <!-- Monthly Spending -->
+        <div class="section-card monthly-section">
+          <div class="section-header">
+            <div class="section-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+              <h3>Monthly Spending (2025)</h3>
+            </div>
+          </div>
+
+          <div class="monthly-list" *ngIf="monthlySpending.length > 0">
             <div *ngFor="let item of monthlySpending" class="month-item">
-              <span class="month-name">{{ item.month_name }}</span>
+              <div class="month-info">
+                <span class="month-name">{{ item.month_name }}</span>
+              </div>
+              <div class="month-bar-container">
+                <div class="month-bar" [style.width.%]="getMonthPercentage(item.total)"></div>
+              </div>
               <span class="month-amount">${{ item.total | number:'1.2-2' }}</span>
             </div>
           </div>
-          <p *ngIf="monthlySpending.length === 0">No monthly data available</p>
-        </mat-card-content>
-      </mat-card>
-    </div>
-  
-    <div class="dashboard-content" *ngIf="loading">
-      <p>Loading analytics...</p>
+
+          <div *ngIf="monthlySpending.length === 0" class="empty-state small">
+            <p>No monthly data available</p>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
+</div>

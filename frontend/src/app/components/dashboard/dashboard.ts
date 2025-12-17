@@ -38,7 +38,7 @@ export class Dashboard implements OnInit {
   displayedColumns: string[] = ['date', 'description', 'category', 'amount', 'type', 'source', 'actions'];  // Add this line
   loading = true;
   plaidHandler: any = null;
-
+  today = new Date();
     constructor(
       private authService: AuthService,
       private transactionService: TransactionService,
@@ -206,4 +206,21 @@ export class Dashboard implements OnInit {
         }
       });
     }
+
+    
+
+  getCategoryColor(index: number): string {
+    const colors = ['#f97316', '#a855f7', '#22c55e', '#ff6b6b', '#3b82f6', '#eab308', '#ec4899', '#06b6d4'];
+    return colors[index % colors.length];
+  }
+
+  getCategoryPercentage(total: number): number {
+    const max = Math.max(...this.spendingByCategory.map((c: any) => c.total));
+    return max > 0 ? (total / max) * 100 : 0;
+  }
+
+  getMonthPercentage(total: number): number {
+    const max = Math.max(...this.monthlySpending.map((m: any) => m.total));
+    return max > 0 ? (total / max) * 100 : 0;
+  }
 }

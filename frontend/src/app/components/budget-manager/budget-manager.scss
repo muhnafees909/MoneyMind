@@ -1,89 +1,683 @@
+/* budget.component.scss */
+
+// ============================================
+// VARIABLES - Dark Fintech Theme
+// ============================================
+$bg-primary: #0f1219;
+$bg-secondary: #1a1f2e;
+$bg-card: #232a3b;
+$bg-input: #1e2433;
+$bg-hover: #2a3347;
+
+$accent-orange: #f97316;
+$accent-orange-hover: #fb923c;
+$accent-purple: #a855f7;
+$accent-coral: #ff6b6b;
+$accent-green: #22c55e;
+$accent-blue: #3b82f6;
+$accent-yellow: #eab308;
+
+$text-primary: #ffffff;
+$text-secondary: #94a3b8;
+$text-muted: #64748b;
+
+$border-color: rgba(148, 163, 184, 0.1);
+$border-color-hover: rgba(148, 163, 184, 0.2);
+
+$gradient-primary: linear-gradient(135deg, $accent-orange 0%, $accent-purple 100%);
+$gradient-green: linear-gradient(135deg, #22c55e 0%, #10b981 100%);
+$gradient-warning: linear-gradient(135deg, #eab308 0%, #f97316 100%);
+$gradient-danger: linear-gradient(135deg, #ff6b6b 0%, #ef4444 100%);
+
+$shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+$shadow-md: 0 4px 20px rgba(0, 0, 0, 0.3);
+$shadow-glow-orange: 0 0 30px rgba(249, 115, 22, 0.15);
+
+$radius-sm: 8px;
+$radius-md: 12px;
+$radius-lg: 16px;
+$radius-xl: 24px;
+$radius-pill: 50px;
+
+$font-primary: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+
+$transition-fast: 0.15s ease;
+$transition-base: 0.25s ease;
+
+// ============================================
+// IMPORTS
+// ============================================
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+// ============================================
+// BASE CONTAINER
+// ============================================
 .budget-container {
-    padding: 24px;
-    max-width: 1200px;
-    margin: 0 auto;
+  min-height: 100vh;
+  background: $bg-primary;
+  font-family: $font-primary;
+  padding: 32px;
+  box-sizing: border-box;
+}
+
+// ============================================
+// PAGE HEADER
+// ============================================
+.page-header {
+  margin-bottom: 32px;
+
+  h1 {
+    font-size: 32px;
+    font-weight: 800;
+    color: $text-primary;
+    margin: 0 0 8px 0;
+    letter-spacing: -0.03em;
   }
-  
-  .add-budget-card {
-    margin-bottom: 24px;
-  }
-  
-  .budget-form {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 16px;
-    align-items: start;
-  
-    button {
-      height: 56px;
-      margin-top: 0;
-    }
-  }
-  
-  .progress-card {
-    margin-bottom: 24px;
-  }
-  
-  .budget-table {
-    width: 100%;
-  }
-  
-  .category-name {
-    font-weight: 500;
-  }
-  
-  .over-budget {
-    color: #d32f2f;
-    font-weight: 600;
-  }
-  
-  .negative {
-    color: #d32f2f;
-    font-weight: 500;
-  }
-  
-  .positive {
-    color: #388e3c;
-    font-weight: 500;
-  }
-  
-  .progress-container {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    
-    mat-progress-bar {
-      flex: 1;
-      height: 8px;
-      border-radius: 4px;
-    }
-  }
-  
-  .progress-text {
-    min-width: 45px;
-    font-weight: 500;
-    
-    &.over-budget {
-      color: #d32f2f;
-    }
-  }
-  
-  .no-data {
-    text-align: center;
-    color: #757575;
-    padding: 40px 0;
-  }
-  
-  .inline-edit {
-    width: 120px;
+
+  .subtitle {
+    font-size: 15px;
+    color: $text-secondary;
     margin: 0;
-    
-    ::ng-deep .mat-mdc-form-field-subscript-wrapper {
-      display: none;
+  }
+}
+
+// ============================================
+// SECTION CARDS
+// ============================================
+.section-card {
+  background: $bg-card;
+  border: 1px solid $border-color;
+  border-radius: $radius-lg;
+  margin-bottom: 24px;
+  overflow: hidden;
+}
+
+.section-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid $border-color;
+
+  .section-title {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+
+    > svg {
+      width: 24px;
+      height: 24px;
+      color: $accent-orange;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .title-group {
+      h3 {
+        font-size: 18px;
+        font-weight: 700;
+        color: $text-primary;
+        margin: 0 0 4px 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .section-subtitle {
+        font-size: 14px;
+        color: $text-muted;
+      }
     }
   }
-  
-  .action-buttons {
-    display: flex;
-    gap: 4px;
+}
+
+.month-badge {
+  display: inline-flex;
+  padding: 4px 12px;
+  background: rgba($accent-purple, 0.15);
+  color: $accent-purple;
+  border-radius: $radius-pill;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.card-content {
+  padding: 24px;
+}
+
+// ============================================
+// BUDGET FORM
+// ============================================
+.budget-form {
+  display: flex;
+  align-items: flex-end;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  min-width: 200px;
+  justify-content: flex-start;
+  position: relative;
+  padding-bottom: 20px;
+  label {
+    font-size: 13px;
+    font-weight: 600;
+    color: $text-secondary;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
   }
+}
+
+.select-wrapper {
+  position: relative;
+
+  select {
+    width: 100%;
+    padding: 14px 44px 14px 16px;
+    background: $bg-input;
+    border: 1px solid $border-color;
+    border-radius: $radius-pill;
+    font-family: $font-primary;
+    font-size: 15px;
+    color: $text-primary;
+    cursor: pointer;
+    appearance: none;
+    outline: none;
+    transition: $transition-base;
+
+    &:hover {
+      border-color: $border-color-hover;
+    }
+
+    &:focus {
+      border-color: $accent-orange;
+      box-shadow: 0 0 0 3px rgba($accent-orange, 0.1);
+    }
+
+    option {
+      background: $bg-card;
+      color: $text-primary;
+    }
+  }
+
+  .select-arrow {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    color: $text-muted;
+    pointer-events: none;
+  }
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  .input-prefix {
+    position: absolute;
+    left: 16px;
+    color: $text-muted;
+    font-size: 15px;
+    font-weight: 500;
+  }
+
+  input {
+    width: 100%;
+    padding: 14px 16px 14px 32px;
+    background: $bg-input;
+    border: 1px solid $border-color;
+    border-radius: $radius-pill;
+    font-family: $font-primary;
+    font-size: 15px;
+    color: $text-primary;
+    outline: none;
+    transition: $transition-base;
+
+    &::placeholder {
+      color: $text-muted;
+    }
+
+    &:hover {
+      border-color: $border-color-hover;
+    }
+
+    &:focus {
+      border-color: $accent-orange;
+      box-shadow: 0 0 0 3px rgba($accent-orange, 0.1);
+    }
+
+    // Remove number input spinners
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    &[type=number] {
+      -moz-appearance: textfield;
+    }
+  }
+
+  &.small {
+    input {
+      padding: 10px 12px 10px 28px;
+      font-size: 14px;
+    }
+
+    .input-prefix {
+      left: 12px;
+      font-size: 14px;
+    }
+  }
+}
+
+.input-hint {
+  font-size: 12px;
+  color: $text-muted;
+  margin-top: 4px;
+  position: absolute;
+  bottom: -20px;
+  left: 0;
+}
+
+.submit-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 28px;
+  background: $gradient-primary;
+  border: none;
+  border-radius: $radius-pill;
+  font-family: $font-primary;
+  font-size: 15px;
+  font-weight: 600;
+  color: $text-primary;
+  cursor: pointer;
+  transition: $transition-base;
+  white-space: nowrap;
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: $shadow-glow-orange, $shadow-md;
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+// ============================================
+// BUDGET TABLE
+// ============================================
+.table-container {
+  overflow-x: auto;
+}
+
+.budget-table {
+  width: 100%;
+  background: transparent;
+
+  // Override Angular Material styles
+  &.mat-mdc-table {
+    background: transparent;
+  }
+
+  th.mat-mdc-header-cell,
+  th.mat-header-cell {
+    background: $bg-secondary;
+    color: $text-muted;
+    font-family: $font-primary;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 14px 16px;
+    border-bottom: 1px solid $border-color;
+  }
+
+  td.mat-mdc-cell,
+  td.mat-cell {
+    background: transparent;
+    color: $text-primary;
+    font-family: $font-primary;
+    font-size: 14px;
+    padding: 16px;
+    border-bottom: 1px solid $border-color;
+    vertical-align: middle;
+  }
+
+  tr.mat-mdc-row,
+  tr.mat-row {
+    transition: $transition-fast;
+
+    &:hover {
+      background: $bg-hover;
+    }
+  }
+
+  tr.mat-mdc-header-row,
+  tr.mat-header-row {
+    background: $bg-secondary;
+  }
+}
+
+// Cell Styles
+.category-badge {
+  display: inline-flex;
+  padding: 6px 14px;
+  background: rgba($accent-purple, 0.15);
+  color: $accent-purple;
+  border-radius: $radius-pill;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.budget-amount {
+  font-weight: 600;
+  color: $text-primary;
+}
+
+.spent-amount {
+  font-weight: 600;
+  color: $text-primary;
+
+  &.over-budget {
+    color: $accent-coral;
+  }
+}
+
+.remaining-amount {
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+
+  .amount-sign {
+    font-size: 12px;
+  }
+
+  &.positive {
+    color: $accent-green;
+  }
+
+  &.negative {
+    color: $accent-coral;
+  }
+}
+
+// Progress Bar
+.progress-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 180px;
+}
+
+.progress-bar-container {
+  flex: 1;
+  height: 8px;
+  background: $bg-hover;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: $gradient-green;
+  border-radius: 4px;
+  transition: width 0.6s ease;
+
+  &.warning {
+    background: $gradient-warning;
+  }
+
+  &.danger {
+    background: $gradient-danger;
+  }
+}
+
+.progress-text {
+  font-size: 13px;
+  font-weight: 700;
+  color: $text-secondary;
+  min-width: 45px;
+  text-align: right;
+
+  &.over-budget {
+    color: $accent-coral;
+  }
+}
+
+// Inline Edit
+.inline-edit {
+  .input-wrapper {
+    max-width: 120px;
+  }
+}
+
+// Action Buttons
+.action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.icon-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: $bg-hover;
+  border: 1px solid $border-color;
+  border-radius: $radius-sm;
+  cursor: pointer;
+  transition: $transition-fast;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  &.edit {
+    color: $accent-blue;
+
+    &:hover {
+      background: rgba($accent-blue, 0.15);
+      border-color: $accent-blue;
+    }
+  }
+
+  &.delete {
+    color: $accent-coral;
+
+    &:hover {
+      background: rgba($accent-coral, 0.15);
+      border-color: $accent-coral;
+    }
+  }
+
+  &.save {
+    color: $accent-green;
+
+    &:hover {
+      background: rgba($accent-green, 0.15);
+      border-color: $accent-green;
+    }
+  }
+
+  &.cancel {
+    color: $text-muted;
+
+    &:hover {
+      background: $bg-hover;
+      border-color: $border-color-hover;
+      color: $text-secondary;
+    }
+  }
+}
+
+// ============================================
+// EMPTY STATE
+// ============================================
+.empty-state {
+  padding: 48px 24px;
+  text-align: center;
+
+  .empty-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+  }
+
+  p {
+    font-size: 16px;
+    font-weight: 600;
+    color: $text-primary;
+    margin: 0 0 8px 0;
+  }
+
+  span {
+    font-size: 14px;
+    color: $text-muted;
+  }
+}
+
+// ============================================
+// RESPONSIVE DESIGN
+// ============================================
+@media (max-width: 900px) {
+  .budget-form {
+    flex-direction: column;
+    align-items: stretch;
+
+    .form-group {
+      min-width: 100%;
+    }
+
+    .submit-btn {
+      width: 100%;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .budget-container {
+    padding: 20px 16px;
+  }
+
+  .page-header h1 {
+    font-size: 26px;
+  }
+
+  .section-header {
+    padding: 16px 20px;
+
+    .section-title {
+      flex-direction: column;
+      gap: 10px;
+
+      > svg {
+        margin-top: 0;
+      }
+    }
+  }
+
+  .card-content {
+    padding: 20px;
+  }
+
+  .progress-wrapper {
+    min-width: 120px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+
+    .progress-bar-container {
+      width: 100%;
+    }
+  }
+
+  .month-badge {
+    display: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .budget-table {
+    th.mat-mdc-header-cell,
+    th.mat-header-cell,
+    td.mat-mdc-cell,
+    td.mat-cell {
+      padding: 12px 10px;
+      font-size: 13px;
+    }
+  }
+
+  .category-badge {
+    padding: 4px 10px;
+    font-size: 12px;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .icon-btn {
+    width: 32px;
+    height: 32px;
+
+    svg {
+      width: 14px;
+      height: 14px;
+    }
+  }
+}
+
+// ============================================
+// ANIMATIONS
+// ============================================
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.section-card {
+  animation: fadeInUp 0.5s ease-out backwards;
+
+  &.add-budget-card {
+    animation-delay: 0.1s;
+  }
+
+  &.progress-card {
+    animation-delay: 0.2s;
+  }
+}
+
+tr.mat-mdc-row,
+tr.mat-row {
+  animation: fadeInUp 0.4s ease-out backwards;
+
+  @for $i from 1 through 20 {
+    &:nth-child(#{$i}) {
+      animation-delay: #{0.3 + ($i * 0.05)}s;
+    }
+  }
+}

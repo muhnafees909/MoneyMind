@@ -24,6 +24,8 @@ export class Navigation {
     private authService: AuthService,
     private router: Router
   ) {}
+  
+  mobileMenuOpen = false;
 
   logout() {
     this.authService.logout();
@@ -32,5 +34,13 @@ export class Navigation {
 
   isLoggedIn(): boolean {
     return this.authService.isLoggedIn();
+  }
+
+  toggleMobileMenu() {
+    this.mobileMenuOpen = !this.mobileMenuOpen;
+  }
+
+  closeMobileMenu() {
+    this.mobileMenuOpen = false;
   }
 }
