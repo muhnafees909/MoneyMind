@@ -1,12 +1,14 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:5000/api/auth';
+  private apiUrl = `${environment.apiUrl}/api/auth`;
+  private plaidApiUrl = `${environment.apiUrl}/api/plaid`;
 
   constructor(private http: HttpClient) { }
 
@@ -37,7 +39,7 @@ export class AuthService {
   createLinkToken(): Observable<any> {
     const token = this.getToken()
 
-    return this.http.post('http://localhost:5000/api/plaid/create-link-token', {}, {
+    return this.http.post(`${this.plaidApiUrl}/create-link-token`, {}, {
       headers: new HttpHeaders({
         'Authorization': `Bearer ${token}`
       })
@@ -46,7 +48,7 @@ export class AuthService {
 
   exchangePublicToken(publicToken: string): Observable<any> {
     const token = this.getToken();
-    return this.http.post('http://localhost:5000/api/plaid/exchange-public-token', 
+    return this.http.post(`${this.plaidApiUrl}/exchange-public-token`,
       { public_token: publicToken },
       {
         headers: new HttpHeaders({
@@ -58,7 +60,7 @@ export class AuthService {
   
   syncTransactions(accessToken: string): Observable<any> {
     const token = this.getToken();
-    return this.http.post('http://localhost:5000/api/plaid/sync-transactions',
+    return this.http.post(`${this.plaidApiUrl}/sync-transactions`,
       { access_token: accessToken },
       {
         headers: new HttpHeaders({
