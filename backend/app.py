@@ -11,10 +11,8 @@ print("SECRET_KEY:", os.getenv('SECRET_KEY'))
 print("DATABASE_URL:", os.getenv('DATABASE_URL'))
 print("Current directory:", os.getcwd())
 
-# Initialize Flask app
 app = Flask(__name__)
 
-# Configure CORS - allow both local development and production frontend
 allowed_origins = [
     "http://localhost:4200",  # Local development
     "https://moneymindus.onrender.com"  # Production frontend
