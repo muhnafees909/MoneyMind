@@ -13,11 +13,19 @@ print("Current directory:", os.getcwd())
 
 # Initialize Flask app
 app = Flask(__name__)
+
+# Configure CORS - allow both local development and production frontend
+allowed_origins = [
+    "http://localhost:4200",  # Local development
+    "https://moneymindus.onrender.com"  # Production frontend
+]
+
 CORS(app, resources={
     r"/api/*": {
-        "origins": ["http://localhost:4200"],
+        "origins": allowed_origins,
         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        "allow_headers": ["Content-Type", "Authorization"]
+        "allow_headers": ["Content-Type", "Authorization"],
+        "supports_credentials": True
     }
 })
 
