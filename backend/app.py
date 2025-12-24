@@ -7,7 +7,7 @@ import os
 # Load environment variables
 load_dotenv()
 
-print("SECRET_KEY:", os.getenv('SECRET_KEY'))
+print("JWT_SECRET_KEY :", os.getenv('JWT_SECRET_KEY'))
 print("DATABASE_URL:", os.getenv('DATABASE_URL'))
 print("Current directory:", os.getcwd())
 
@@ -27,10 +27,9 @@ CORS(app,
 )
 
 # Configure SQLAlchemy
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['JWT_SECRET_KEY'] = os.getenv('SECRET_KEY')
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(days=7) 
 
 from models.user import db
