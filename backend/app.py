@@ -15,7 +15,9 @@ app = Flask(__name__)
 
 allowed_origins = [
     "http://localhost:4200",  # Local development
-    "https://moneymindus.onrender.com"  # Production frontend
+    "https://moneymindus.onrender.com",  # Production frontend
+    "https://moneymind.us",
+    "https://www.moneymind.us"
 ]
 
 CORS(app,
