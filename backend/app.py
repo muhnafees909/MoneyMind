@@ -26,17 +26,6 @@ CORS(app,
      expose_headers=["Content-Type", "Authorization"]
 )
 
-# Additional CORS headers for preflight requests
-@app.after_request
-def after_request(response):
-    origin = request.headers.get('Origin')
-    if origin in allowed_origins:
-        response.headers.add('Access-Control-Allow-Origin', origin)
-        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
-        response.headers.add('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS')
-        response.headers.add('Access-Control-Allow-Credentials', 'true')
-    return response
-
 # Configure SQLAlchemy
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
