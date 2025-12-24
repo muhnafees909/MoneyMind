@@ -1,4 +1,4 @@
 export const environment = {
     production: true,
-    apiUrl: 'https://moneymind-api.onrender.com'
+    apiUrl: 'https://moneymind-dy31.onrender.com'
   };
