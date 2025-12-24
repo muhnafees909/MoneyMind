@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask
 from dotenv import load_dotenv
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
@@ -15,7 +15,7 @@ app = Flask(__name__)
 
 allowed_origins = [
     "http://localhost:4200",  # Local development
-    "https://moneymind-dy31.onrender.com"  # Production frontend
+    "https://moneymindus.onrender.com"  # Production frontend
 ]
 
 CORS(app,
