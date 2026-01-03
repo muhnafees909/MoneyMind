@@ -39,7 +39,6 @@ export class ChatComponent implements OnInit, AfterViewChecked {
   constructor(private chatService: ChatService) {}
 
   ngOnInit(): void {
-    // Add initial welcome message
     this.messages.push({
       role: 'assistant',
       content: 'Hello! I\'m your personal financial advisor. I can help you with questions about your budgets, spending, goals, and financial decisions. Feel free to ask me anything finance-related!',
@@ -55,12 +54,10 @@ export class ChatComponent implements OnInit, AfterViewChecked {
   }
 
   sendMessage(): void {
-    // Validate input
     if (!this.userInput.trim()) {
       return;
     }
 
-    // Add user message to chat
     const userMessage: ChatMessage = {
       role: 'user',
       content: this.userInput,
@@ -68,17 +65,14 @@ export class ChatComponent implements OnInit, AfterViewChecked {
     };
     this.messages.push(userMessage);
 
-    // Clear input and set loading state
     const messageToSend = this.userInput;
     this.userInput = '';
     this.loading = true;
     this.error = null;
     this.shouldScroll = true;
 
-    // Send message to backend
     this.chatService.sendMessage(messageToSend).subscribe({
       next: (response: ChatResponse) => {
-        // Add AI response to chat
         const aiMessage: ChatMessage = {
           role: 'assistant',
           content: response.response,
@@ -91,7 +85,6 @@ export class ChatComponent implements OnInit, AfterViewChecked {
       error: (error) => {
         this.loading = false;
 
-        // Handle different error types
         if (error.status === 401) {
           this.error = 'Session expired. Please log in again.';
         } else if (error.status === 400) {
@@ -120,7 +113,6 @@ export class ChatComponent implements OnInit, AfterViewChecked {
   }
 
   clearChat(): void {
-    // Reset to welcome message
     this.messages = [{
       role: 'assistant',
       content: 'Hello! I\'m your personal financial advisor. I can help you with questions about your budgets, spending, goals, and financial decisions. Feel free to ask me anything finance-related!',

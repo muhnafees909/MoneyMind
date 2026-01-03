@@ -59,13 +59,11 @@ export class TransactionForm {
   ) {
     if (data && data.transaction) {
       this.transaction = { ...data.transaction };
-      // Convert date string to Date object if needed
       if (typeof this.transaction.transaction_date === 'string') {
         this.transaction.transaction_date = new Date(this.transaction.transaction_date);
       }
     }
 
-    // Format date for input[type="date"]
     this.dateInput = this.formatDateForInput(this.transaction.transaction_date);
   }
 
@@ -103,12 +101,10 @@ export class TransactionForm {
   }
 
   onSave(): void {
-    // Update transaction_date from dateInput
     if (this.dateInput) {
       this.transaction.transaction_date = new Date(this.dateInput);
     }
 
-    // Format date as YYYY-MM-DD
     const formattedTransaction = {
       ...this.transaction,
       transaction_date: this.transaction.transaction_date.toISOString().split('T')[0]

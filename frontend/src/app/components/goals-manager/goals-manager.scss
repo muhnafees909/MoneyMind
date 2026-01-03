@@ -171,6 +171,46 @@ $transition-base: 0.25s ease;
   gap: 20px;
 }
 
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+.form-grid-left {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+.form-grid-right {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+.description-group {
+  flex: 1;
+  min-width: 0;
+
+  .textarea-wrapper {
+    height: 100%;
+    max-width: 100%;
+
+    textarea {
+      height: 100%;
+      min-height: 120px;
+      max-width: 100%;
+      box-sizing: border-box;
+    }
+  }
+}
+
+// Legacy form-row for backward compatibility
 .form-row {
   display: flex;
   gap: 20px;
@@ -220,8 +260,7 @@ $transition-base: 0.25s ease;
     padding: 14px 16px;
     background: $bg-input;
     border: 1px solid $border-color;
-    border-radius: 25px 0 0 25px;
-    border-right: none;
+    border-radius: $radius-pill;
     font-family: $font-primary;
     font-size: 15px;
     color: $text-primary;
@@ -314,9 +353,25 @@ $transition-base: 0.25s ease;
       display: none;
     }
 
+    .mat-mdc-input-element,
+    .mat-input-element {
+      color: $text-primary !important;
+      caret-color: $text-primary;
+    }
+
     input {
-      color: $text-primary;
+      color: $text-primary !important;
       font-family: $font-primary;
+
+      &::placeholder {
+        color: $text-muted !important;
+        opacity: 1;
+      }
+    }
+
+    .mat-mdc-form-field-placeholder,
+    .mat-form-field-placeholder {
+      color: $text-muted !important;
     }
 
     .mat-datepicker-toggle {
@@ -943,6 +998,16 @@ input[type="number"] {
 
   .card-content {
     padding: 20px;
+  }
+
+  // Stack grid to single column on tablets
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .description-group .textarea-wrapper textarea {
+    min-height: 80px;
   }
 
   .goal-header {

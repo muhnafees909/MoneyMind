@@ -35,7 +35,7 @@ export class Dashboard implements OnInit {
   monthlySpending: any[] = [];
   summary: any = {};
   transactions: any[] = [];
-  displayedColumns: string[] = ['date', 'description', 'category', 'amount', 'type', 'source', 'actions'];  // Add this line
+  displayedColumns: string[] = ['date', 'description', 'category', 'amount', 'type', 'source', 'actions'];
   loading = true;
   plaidHandler: any = null;
   today = new Date();
@@ -53,24 +53,21 @@ export class Dashboard implements OnInit {
   
     loadAnalytics() {
       this.loading = true;
-  
-      // Get spending summary
+
       this.transactionService.getSpendingSummary().subscribe({
         next: (data) => {
           this.summary = data;
         },
         error: (error) => console.error('Error loading summary:', error)
       });
-  
-      // Get spending by category
+
       this.transactionService.getSpendingByCategory().subscribe({
         next: (data) => {
           this.spendingByCategory = data;
         },
         error: (error) => console.error('Error loading categories:', error)
       });
-  
-      // Get monthly spending
+
       this.transactionService.getMonthlySpending().subscribe({
         next: (data) => {
           this.monthlySpending = data;
@@ -152,7 +149,6 @@ export class Dashboard implements OnInit {
         next: (response) => {
           const linkToken = response.link_token;
 
-          // Initialize Plaid Link
           this.plaidHandler = Plaid.create({
             token: linkToken,
             onSuccess: (public_token: string, metadata: any) => {
@@ -189,9 +185,9 @@ export class Dashboard implements OnInit {
             next: (syncResponse) => {
               console.log('Transactions synced!', syncResponse);
               alert(`Successfully synced ${syncResponse.saved_transactions} transactions!`);
-              
-              // Reload analytics to show new transactions
+
               this.loadAnalytics();
+              this.loadTransactions();
             },
             error: (error) => {
               console.error('Error syncing transactions:', error);

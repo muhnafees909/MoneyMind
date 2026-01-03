@@ -61,6 +61,16 @@ export class BudgetManager implements OnInit {
     this.loadBudgetProgress();
   }
 
+  get displayMonth(): string {
+    if (this.budgetProgress && this.budgetProgress.length > 0) {
+      return `${this.budgetProgress[0].month}/${this.budgetProgress[0].year}`;
+    }
+    const now = new Date();
+    const month = now.getMonth() + 1;
+    const year = now.getFullYear();
+    return `${month}/${year}`;
+  }
+
   loadBudgets() {
     this.budgetService.getBudgets().subscribe({
       next: (data) => {

@@ -66,7 +66,6 @@ export class GoalsManagerComponent implements OnInit {
   }
   
   formatCompletedDate(dateStr: string): string {
-    // Extract just the date part and format it
     const datePart = dateStr.split('T')[0];
     const [year, month, day] = datePart.split('-');
     const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
@@ -88,7 +87,6 @@ export class GoalsManagerComponent implements OnInit {
     this.goalService.createGoal(goalData).subscribe({
       next: () => {
         this.loadGoals();
-        // Reset form
         this.newGoal = {
           name: '',
           description: '',
@@ -105,7 +103,6 @@ export class GoalsManagerComponent implements OnInit {
   }
 
   parseCompletedDate(dateStr: string): Date {
-    // Parse as date only to avoid timezone issues
     const [year, month, day] = dateStr.split('-').map(Number);
     return new Date(year, month - 1, day);
   }
@@ -131,17 +128,15 @@ export class GoalsManagerComponent implements OnInit {
   }
 
   startEdit(goal: any) {
-    this.editingGoal = { 
+    this.editingGoal = {
       ...goal,
       target_date: goal.target_date ? this.parseDate(goal.target_date) : null
     };
   }
 
-  // Add this new helper method
   parseDate(dateStr: string): Date {
-    // Parse the date string as UTC to avoid timezone shifts
     const [year, month, day] = dateStr.split('-').map(Number);
-    return new Date(year, month - 1, day);  // month is 0-indexed in JS
+    return new Date(year, month - 1, day);
   }
 
   cancelEdit() {
@@ -174,8 +169,7 @@ export class GoalsManagerComponent implements OnInit {
       }
     });
   }
-  
-  // Add this new helper method
+
   formatDate(date: Date): string {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');

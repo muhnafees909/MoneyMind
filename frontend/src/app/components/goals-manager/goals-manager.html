@@ -35,68 +35,68 @@
 
     <div class="card-content">
       <div class="goal-form">
-        <div class="form-row">
-          <div class="form-group full-width">
-            <label>Goal Name</label>
-            <div class="input-wrapper">
-              <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 20V10"/>
-                <path d="M18 20V4"/>
-                <path d="M6 20v-4"/>
-              </svg>
-              <input 
-                type="text" 
-                [(ngModel)]="newGoal.name" 
-                placeholder="Emergency Fund">
+        <div class="form-grid">
+          <div class="form-grid-left">
+            <div class="form-group">
+              <label>Goal Name</label>
+              <div class="input-wrapper">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 20V10"/>
+                  <path d="M18 20V4"/>
+                  <path d="M6 20v-4"/>
+                </svg>
+                <input
+                  type="text"
+                  [(ngModel)]="newGoal.name"
+                  placeholder="Emergency Fund">
+              </div>
             </div>
-          </div>
-        </div>
 
-        <div class="form-row">
-          <div class="form-group full-width">
-            <label>Description (Optional)</label>
-            <div class="textarea-wrapper">
-              <textarea 
-                [(ngModel)]="newGoal.description" 
-                rows="2"
-                placeholder="Describe your savings goal..."></textarea>
-            </div>
-          </div>
-        </div>
-
-        <div class="form-row three-col">
-          <div class="form-group">
-            <label>Target Amount</label>
-            <div class="input-wrapper has-prefix">
-              <span class="input-prefix">$</span>
-              <input 
-                type="number" 
-                [(ngModel)]="newGoal.target_amount" 
-                placeholder="10000"
-                min="0">
+            <div class="form-group description-group">
+              <label>Description (Optional)</label>
+              <div class="textarea-wrapper">
+                <textarea
+                  [(ngModel)]="newGoal.description"
+                  rows="4"
+                  placeholder="Describe your savings goal..."></textarea>
+              </div>
             </div>
           </div>
 
-          <div class="form-group">
-            <label>Starting Amount</label>
-            <div class="input-wrapper has-prefix">
-              <span class="input-prefix">$</span>
-              <input 
-                type="number" 
-                [(ngModel)]="newGoal.current_amount" 
-                placeholder="0"
-                min="0">
+          <div class="form-grid-right">
+            <div class="form-group">
+              <label>Target Amount</label>
+              <div class="input-wrapper has-prefix">
+                <span class="input-prefix">$</span>
+                <input
+                  type="number"
+                  [(ngModel)]="newGoal.target_amount"
+                  placeholder="10000"
+                  min="0">
+              </div>
             </div>
-          </div>
 
-          <div class="form-group">
-            <label>Target Date (Optional)</label>
-            <div class="datepicker-wrapper">
-              <mat-form-field appearance="outline" class="dark-datepicker">
-                <input matInput [matDatepicker]="picker" [(ngModel)]="newGoal.target_date" placeholder="Select date">
-                <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-                <mat-datepicker #picker></mat-datepicker>
-              </mat-form-field>
+            <div class="form-group">
+              <label>Starting Amount</label>
+              <div class="input-wrapper has-prefix">
+                <span class="input-prefix">$</span>
+                <input
+                  type="number"
+                  [(ngModel)]="newGoal.current_amount"
+                  placeholder="0"
+                  min="0">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Target Date (Optional)</label>
+              <div class="datepicker-wrapper">
+                <mat-form-field appearance="outline" class="dark-datepicker">
+                  <input matInput [matDatepicker]="picker" [(ngModel)]="newGoal.target_date" placeholder="Select date">
+                  <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                  <mat-datepicker #picker></mat-datepicker>
+                </mat-form-field>
+              </div>
             </div>
           </div>
         </div>
