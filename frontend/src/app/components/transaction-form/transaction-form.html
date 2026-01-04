@@ -21,53 +21,6 @@
         </div>
       </div>
 
-      <!-- Description Field -->
-      <div class="form-group">
-        <label class="form-label">Description</label>
-        <input
-          type="text"
-          class="form-input"
-          [(ngModel)]="transaction.description"
-          name="description"
-          placeholder="Enter transaction description"
-          required
-        />
-      </div>
-
-      <!-- Category Field -->
-      <div class="form-group">
-        <label class="form-label">Category</label>
-        <div class="custom-select">
-          <button
-            type="button"
-            class="select-trigger"
-            (click)="toggleCategoryDropdown()"
-          >
-            <span class="select-value">{{ transaction.category ? (transaction.category | titlecase) : 'Select a category' }}</span>
-            <svg
-              [class.rotated]="showCategoryDropdown"
-              width="20"
-              height="20"
-              viewBox="0 0 20 20"
-              fill="none"
-              stroke="currentColor"
-            >
-              <path d="M7 7.5L10 10.5L13 7.5" stroke-width="1.5" stroke-linecap="round" />
-            </svg>
-          </button>
-          <div class="select-dropdown" *ngIf="showCategoryDropdown">
-            <div
-              *ngFor="let cat of categories"
-              class="select-option"
-              (click)="selectCategory(cat)"
-              [class.selected]="transaction.category === cat"
-            >
-              {{ cat | titlecase }}
-            </div>
-          </div>
-        </div>
-      </div>
-
       <!-- Type Field -->
       <div class="form-group">
         <label class="form-label">Type</label>
@@ -108,6 +61,53 @@
         </div>
       </div>
 
+      <!-- Category Field - Only show for expenses -->
+      <div class="form-group" *ngIf="transaction.transaction_type === 'expense'">
+        <label class="form-label">Category</label>
+        <div class="custom-select">
+          <button
+            type="button"
+            class="select-trigger"
+            (click)="toggleCategoryDropdown()"
+          >
+            <span class="select-value">{{ transaction.category ? (transaction.category | titlecase) : 'Select a category' }}</span>
+            <svg
+              [class.rotated]="showCategoryDropdown"
+              width="20"
+              height="20"
+              viewBox="0 0 20 20"
+              fill="none"
+              stroke="currentColor"
+            >
+              <path d="M7 7.5L10 10.5L13 7.5" stroke-width="1.5" stroke-linecap="round" />
+            </svg>
+          </button>
+          <div class="select-dropdown" *ngIf="showCategoryDropdown">
+            <div
+              *ngFor="let cat of categories"
+              class="select-option"
+              (click)="selectCategory(cat)"
+              [class.selected]="transaction.category === cat"
+            >
+              {{ cat | titlecase }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Description Field -->
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <input
+          type="text"
+          class="form-input"
+          [(ngModel)]="transaction.description"
+          name="description"
+          placeholder="Enter transaction description"
+          required
+        />
+      </div>
+
       <!-- Date Field -->
       <div class="form-group">
         <label class="form-label">Date</label>
@@ -139,7 +139,7 @@
     <button
       class="btn btn-save"
       (click)="onSave()"
-      [disabled]="!transaction.amount || !transaction.description || !transaction.category"
+      [disabled]="!transaction.amount || !transaction.description || (transaction.transaction_type === 'expense' && !transaction.category)"
     >
       Save Transaction
     </button>

@@ -94,6 +94,10 @@ export class TransactionForm {
   selectType(type: string): void {
     this.transaction.transaction_type = type;
     this.showTypeDropdown = false;
+
+    if (type === 'income') {
+      this.transaction.category = '';
+    }
   }
 
   onCancel(): void {
@@ -107,7 +111,8 @@ export class TransactionForm {
 
     const formattedTransaction = {
       ...this.transaction,
-      transaction_date: this.transaction.transaction_date.toISOString().split('T')[0]
+      transaction_date: this.transaction.transaction_date.toISOString().split('T')[0],
+      category: this.transaction.transaction_type === 'income' ? '' : this.transaction.category
     };
     this.dialogRef.close(formattedTransaction);
   }
