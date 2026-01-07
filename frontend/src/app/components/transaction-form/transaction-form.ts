@@ -8,6 +8,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
+import { CategoryService, CategoryInfo } from '../../services/category.service';
 
 @Component({
   selector: 'app-transaction-form',
@@ -36,44 +37,23 @@ export class TransactionForm {
     transaction_notes: ''
   };
 
-  dateInput: string = '';
   showCategoryDropdown: boolean = false;
   showTypeDropdown: boolean = false;
 
-  categories = [
-    'groceries',
-    'dining',
-    'transportation',
-    'utilities',
-    'entertainment',
-    'shopping',
-    'healthcare',
-    'travel',
-    'education',
-    'other'
-  ];
+  categories: CategoryInfo[] = [];
 
   constructor(
     public dialogRef: MatDialogRef<TransactionForm>,
-    @Inject(MAT_DIALOG_DATA) public data: any
+    @Inject(MAT_DIALOG_DATA) public data: any,
+    private categoryService: CategoryService
   ) {
+    this.categories = this.categoryService.getAllCategories();
     if (data && data.transaction) {
       this.transaction = { ...data.transaction };
       if (typeof this.transaction.transaction_date === 'string') {
         this.transaction.transaction_date = new Date(this.transaction.transaction_date);
       }
     }
-
-    this.dateInput = this.formatDateForInput(this.transaction.transaction_date);
-  }
-
-  formatDateForInput(date: any): string {
-    if (!date) return '';
-    const d = new Date(date);
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
   }
 
   toggleCategoryDropdown(): void {
@@ -105,15 +85,17 @@ export class TransactionForm {
   }
 
   onSave(): void {
-    if (this.dateInput) {
-      this.transaction.transaction_date = new Date(this.dateInput);
-    }
-
     const formattedTransaction = {
       ...this.transaction,
-      transaction_date: this.transaction.transaction_date.toISOString().split('T')[0],
+      transaction_date: this.transaction.transaction_date instanceof Date
+        ? this.transaction.transaction_date.toISOString().split('T')[0]
+        : this.transaction.transaction_date,
       category: this.transaction.transaction_type === 'income' ? '' : this.transaction.category
     };
     this.dialogRef.close(formattedTransaction);
+  }
+
+  getCategoryDisplayName(value: string): string {
+    return this.categoryService.getCategoryDisplayName(value);
   }
 }

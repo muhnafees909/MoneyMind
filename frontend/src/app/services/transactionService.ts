@@ -86,6 +86,44 @@ export class TransactionService {
     );
   }
 
+  getSpendingByCategoryMonthly(): Observable<any> {
+    this.logger.debug('Fetching monthly spending by category', 'TransactionService');
+    this.logger.apiRequest('GET', `${this.apiUrl}/analytics/spending-by-category/monthly`);
+
+    return this.http.get(`${this.apiUrl}/analytics/spending-by-category/monthly`, {
+      headers: this.getHeaders()
+    }).pipe(
+      tap((data: any) => {
+        this.logger.success(`Loaded ${data.length} categories for current month`, 'TransactionService', data);
+        this.logger.apiResponse('GET', `${this.apiUrl}/analytics/spending-by-category/monthly`, 200);
+      }),
+      catchError(error => {
+        this.logger.error('Failed to fetch monthly spending by category', 'TransactionService', error);
+        this.logger.apiError('GET', `${this.apiUrl}/analytics/spending-by-category/monthly`, error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  getSpendingSummaryMonthly(): Observable<any> {
+    this.logger.debug('Fetching monthly spending summary', 'TransactionService');
+    this.logger.apiRequest('GET', `${this.apiUrl}/analytics/spending-summary/monthly`);
+
+    return this.http.get(`${this.apiUrl}/analytics/spending-summary/monthly`, {
+      headers: this.getHeaders()
+    }).pipe(
+      tap((data: any) => {
+        this.logger.success('Monthly spending summary loaded', 'TransactionService', data);
+        this.logger.apiResponse('GET', `${this.apiUrl}/analytics/spending-summary/monthly`, 200);
+      }),
+      catchError(error => {
+        this.logger.error('Failed to fetch monthly spending summary', 'TransactionService', error);
+        this.logger.apiError('GET', `${this.apiUrl}/analytics/spending-summary/monthly`, error);
+        return throwError(() => error);
+      })
+    );
+  }
+
   createTransaction(transaction: any): Observable<any> {
     this.logger.info('Creating new transaction', 'TransactionService', transaction);
     this.logger.apiRequest('POST', `${this.apiUrl}/transactions/`, transaction);

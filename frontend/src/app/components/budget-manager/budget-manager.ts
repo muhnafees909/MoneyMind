@@ -10,6 +10,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { BudgetService } from '../../services/budget.service';
+import { CategoryService, CategoryInfo } from '../../services/category.service';
 
 @Component({
   selector: 'app-budget-manager',
@@ -41,20 +42,14 @@ export class BudgetManager implements OnInit {
 
   editingBudget: any = null;
 
-  categories = [
-    'groceries',
-    'dining',
-    'transportation',
-    'utilities',
-    'entertainment',
-    'shopping',
-    'healthcare',
-    'travel',
-    'education',
-    'other'
-  ];
+  categories: CategoryInfo[] = [];
 
-  constructor(private budgetService: BudgetService) {}
+  constructor(
+    private budgetService: BudgetService,
+    public categoryService: CategoryService
+  ) {
+    this.categories = this.categoryService.getAllCategories();
+  }
 
   ngOnInit() {
     this.loadBudgets();

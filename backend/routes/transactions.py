@@ -1,9 +1,9 @@
-from unicodedata import category
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models.user import db
 from models.transaction import Transaction
 from datetime import datetime
+from utils.categories import normalize_legacy_category
 
 transactions_bp = Blueprint("transaction", __name__)
 
@@ -11,7 +11,7 @@ transactions_bp = Blueprint("transaction", __name__)
 @jwt_required()
 def get_transaction():
     user_id = get_jwt_identity()
-    transactions = Transaction.query.filter_by(user_id=int(user_id)).all()
+    transactions = Transaction.query.filter_by(user_id=int(user_id)).order_by(Transaction.transaction_date.desc()).all()
     return jsonify([t.to_dict() for t in transactions]), 200
     
 @transactions_bp.route('/', methods=['POST'], endpoint='create')
@@ -24,10 +24,13 @@ def create_transaction():
     if not all(field in data for field in required_fields):
         return jsonify({'error': 'Missing required fields'}), 400
 
+    # Normalize category to Plaid format
+    category = normalize_legacy_category(data.get('category', ''))
+
     transaction = Transaction(
         user_id = int(user_id),
         amount = data['amount'],
-        category = data['category'],
+        category = category,
         description = data['description'],
         transaction_type=data.get('transaction_type', 'expense'),
         transaction_date=datetime.fromisoformat(data['transaction_date']).date(),
@@ -53,7 +56,7 @@ def update_transaction(transaction_id):
     if 'amount' in data:
         transaction.amount = data['amount']
     if 'category' in data:
-        transaction.category = data['category']
+        transaction.category = normalize_legacy_category(data['category'])
     if 'description' in data:
         transaction.description = data['description']
     if 'transaction_type' in data:

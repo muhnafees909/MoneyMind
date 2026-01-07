@@ -578,3 +578,163 @@ $transition-base: 0.25s ease;
     font-size: 14px;
   }
 }
+
+// ============================================
+// MARKDOWN CONTENT STYLES
+// ============================================
+.markdown-content {
+  font-family: $font-primary;
+  line-height: 1.6;
+  color: $text-primary;
+
+  // Reset default margins
+  > *:first-child {
+    margin-top: 0;
+  }
+
+  > *:last-child {
+    margin-bottom: 0;
+  }
+
+  // Paragraphs
+  p {
+    margin: 0 0 12px 0;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  // Headings
+  h1, h2, h3, h4, h5, h6 {
+    color: $accent-orange;
+    font-weight: 700;
+    margin: 16px 0 12px 0;
+    line-height: 1.3;
+
+    &:first-child {
+      margin-top: 0;
+    }
+  }
+
+  h1 { font-size: 22px; }
+  h2 { font-size: 20px; }
+  h3 { font-size: 18px; }
+  h4 { font-size: 16px; }
+  h5 { font-size: 15px; }
+  h6 { font-size: 14px; }
+
+  // Bold text
+  strong, b {
+    font-weight: 700;
+    color: $text-primary;
+  }
+
+  // Italic text
+  em, i {
+    font-style: italic;
+    color: $text-secondary;
+  }
+
+  // Lists
+  ul, ol {
+    margin: 8px 0 12px 0;
+    padding-left: 24px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  li {
+    margin: 6px 0;
+    color: $text-primary;
+
+    &::marker {
+      color: $accent-orange;
+    }
+  }
+
+  // Nested lists
+  ul ul, ul ol, ol ul, ol ol {
+    margin: 4px 0;
+  }
+
+  // Code blocks
+  code {
+    background: rgba($bg-input, 0.6);
+    border: 1px solid $border-color;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    color: $accent-orange;
+  }
+
+  pre {
+    background: rgba($bg-input, 0.6);
+    border: 1px solid $border-color;
+    border-radius: $radius-md;
+    padding: 12px;
+    margin: 12px 0;
+    overflow-x: auto;
+
+    code {
+      background: transparent;
+      border: none;
+      padding: 0;
+      color: $text-primary;
+    }
+  }
+
+  // Links
+  a {
+    color: $accent-orange;
+    text-decoration: none;
+    transition: $transition-fast;
+
+    &:hover {
+      color: lighten($accent-orange, 10%);
+      text-decoration: underline;
+    }
+  }
+
+  // Blockquotes
+  blockquote {
+    border-left: 3px solid $accent-orange;
+    padding-left: 16px;
+    margin: 12px 0;
+    color: $text-secondary;
+    font-style: italic;
+  }
+
+  // Horizontal rules
+  hr {
+    border: none;
+    border-top: 1px solid $border-color;
+    margin: 16px 0;
+  }
+
+  // Tables (if OpenAI returns them)
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+
+    th, td {
+      border: 1px solid $border-color;
+      padding: 8px 12px;
+      text-align: left;
+    }
+
+    th {
+      background: rgba($bg-input, 0.6);
+      font-weight: 700;
+      color: $accent-orange;
+    }
+
+    tr:nth-child(even) {
+      background: rgba($bg-input, 0.3);
+    }
+  }
+}

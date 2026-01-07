@@ -30,8 +30,8 @@
           <div class="select-wrapper">
             <select [(ngModel)]="newBudget.category">
               <option value="" disabled selected>Select category</option>
-              <option *ngFor="let cat of categories" [value]="cat">
-                {{ cat | titlecase }}
+              <option *ngFor="let cat of categories" [value]="cat.value">
+                {{ cat.displayName }}
               </option>
             </select>
             <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -88,7 +88,7 @@
         <ng-container matColumnDef="category">
           <th mat-header-cell *matHeaderCellDef>Category</th>
           <td mat-cell *matCellDef="let item">
-            <span class="category-badge">{{ item.category | titlecase }}</span>
+            <span class="category-badge">{{ categoryService.getCategoryDisplayName(item.category) }}</span>
           </td>
         </ng-container>
 

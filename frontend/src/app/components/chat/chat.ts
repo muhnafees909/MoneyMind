@@ -8,6 +8,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MarkdownModule } from 'ngx-markdown';
 import { ChatService, ChatMessage, ChatResponse } from '../../services/chat.service';
 
 @Component({
@@ -22,7 +23,8 @@ import { ChatService, ChatMessage, ChatResponse } from '../../services/chat.serv
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MarkdownModule
   ],
   templateUrl: './chat.html',
   styleUrl: './chat.scss'

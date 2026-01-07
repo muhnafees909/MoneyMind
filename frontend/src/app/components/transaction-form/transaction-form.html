@@ -70,7 +70,7 @@
             class="select-trigger"
             (click)="toggleCategoryDropdown()"
           >
-            <span class="select-value">{{ transaction.category ? (transaction.category | titlecase) : 'Select a category' }}</span>
+            <span class="select-value">{{ transaction.category ? getCategoryDisplayName(transaction.category) : 'Select a category' }}</span>
             <svg
               [class.rotated]="showCategoryDropdown"
               width="20"
@@ -86,10 +86,10 @@
             <div
               *ngFor="let cat of categories"
               class="select-option"
-              (click)="selectCategory(cat)"
-              [class.selected]="transaction.category === cat"
+              (click)="selectCategory(cat.value)"
+              [class.selected]="transaction.category === cat.value"
             >
-              {{ cat | titlecase }}
+              {{ cat.displayName }}
             </div>
           </div>
         </div>
@@ -111,13 +111,13 @@
       <!-- Date Field -->
       <div class="form-group">
         <label class="form-label">Date</label>
-        <input
-          type="date"
-          class="form-input"
-          [(ngModel)]="dateInput"
-          name="date"
-          required
-        />
+        <div class="datepicker-wrapper">
+          <mat-form-field appearance="outline" class="dark-datepicker">
+            <input matInput [matDatepicker]="transactionPicker" [(ngModel)]="transaction.transaction_date" name="date" required>
+            <mat-datepicker-toggle matSuffix [for]="transactionPicker"></mat-datepicker-toggle>
+            <mat-datepicker #transactionPicker></mat-datepicker>
+          </mat-form-field>
+        </div>
       </div>
 
       <!-- Notes Field -->

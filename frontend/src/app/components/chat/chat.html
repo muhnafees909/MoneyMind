@@ -65,7 +65,7 @@
       </div>
       
       <div class="message-bubble" [ngClass]="message.role">
-        <p class="message-content">{{ message.content }}</p>
+        <div class="message-content markdown-content" markdown [data]="message.content"></div>
         <span class="message-timestamp">{{ message.timestamp | date: 'shortTime' }}</span>
       </div>
 

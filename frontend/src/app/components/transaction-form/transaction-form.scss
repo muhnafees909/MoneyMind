@@ -373,6 +373,61 @@ mat-dialog-container {
 }
 
 // ============================================
+// DARK DATEPICKER STYLES
+// ============================================
+.datepicker-wrapper {
+  .dark-datepicker {
+    width: 100%;
+
+    .mat-mdc-form-field-flex,
+    .mat-form-field-flex {
+      background: $bg-input;
+      border-radius: $radius-pill;
+      padding: 0 16px;
+    }
+
+    .mat-mdc-text-field-wrapper,
+    .mat-form-field-wrapper {
+      padding: 0;
+    }
+
+    .mdc-notched-outline,
+    .mat-form-field-outline {
+      display: none;
+    }
+
+    .mat-mdc-input-element,
+    .mat-input-element {
+      color: $text-primary !important;
+      caret-color: $text-primary;
+    }
+
+    input {
+      color: $text-primary !important;
+      font-family: $font-primary;
+
+      &::placeholder {
+        color: $text-muted !important;
+        opacity: 1;
+      }
+    }
+
+    .mat-mdc-form-field-placeholder,
+    .mat-form-field-placeholder {
+      color: $text-muted !important;
+    }
+
+    .mat-datepicker-toggle {
+      color: $text-muted;
+    }
+
+    .mat-mdc-form-field-subscript-wrapper {
+      display: none;
+    }
+  }
+}
+
+// ============================================
 // RESPONSIVE DESIGN
 // ============================================
 @media (max-width: 600px) {

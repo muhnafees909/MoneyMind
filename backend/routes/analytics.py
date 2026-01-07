@@ -5,6 +5,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from models.user import db
 from sqlalchemy import func, extract
 from datetime import datetime, timedelta
+from utils.categories import get_category_display_name, get_category_color
 
 analytics_bp = Blueprint("analytics", __name__)
 
@@ -23,8 +24,13 @@ def spending_by_category():
     ).group_by(Transaction.category).all()
 
     category_totals = [
-        {"category": row.category, "total": float(row.total)}
-        for row in results 
+        {
+            "category": row.category,
+            "display_name": get_category_display_name(row.category),
+            "color": get_category_color(row.category),
+            "total": float(row.total)
+        }
+        for row in results
     ]
 
     return jsonify(category_totals), 200
@@ -92,5 +98,89 @@ def spending_summary():
         'total_income': float(total_income),
         'net': float(total_income - total_expenses),
         'transaction_count': transaction_count
+    }), 200
+
+@analytics_bp.route('/spending-by-category/monthly', methods=['GET'])
+@jwt_required()
+def spending_by_category_monthly():
+    """Get spending by category for current month"""
+    user_id = get_jwt_identity()
+
+    # Get current month start/end
+    now = datetime.now()
+    month_start = datetime(now.year, now.month, 1).date()
+    if now.month == 12:
+        month_end = datetime(now.year + 1, 1, 1).date()
+    else:
+        month_end = datetime(now.year, now.month + 1, 1).date()
+
+    results = db.session.query(
+        Transaction.category,
+        func.sum(Transaction.amount).label('total')
+    ).filter(
+        Transaction.user_id == int(user_id),
+        Transaction.transaction_type == 'expense',
+        Transaction.transaction_date >= month_start,
+        Transaction.transaction_date < month_end
+    ).group_by(Transaction.category).all()
+
+    category_totals = [
+        {
+            "category": row.category,
+            "display_name": get_category_display_name(row.category),
+            "color": get_category_color(row.category),
+            "total": float(row.total)
+        }
+        for row in results
+    ]
+
+    return jsonify(category_totals), 200
+
+@analytics_bp.route('/spending-summary/monthly', methods=['GET'])
+@jwt_required()
+def spending_summary_monthly():
+    """Get spending summary for current month"""
+    user_id = get_jwt_identity()
+
+    # Get current month start/end
+    now = datetime.now()
+    month_start = datetime(now.year, now.month, 1).date()
+    if now.month == 12:
+        month_end = datetime(now.year + 1, 1, 1).date()
+    else:
+        month_end = datetime(now.year, now.month + 1, 1).date()
+
+    # Month expenses
+    month_expenses = db.session.query(
+        func.sum(Transaction.amount)
+    ).filter(
+        Transaction.user_id == int(user_id),
+        Transaction.transaction_type == "expense",
+        Transaction.transaction_date >= month_start,
+        Transaction.transaction_date < month_end
+    ).scalar() or 0
+
+    # Month income
+    month_income = db.session.query(
+        func.sum(Transaction.amount)
+    ).filter(
+        Transaction.user_id == int(user_id),
+        Transaction.transaction_type == "income",
+        Transaction.transaction_date >= month_start,
+        Transaction.transaction_date < month_end
+    ).scalar() or 0
+
+    # Month transaction count
+    month_count = Transaction.query.filter(
+        Transaction.user_id == int(user_id),
+        Transaction.transaction_date >= month_start,
+        Transaction.transaction_date < month_end
+    ).count()
+
+    return jsonify({
+        'month_expenses': float(month_expenses),
+        'month_income': float(month_income),
+        'month_net': float(month_income - month_expenses),
+        'month_count': month_count
     }), 200
 
