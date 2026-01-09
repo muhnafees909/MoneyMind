@@ -38,6 +38,7 @@ from models.user import db
 db.init_app(app)
 from models.budget import Budget
 from models.goal import FinancialGoal
+from models.plaid_item import PlaidItem
 
 
 jwt = JWTManager(app)

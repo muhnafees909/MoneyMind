@@ -1,0 +1,19 @@
+<div class="modal-container">
+  <div class="modal-header">
+    <div class="modal-icon">⚠️</div>
+    <h2 class="modal-title">{{ data.title }}</h2>
+  </div>
+
+  <div class="modal-content">
+    <p class="modal-message">{{ data.message }}</p>
+  </div>
+
+  <div class="modal-actions">
+    <button class="btn btn-cancel" (click)="onCancel()">
+      {{ data.cancelText || 'Cancel' }}
+    </button>
+    <button class="btn btn-confirm" (click)="onConfirm()">
+      {{ data.confirmText || 'Confirm' }}
+    </button>
+  </div>
+</div>

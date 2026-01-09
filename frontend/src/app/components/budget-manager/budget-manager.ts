@@ -11,6 +11,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { BudgetService } from '../../services/budget.service';
 import { CategoryService, CategoryInfo } from '../../services/category.service';
+import { ModalService } from '../../services/modal.service';
 
 @Component({
   selector: 'app-budget-manager',
@@ -46,7 +47,8 @@ export class BudgetManager implements OnInit {
 
   constructor(
     private budgetService: BudgetService,
-    public categoryService: CategoryService
+    public categoryService: CategoryService,
+    private modalService: ModalService
   ) {
     this.categories = this.categoryService.getAllCategories();
   }
@@ -86,7 +88,7 @@ export class BudgetManager implements OnInit {
 
   addBudget() {
     if (!this.newBudget.category || !this.newBudget.amount) {
-      alert('Please fill in all fields');
+      this.modalService.showError('Please fill in all fields', 'Validation Error');
       return;
     }
 
@@ -102,7 +104,7 @@ export class BudgetManager implements OnInit {
       },
       error: (error) => {
         console.error('Error creating budget:', error);
-        alert(error.error?.error || 'Failed to create budget');
+        this.modalService.showError(error.error?.error || 'Failed to create budget');
       }
     });
   }
@@ -113,12 +115,12 @@ export class BudgetManager implements OnInit {
 
   saveEdit() {
     if (!this.editingBudget.amount || this.editingBudget.amount <= 0) {
-      alert('Please enter a valid amount');
+      this.modalService.showError('Please enter a valid amount', 'Validation Error');
       return;
     }
-  
+
     console.log('Saving budget:', this.editingBudget);  // Debug log
-  
+
     this.budgetService.updateBudget(this.editingBudget.budget_id, {
       amount: this.editingBudget.amount
     }).subscribe({
@@ -130,7 +132,7 @@ export class BudgetManager implements OnInit {
       },
       error: (error) => {
         console.error('Error updating budget:', error);
-        alert('Failed to update budget');
+        this.modalService.showError('Failed to update budget');
       }
     });
   }
@@ -139,8 +141,15 @@ export class BudgetManager implements OnInit {
     this.editingBudget = null;
   }
 
-  deleteBudget(id: number) {
-    if (confirm('Are you sure you want to delete this budget? This is a recurring budget.')) {
+  async deleteBudget(id: number) {
+    const confirmed = await this.modalService.showConfirm(
+      'Are you sure you want to delete this budget? This is a recurring budget.',
+      'Confirm Delete',
+      'Delete',
+      'Cancel'
+    );
+
+    if (confirmed) {
       this.budgetService.deleteBudget(id).subscribe({
         next: () => {
           this.loadBudgets();

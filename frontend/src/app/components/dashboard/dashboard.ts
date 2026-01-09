@@ -11,6 +11,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../../services/auth.service';
 import { TransactionService } from '../../services/transactionService';
 import { CategoryService } from '../../services/category.service';
+import { ModalService } from '../../services/modal.service';
 import { TransactionForm } from '../transaction-form/transaction-form';
 import { RouterLink } from '@angular/router';
 
@@ -78,7 +79,8 @@ export class Dashboard implements OnInit {
       private transactionService: TransactionService,
       public categoryService: CategoryService,
       private router: Router,
-      private dialog: MatDialog
+      private dialog: MatDialog,
+      private modalService: ModalService
     ) {}
   
     ngOnInit() {
@@ -177,8 +179,15 @@ export class Dashboard implements OnInit {
       });
     }
   
-    deleteTransaction(id: number) {
-      if (confirm('Are you sure you want to delete this transaction?')) {
+    async deleteTransaction(id: number) {
+      const confirmed = await this.modalService.showConfirm(
+        'Are you sure you want to delete this transaction?',
+        'Confirm Delete',
+        'Delete',
+        'Cancel'
+      );
+
+      if (confirmed) {
         this.transactionService.deleteTransaction(id).subscribe({
           next: () => {
             this.loadTransactions();
@@ -218,7 +227,7 @@ export class Dashboard implements OnInit {
 
         error: (error) => {
           console.error('Error creating link token:', error);
-          alert('Failed to initialize bank connection');
+          this.modalService.showError('Failed to initialize bank connection');
         }
       });
     }
@@ -234,21 +243,21 @@ export class Dashboard implements OnInit {
           this.authService.syncTransactions(accessToken).subscribe({
             next: (syncResponse) => {
               console.log('Transactions synced!', syncResponse);
-              alert(`Successfully synced ${syncResponse.saved_transactions} transactions!`);
+              this.modalService.showSuccess(`Successfully synced ${syncResponse.saved_transactions} transactions!`);
 
               this.loadAnalytics();
               this.loadTransactions();
             },
             error: (error) => {
               console.error('Error syncing transactions:', error);
-              alert('Bank connected but failed to sync transactions');
+              this.modalService.showError('Bank connected but failed to sync transactions');
             }
           });
 
         },
         error: (error) => {
           console.error('Error exchanging token:', error);
-          alert('Failed to complete bank connection');
+          this.modalService.showError('Failed to complete bank connection');
         }
       });
     }

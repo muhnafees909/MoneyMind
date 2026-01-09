@@ -1,0 +1,133 @@
+// Same theme variables as alert-modal
+$bg-primary: #0f1219;
+$bg-secondary: #1a1f2e;
+$bg-card: #232a3b;
+
+$accent-orange: #f97316;
+$accent-coral: #ff6b6b;
+
+$text-primary: #ffffff;
+$text-secondary: #94a3b8;
+
+$border-color: rgba(148, 163, 184, 0.1);
+
+$radius-pill: 50px;
+
+$shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.4);
+$shadow-glow: 0 0 40px rgba(249, 115, 22, 0.15);
+
+$font-primary: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+$transition-base: 0.25s ease;
+
+// Modal container override
+::ng-deep .custom-modal .mat-mdc-dialog-container {
+  background: linear-gradient(180deg, $bg-primary 0%, $bg-secondary 100%) !important;
+  border: 1px solid $border-color !important;
+  box-shadow: $shadow-lg, $shadow-glow !important;
+  border-radius: 20px !important;
+  padding: 0 !important;
+}
+
+.modal-container {
+  display: flex;
+  flex-direction: column;
+  min-width: 400px;
+  font-family: $font-primary;
+}
+
+.modal-header {
+  padding: 24px 28px 20px 28px;
+  border-bottom: 1px solid $border-color;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.modal-icon {
+  font-size: 32px;
+  color: $accent-orange;
+  line-height: 1;
+}
+
+.modal-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: $text-primary;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.modal-content {
+  padding: 24px 28px;
+}
+
+.modal-message {
+  font-size: 15px;
+  line-height: 1.6;
+  color: $text-secondary;
+  margin: 0;
+}
+
+.modal-actions {
+  padding: 20px 28px 28px 28px;
+  border-top: 1px solid $border-color;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 24px;
+  border: none;
+  border-radius: $radius-pill;
+  font-family: $font-primary;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: $transition-base;
+  outline: none;
+}
+
+.btn-cancel {
+  background: transparent;
+  border: 1px solid $border-color;
+  color: $text-secondary;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: $text-primary;
+  }
+}
+
+.btn-confirm {
+  background: linear-gradient(135deg, $accent-coral 0%, darken($accent-coral, 5%) 100%);
+  color: $text-primary;
+  box-shadow: 0 0 30px rgba($accent-coral, 0.15);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 30px rgba($accent-coral, 0.25), 0 4px 20px rgba(0, 0, 0, 0.3);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 600px) {
+  .modal-container {
+    min-width: 90vw;
+  }
+
+  .modal-actions {
+    flex-direction: column-reverse;
+
+    .btn {
+      width: 100%;
+    }
+  }
+}

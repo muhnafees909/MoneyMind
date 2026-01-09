@@ -11,6 +11,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatChipsModule } from '@angular/material/chips';
 import { GoalService } from '../../services/goal.service';
+import { ModalService } from '../../services/modal.service';
 
 @Component({
   selector: 'app-goals-manager',
@@ -47,7 +48,10 @@ export class GoalsManagerComponent implements OnInit {
   addingProgress: { [key: number]: number } = {};
   editingGoal: any = null;
 
-  constructor(private goalService: GoalService) {}
+  constructor(
+    private goalService: GoalService,
+    private modalService: ModalService
+  ) {}
 
   ngOnInit() {
     this.loadGoals();
@@ -74,16 +78,16 @@ export class GoalsManagerComponent implements OnInit {
 
   createGoal() {
     if (!this.newGoal.name || !this.newGoal.target_amount) {
-      alert('Please fill in name and target amount');
+      this.modalService.showError('Please fill in name and target amount', 'Validation Error');
       return;
     }
-  
+
     const goalData = {
       ...this.newGoal,
-      target_date: this.newGoal.target_date ? 
+      target_date: this.newGoal.target_date ?
         this.formatDate(new Date(this.newGoal.target_date)) : null
     };
-  
+
     this.goalService.createGoal(goalData).subscribe({
       next: () => {
         this.loadGoals();
@@ -97,7 +101,7 @@ export class GoalsManagerComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error creating goal:', error);
-        alert('Failed to create goal');
+        this.modalService.showError('Failed to create goal');
       }
     });
   }
@@ -109,9 +113,9 @@ export class GoalsManagerComponent implements OnInit {
 
   addProgressToGoal(goalId: number) {
     const amount = this.addingProgress[goalId];
-    
+
     if (!amount || amount <= 0) {
-      alert('Please enter a valid amount');
+      this.modalService.showError('Please enter a valid amount', 'Validation Error');
       return;
     }
 
@@ -122,7 +126,7 @@ export class GoalsManagerComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error adding progress:', error);
-        alert('Failed to add progress');
+        this.modalService.showError('Failed to add progress');
       }
     });
   }
@@ -145,19 +149,19 @@ export class GoalsManagerComponent implements OnInit {
 
   saveEdit() {
     if (!this.editingGoal.name || !this.editingGoal.target_amount) {
-      alert('Please fill in required fields');
+      this.modalService.showError('Please fill in required fields', 'Validation Error');
       return;
     }
-  
+
     const updateData = {
       name: this.editingGoal.name,
       description: this.editingGoal.description,
       target_amount: this.editingGoal.target_amount,
       current_amount: this.editingGoal.current_amount,
-      target_date: this.editingGoal.target_date ? 
+      target_date: this.editingGoal.target_date ?
         this.formatDate(this.editingGoal.target_date) : null
     };
-  
+
     this.goalService.updateGoal(this.editingGoal.id, updateData).subscribe({
       next: () => {
         this.loadGoals();
@@ -165,7 +169,7 @@ export class GoalsManagerComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error updating goal:', error);
-        alert('Failed to update goal');
+        this.modalService.showError('Failed to update goal');
       }
     });
   }
@@ -177,8 +181,15 @@ export class GoalsManagerComponent implements OnInit {
     return `${year}-${month}-${day}`;
   }
 
-  deleteGoal(id: number, name: string) {
-    if (confirm(`Are you sure you want to delete "${name}"?`)) {
+  async deleteGoal(id: number, name: string) {
+    const confirmed = await this.modalService.showConfirm(
+      `Are you sure you want to delete "${name}"?`,
+      'Confirm Delete',
+      'Delete',
+      'Cancel'
+    );
+
+    if (confirmed) {
       this.goalService.deleteGoal(id).subscribe({
         next: () => {
           this.loadGoals();

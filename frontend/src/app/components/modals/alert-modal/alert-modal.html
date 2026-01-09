@@ -1,0 +1,14 @@
+<div class="modal-container">
+  <div class="modal-header" [ngClass]="data.type">
+    <div class="modal-icon">{{ getIcon() }}</div>
+    <h2 class="modal-title">{{ data.title }}</h2>
+  </div>
+
+  <div class="modal-content">
+    <p class="modal-message">{{ data.message }}</p>
+  </div>
+
+  <div class="modal-actions">
+    <button class="btn btn-primary" (click)="close()">OK</button>
+  </div>
+</div>

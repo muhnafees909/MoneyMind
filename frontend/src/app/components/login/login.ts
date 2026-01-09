@@ -7,6 +7,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { AuthService } from '../../services/auth.service';
+import { ModalService } from '../../services/modal.service';
 
 @Component({
   selector: 'app-login',
@@ -30,7 +31,8 @@ export class Login {
 
   constructor(
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private modalService: ModalService
   ) {}
   showPassword = false;
 
@@ -39,14 +41,14 @@ export class Login {
   }
   onLogin() {
     this.errorMessage = '';
-    
+
     this.authService.login(this.email, this.password).subscribe({
       next: (response) => {
         console.log('Login successful:', response);
         this.authService.saveToken(response.access_token);
         this.router.navigate(['/dashboard']);  // Navigate to dashboard
 
-        alert('Login successful!');
+        this.modalService.showSuccess('Login successful!');
       },
       error: (error) => {
         console.error('Login failed:', error);

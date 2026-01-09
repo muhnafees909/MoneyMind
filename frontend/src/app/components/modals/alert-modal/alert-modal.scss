@@ -1,0 +1,129 @@
+// Use same theme variables as transaction-form
+$bg-primary: #0f1219;
+$bg-secondary: #1a1f2e;
+$bg-card: #232a3b;
+$bg-input: #1e2433;
+
+$accent-orange: #f97316;
+$accent-green: #22c55e;
+$accent-red: #ef4444;
+
+$text-primary: #ffffff;
+$text-secondary: #94a3b8;
+
+$border-color: rgba(148, 163, 184, 0.1);
+
+$radius-md: 12px;
+$radius-lg: 16px;
+$radius-pill: 50px;
+
+$shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.4);
+$shadow-glow: 0 0 40px rgba(249, 115, 22, 0.15);
+
+$font-primary: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+$transition-base: 0.25s ease;
+
+// Modal container override
+::ng-deep .custom-modal .mat-mdc-dialog-container {
+  background: linear-gradient(180deg, $bg-primary 0%, $bg-secondary 100%) !important;
+  border: 1px solid $border-color !important;
+  box-shadow: $shadow-lg, $shadow-glow !important;
+  border-radius: 20px !important;
+  padding: 0 !important;
+}
+
+.modal-container {
+  display: flex;
+  flex-direction: column;
+  min-width: 350px;
+  font-family: $font-primary;
+}
+
+.modal-header {
+  padding: 24px 28px 20px 28px;
+  border-bottom: 1px solid $border-color;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  &.error .modal-icon {
+    color: $accent-red;
+  }
+
+  &.success .modal-icon {
+    color: $accent-green;
+  }
+
+  &.info .modal-icon {
+    color: $accent-orange;
+  }
+}
+
+.modal-icon {
+  font-size: 32px;
+  line-height: 1;
+}
+
+.modal-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: $text-primary;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.modal-content {
+  padding: 24px 28px;
+  background: transparent;
+}
+
+.modal-message {
+  font-size: 15px;
+  line-height: 1.6;
+  color: $text-secondary;
+  margin: 0;
+}
+
+.modal-actions {
+  padding: 20px 28px 28px 28px;
+  border-top: 1px solid $border-color;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 32px;
+  border: none;
+  border-radius: $radius-pill;
+  font-family: $font-primary;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: $transition-base;
+  outline: none;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, $accent-orange 0%, darken($accent-orange, 5%) 100%);
+  color: $text-primary;
+  box-shadow: 0 0 30px rgba($accent-orange, 0.15);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 30px rgba($accent-orange, 0.25), 0 4px 20px rgba(0, 0, 0, 0.3);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 600px) {
+  .modal-container {
+    min-width: 90vw;
+  }
+}
