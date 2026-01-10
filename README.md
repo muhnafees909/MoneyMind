@@ -199,7 +199,7 @@ frontend/
 
 ## Security Features
 
-- JWT-based authentication with 7-day token expiration
+- JWT-based authentication with 3-hour token expiration
 - Password hashing using Werkzeug security utilities
 - CORS protection configured for specific origins
 - Plaid webhook signature verification support
