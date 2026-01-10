@@ -114,8 +114,9 @@ $transition-base: 0.25s ease;
 
   &.active {
     color: $text-primary;
-    background: $bg-card;
-    border: 1px solid $border-color;
+    background: linear-gradient(135deg, rgba($accent-orange, 0.15) 0%, rgba($accent-purple, 0.15) 100%);
+    border: 1px solid rgba($accent-orange, 0.4);
+    font-weight: 600;
   }
 
   &.ai-advisor {
@@ -244,7 +245,9 @@ $transition-base: 0.25s ease;
 
   &.active {
     color: $text-primary;
-    background: $bg-card;
+    background: linear-gradient(135deg, rgba($accent-orange, 0.15) 0%, rgba($accent-purple, 0.15) 100%);
+    border-left: 3px solid $accent-orange;
+    font-weight: 600;
   }
 
   &.logout {

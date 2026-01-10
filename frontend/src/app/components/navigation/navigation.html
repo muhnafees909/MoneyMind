@@ -12,7 +12,7 @@
   
       <!-- Navigation Links -->
       <div class="nav-links">
-        <a routerLink="/dashboard" routerLinkActive="active" class="nav-link">
+        <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <rect x="3" y="3" width="7" height="7"/>
             <rect x="14" y="3" width="7" height="7"/>
@@ -21,16 +21,16 @@
           </svg>
           <span>Dashboard</span>
         </a>
-  
-        <a routerLink="/budgets" routerLinkActive="active" class="nav-link">
+
+        <a routerLink="/budgets" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="12" y1="1" x2="12" y2="23"/>
             <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
           </svg>
           <span>Budgets</span>
         </a>
-  
-        <a routerLink="/goals" routerLinkActive="active" class="nav-link">
+
+        <a routerLink="/goals" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="10"/>
             <circle cx="12" cy="12" r="6"/>
@@ -38,8 +38,8 @@
           </svg>
           <span>Goals</span>
         </a>
-  
-        <a routerLink="/chat" routerLinkActive="active" class="nav-link ai-advisor">
+
+        <a routerLink="/chat" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link ai-advisor">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
           </svg>
@@ -71,7 +71,7 @@
   
     <!-- Mobile Menu -->
     <div class="mobile-menu" [class.open]="mobileMenuOpen">
-      <a routerLink="/dashboard" routerLinkActive="active" class="mobile-link" (click)="closeMobileMenu()">
+      <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="mobile-link" (click)="closeMobileMenu()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <rect x="3" y="3" width="7" height="7"/>
           <rect x="14" y="3" width="7" height="7"/>
@@ -81,7 +81,7 @@
         <span>Dashboard</span>
       </a>
   
-      <a routerLink="/budgets" routerLinkActive="active" class="mobile-link" (click)="closeMobileMenu()">
+      <a routerLink="/budgets" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="mobile-link" (click)="closeMobileMenu()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="12" y1="1" x2="12" y2="23"/>
           <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
@@ -89,7 +89,7 @@
         <span>Budgets</span>
       </a>
   
-      <a routerLink="/goals" routerLinkActive="active" class="mobile-link" (click)="closeMobileMenu()">
+      <a routerLink="/goals" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="mobile-link" (click)="closeMobileMenu()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="12" cy="12" r="10"/>
           <circle cx="12" cy="12" r="6"/>
@@ -98,7 +98,7 @@
         <span>Goals</span>
       </a>
   
-      <a routerLink="/chat" routerLinkActive="active" class="mobile-link" (click)="closeMobileMenu()">
+      <a routerLink="/chat" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="mobile-link" (click)="closeMobileMenu()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
         </svg>
