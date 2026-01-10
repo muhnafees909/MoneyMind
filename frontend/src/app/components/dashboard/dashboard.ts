@@ -238,9 +238,9 @@ export class Dashboard implements OnInit {
       this.authService.exchangePublicToken(public_token).subscribe({
         next: (response) => {
           console.log('Token exchange successful!', response);
-          const accessToken = response.access_token;
 
-          this.authService.syncTransactions(accessToken).subscribe({
+          // Access token is now stored in database, just call sync without passing it
+          this.authService.syncTransactions().subscribe({
             next: (syncResponse) => {
               console.log('Transactions synced!', syncResponse);
               this.modalService.showSuccess(`Successfully synced ${syncResponse.saved_transactions} transactions!`);

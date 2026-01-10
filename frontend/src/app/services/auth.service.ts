@@ -123,13 +123,16 @@ export class AuthService {
     );
   }
   
-  syncTransactions(accessToken: string): Observable<any> {
+  syncTransactions(accessToken?: string): Observable<any> {
     this.logger.info('Syncing Plaid transactions', 'AuthService.Plaid');
     const token = this.getToken();
     this.logger.apiRequest('POST', `${this.plaidApiUrl}/sync-transactions`);
 
+    // accessToken is now optional - backend will fetch from database if not provided
+    const body = accessToken ? { access_token: accessToken } : {};
+
     return this.http.post(`${this.plaidApiUrl}/sync-transactions`,
-      { access_token: accessToken },
+      body,
       {
         headers: new HttpHeaders({
           'Authorization': `Bearer ${token}`

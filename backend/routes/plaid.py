@@ -169,11 +169,21 @@ def sync_transactions():
 
     try:
         user_id = get_jwt_identity()
-        data = request.get_json()
+        data = request.get_json() or {}
+
+        # Support both old and new API: access_token in body OR fetch from database
         access_token = data.get('access_token')
 
         if not access_token:
-            return jsonify({'error': 'access_token required'}), 400
+            # New behavior: Fetch access token from PlaidItem table
+            plaid_item = PlaidItem.query.filter_by(user_id=int(user_id)).first()
+
+            if not plaid_item:
+                return jsonify({
+                    'error': 'No bank account connected. Please connect a bank account first.'
+                }), 404
+
+            access_token = plaid_item.access_token
 
         result = perform_transaction_sync(int(user_id), access_token)
 
