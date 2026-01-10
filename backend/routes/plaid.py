@@ -132,22 +132,16 @@ def exchange_public_token():
         except Exception as e:
             print(f"Failed to fetch institution name: {e}")
 
-        # Check if user already has a PlaidItem (enforce one bank connection per user)
-        existing_user_item = PlaidItem.query.filter_by(user_id=int(user_id)).first()
+        # Check if item already exists (in case of re-linking)
+        existing_item = PlaidItem.query.filter_by(item_id=item_id).first()
 
-        if existing_user_item:
-            # Update existing PlaidItem - replace old bank connection with new one
-            print(f"[PLAID] Replacing existing connection for user {user_id}")
-            print(f"[PLAID] Old: {existing_user_item.institution_name} (item_id: {existing_user_item.item_id})")
-            print(f"[PLAID] New: {institution_name} (item_id: {item_id})")
-
-            existing_user_item.item_id = item_id
-            existing_user_item.access_token = access_token
-            existing_user_item.institution_name = institution_name
-            existing_user_item.updated_at = datetime.utcnow()
+        if existing_item:
+            # Update existing item
+            existing_item.access_token = access_token
+            existing_item.institution_name = institution_name
+            existing_item.updated_at = datetime.utcnow()
         else:
-            # Create new PlaidItem record (first time connecting)
-            print(f"[PLAID] Creating new connection for user {user_id}: {institution_name}")
+            # Create new PlaidItem record
             plaid_item = PlaidItem(
                 user_id=int(user_id),
                 item_id=item_id,
