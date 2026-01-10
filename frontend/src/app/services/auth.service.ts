@@ -151,26 +151,4 @@ export class AuthService {
     );
   }
 
-  cleanupDuplicates(): Observable<any> {
-    this.logger.info('Cleaning up duplicate transactions and PlaidItems', 'AuthService.Plaid');
-    const token = this.getToken();
-    this.logger.apiRequest('POST', `${this.plaidApiUrl}/cleanup-duplicates`);
-
-    return this.http.post(`${this.plaidApiUrl}/cleanup-duplicates`, {}, {
-      headers: new HttpHeaders({
-        'Authorization': `Bearer ${token}`
-      })
-    }).pipe(
-      tap((response: any) => {
-        this.logger.success('Cleanup completed', 'AuthService.Plaid', response);
-        this.logger.apiResponse('POST', `${this.plaidApiUrl}/cleanup-duplicates`, 200, response);
-      }),
-      catchError(error => {
-        this.logger.error('Cleanup failed', 'AuthService.Plaid', error);
-        this.logger.apiError('POST', `${this.plaidApiUrl}/cleanup-duplicates`, error);
-        return throwError(() => error);
-      })
-    );
-  }
-
 }
