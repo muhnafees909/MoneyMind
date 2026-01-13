@@ -1,4 +1,4 @@
-<nav class="navbar" *ngIf="isLoggedIn()">
+<nav class="navbar" *ngIf="isLoggedIn() && !isAuthPage()">
     <div class="nav-content">
       <!-- Logo -->
       <div class="nav-logo" routerLink="/dashboard">

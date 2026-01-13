@@ -36,6 +36,11 @@ export class Navigation {
     return this.authService.isLoggedIn();
   }
 
+  isAuthPage(): boolean {
+    const currentUrl = this.router.url;
+    return currentUrl === '/login' || currentUrl === '/register';
+  }
+
   toggleMobileMenu() {
     this.mobileMenuOpen = !this.mobileMenuOpen;
   }
