@@ -17,6 +17,14 @@ class FinancialGoal(db.Model):
     # Status
     is_completed = db.Column(db.Boolean, default=False)
     completed_at = db.Column(db.DateTime, nullable=True)
+
+    # Envelope mode: set linked_account_id to treat this goal as a virtual
+    # sub-allocation ("envelope") of a real Plaid-linked account
+    linked_account_id = db.Column(db.Integer, db.ForeignKey('plaid_accounts.id'), nullable=True)
+    priority_order = db.Column(db.Integer, nullable=True)  # rank in allocation waterfall (1 = first funded)
+
+    linked_account = db.relationship('PlaidAccount',
+                                     backref=db.backref('envelope_goals', lazy=True))
     
     # Timestamps
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -35,6 +43,9 @@ class FinancialGoal(db.Model):
             'completed_at': self.completed_at.date().isoformat() if self.completed_at else None,  # Just date, not datetime
             'progress_percentage': self.progress_percentage,
             'remaining_amount': float(self.target_amount - self.current_amount),
+            'linked_account_id': self.linked_account_id,
+            'linked_account_name': self.linked_account.name if self.linked_account else None,
+            'priority_order': self.priority_order,
             'created_at': self.created_at.isoformat(),
             'updated_at': self.updated_at.isoformat()
         }

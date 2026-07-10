@@ -1,7 +1,10 @@
+from decimal import Decimal
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models.user import db
 from models.goal import FinancialGoal
+from models.plaid_account import PlaidAccount
+from routes.envelopes import apply_allocation, envelope_balance
 from datetime import datetime, date
 
 goals_bp = Blueprint('goals', __name__)
@@ -40,6 +43,15 @@ def create_goal():
         except (ValueError, AttributeError) as e:
             return jsonify({'error': f'Invalid date format. Use YYYY-MM-DD. Error: {str(e)}'}), 400
     
+    # Optional envelope link: validate the account belongs to this user
+    linked_account_id = None
+    if data.get('linked_account_id'):
+        account = PlaidAccount.query.filter_by(
+            id=data['linked_account_id'], user_id=int(user_id)).first()
+        if not account:
+            return jsonify({'error': 'Account not found'}), 404
+        linked_account_id = account.id
+
     # Create goal
     goal = FinancialGoal(
         user_id=int(user_id),
@@ -47,12 +59,22 @@ def create_goal():
         description=data.get('description', ''),
         target_amount=data['target_amount'],
         current_amount=data.get('current_amount', 0),
-        target_date=target_date
+        target_date=target_date,
+        linked_account_id=linked_account_id,
+        priority_order=data.get('priority_order')
     )
-    
+
     db.session.add(goal)
+    db.session.flush()  # need goal.id to seed the ledger
+
+    # If created already holding money, seed the envelope ledger to match
+    if linked_account_id and Decimal(goal.current_amount) != 0:
+        seed = Decimal(goal.current_amount)
+        goal.current_amount = 0  # apply_allocation adds it back
+        apply_allocation(goal, seed, 'correction', note='Initial balance when goal created')
+
     db.session.commit()
-    
+
     return jsonify(goal.to_dict()), 201
 
 @goals_bp.route('/<int:goal_id>', methods=['PUT'])
@@ -75,11 +97,38 @@ def update_goal(goal_id):
     if 'target_amount' in data:
         goal.target_amount = data['target_amount']
     if 'current_amount' in data:
-        goal.current_amount = data['current_amount']
-        # Check if goal is completed
-        if goal.current_amount >= goal.target_amount and not goal.is_completed:
-            goal.is_completed = True
-            goal.completed_at = datetime.combine(date.today(), datetime.min.time())
+        new_amount = Decimal(str(data['current_amount']))
+        if goal.linked_account_id:
+            # Envelope goal: record the change in the ledger instead of silently
+            # overwriting the counter, so reconciliation stays truthful
+            delta = new_amount - Decimal(goal.current_amount)
+            if delta != 0:
+                apply_allocation(goal, delta, 'correction', note='Manual edit of goal amount')
+        else:
+            goal.current_amount = new_amount
+            # Check if goal is completed
+            if goal.current_amount >= goal.target_amount and not goal.is_completed:
+                goal.is_completed = True
+                goal.completed_at = datetime.combine(date.today(), datetime.min.time())
+
+    # Envelope linking: attach/detach this goal to a real Plaid account
+    if 'linked_account_id' in data:
+        if data['linked_account_id']:
+            account = PlaidAccount.query.filter_by(
+                id=data['linked_account_id'], user_id=int(user_id)).first()
+            if not account:
+                return jsonify({'error': 'Account not found'}), 404
+            newly_linked = goal.linked_account_id != account.id
+            goal.linked_account_id = account.id
+            # Seed the ledger so it matches money already saved toward this goal
+            if newly_linked and Decimal(goal.current_amount) != envelope_balance(goal.id):
+                seed = Decimal(goal.current_amount) - envelope_balance(goal.id)
+                goal.current_amount = Decimal(goal.current_amount) - seed  # apply_allocation adds it back
+                apply_allocation(goal, seed, 'correction', note='Initial balance when linked to account')
+        else:
+            goal.linked_account_id = None
+    if 'priority_order' in data:
+        goal.priority_order = data['priority_order']
     if 'target_date' in data:
         if data['target_date']:
             date_str = data['target_date']
@@ -105,18 +154,23 @@ def add_progress(goal_id):
     
     data = request.get_json()
     amount = data.get('amount')
-    
+
     if not amount or amount <= 0:
         return jsonify({'error': 'Valid amount required'}), 400
-    
-    # Add to current amount
-    goal.current_amount += amount
-    
-    # Check if goal is completed
-    if goal.current_amount >= goal.target_amount and not goal.is_completed:
-        goal.is_completed = True
-        goal.completed_at = datetime.combine(date.today(), datetime.min.time())
-    
+
+    amount = Decimal(str(amount))  # Decimal + float raises TypeError on Numeric columns
+
+    if goal.linked_account_id:
+        # Envelope goal: progress goes through the allocation ledger
+        apply_allocation(goal, amount, 'manual', note='Added via goal progress')
+    else:
+        goal.current_amount = Decimal(goal.current_amount) + amount
+
+        # Check if goal is completed
+        if goal.current_amount >= goal.target_amount and not goal.is_completed:
+            goal.is_completed = True
+            goal.completed_at = datetime.combine(date.today(), datetime.min.time())
+
     db.session.commit()
     
     return jsonify(goal.to_dict()), 200

@@ -1,0 +1,271 @@
+// Matches the dark fintech theme used across components
+$bg-primary: #0f1219;
+$bg-card: #232a3b;
+$bg-input: #1e2433;
+
+$accent-orange: #f97316;
+$accent-green: #22c55e;
+$accent-blue: #3b82f6;
+$accent-coral: #ff6b6b;
+$accent-yellow: #eab308;
+
+$text-primary: #ffffff;
+$text-secondary: #94a3b8;
+$text-muted: #64748b;
+
+$border-color: rgba(148, 163, 184, 0.1);
+$border-color-hover: rgba(148, 163, 184, 0.2);
+
+$radius-md: 12px;
+$radius-lg: 16px;
+$radius-pill: 50px;
+
+$font-primary: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+
+.recurring-container {
+  min-height: 100vh;
+  background: $bg-primary;
+  padding: 32px;
+  font-family: $font-primary;
+  color: $text-primary;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 32px;
+  gap: 16px;
+  flex-wrap: wrap;
+
+  h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0 0 4px;
+  }
+
+  .subtitle {
+    color: $text-secondary;
+    margin: 0;
+  }
+
+  .header-stats {
+    display: flex;
+    gap: 10px;
+  }
+
+  .stat-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 18px;
+    background: $bg-card;
+    border: 1px solid $border-color;
+    border-radius: $radius-pill;
+    color: $text-secondary;
+    font-size: 0.9rem;
+
+    &.detecting {
+      color: $accent-blue;
+      border-color: rgba($accent-blue, 0.3);
+    }
+  }
+}
+
+.section-card {
+  background: $bg-card;
+  border: 1px solid $border-color;
+  border-radius: $radius-lg;
+  padding: 24px;
+  margin-bottom: 24px;
+
+  h2 {
+    margin: 0 0 4px;
+    font-size: 1.15rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-hint {
+    color: $text-secondary;
+    font-size: 0.88rem;
+    margin: 0 0 16px;
+  }
+
+  &.review-card {
+    border-color: rgba($accent-yellow, 0.35);
+  }
+}
+
+.count-badge {
+  padding: 2px 12px;
+  background: rgba($accent-yellow, 0.15);
+  border: 1px solid rgba($accent-yellow, 0.4);
+  border-radius: $radius-pill;
+  color: $accent-yellow;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.series-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 14px 16px;
+  background: $bg-input;
+  border: 1px solid $border-color;
+  border-radius: $radius-md;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+
+  &:hover {
+    border-color: $border-color-hover;
+  }
+
+  &.candidate {
+    border-left: 3px solid $accent-yellow;
+  }
+}
+
+.series-main {
+  flex: 1;
+  min-width: 240px;
+  cursor: pointer;
+}
+
+.series-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+
+  .merchant {
+    font-weight: 600;
+  }
+}
+
+.cadence-chip {
+  padding: 2px 10px;
+  background: rgba($accent-blue, 0.12);
+  border: 1px solid rgba($accent-blue, 0.3);
+  border-radius: $radius-pill;
+  font-size: 0.72rem;
+  color: $accent-blue;
+}
+
+.creep-chip {
+  padding: 2px 10px;
+  background: rgba($accent-coral, 0.12);
+  border: 1px solid rgba($accent-coral, 0.35);
+  border-radius: $radius-pill;
+  font-size: 0.72rem;
+  color: $accent-coral;
+  font-weight: 600;
+}
+
+.series-detail {
+  color: $text-secondary;
+  font-size: 0.85rem;
+  margin-top: 4px;
+
+  .monthly-eq {
+    color: $text-muted;
+  }
+}
+
+.occurrence-history {
+  margin-top: 10px;
+  padding: 10px 14px;
+  background: $bg-card;
+  border-radius: $radius-md;
+  max-width: 320px;
+
+  .occurrence {
+    display: flex;
+    justify-content: space-between;
+    padding: 3px 0;
+    color: $text-secondary;
+    font-size: 0.82rem;
+  }
+}
+
+.series-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.category-select {
+  padding: 8px 12px;
+  background: $bg-card;
+  border: 1px solid $border-color;
+  border-radius: $radius-pill;
+  color: $text-primary;
+  font-family: $font-primary;
+  font-size: 0.82rem;
+  cursor: pointer;
+
+  &:focus { outline: none; border-color: $accent-orange; }
+
+  option { background: $bg-card; }
+}
+
+.action-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: $radius-pill;
+  font-family: $font-primary;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+
+  &:hover { opacity: 0.85; }
+
+  &.confirm {
+    background: rgba($accent-green, 0.15);
+    border: 1px solid rgba($accent-green, 0.4);
+    color: $accent-green;
+  }
+
+  &.dismiss {
+    background: transparent;
+    border: 1px solid $border-color-hover;
+    color: $text-secondary;
+
+    &:hover { color: $text-primary; }
+  }
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: $text-secondary;
+
+  .empty-icon {
+    font-size: 3rem;
+    margin-bottom: 12px;
+  }
+
+  p {
+    font-size: 1.1rem;
+    margin: 0 0 4px;
+    color: $text-primary;
+  }
+}
+
+@media (max-width: 640px) {
+  .recurring-container {
+    padding: 20px 14px;
+  }
+
+  .series-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

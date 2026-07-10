@@ -11,28 +11,73 @@ from plaid.model.transactions_sync_request import TransactionsSyncRequest
 from plaid.model.item_public_token_exchange_request import ItemPublicTokenExchangeRequest
 from plaid.model.item_get_request import ItemGetRequest
 from plaid.model.institutions_get_by_id_request import InstitutionsGetByIdRequest
+from plaid.model.accounts_balance_get_request import AccountsBalanceGetRequest
 from models.transaction import Transaction
 from models.plaid_item import PlaidItem
+from models.plaid_account import PlaidAccount
+from utils.income import record_income_event
+from utils.recurring import detect_recurring
 from datetime import datetime, date
 from models.user import db, User
 
 plaid_bp = Blueprint('plaid', __name__)
 
 
-def perform_transaction_sync(user_id: int, access_token: str) -> dict:
+def _delete_removed_transaction(transaction):
+    """Remove a transaction Plaid retracted, cleaning up rows that point at it."""
+    from models.envelope import EnvelopeAllocation
+    from models.income_event import IncomeEvent
+    from models.recurring import RecurringExpenseOccurrence
+
+    EnvelopeAllocation.query.filter_by(source_transaction_id=transaction.id) \
+        .update({'source_transaction_id': None})
+    IncomeEvent.query.filter_by(transaction_id=transaction.id).delete()
+    RecurringExpenseOccurrence.query.filter_by(transaction_id=transaction.id).delete()
+    db.session.delete(transaction)
+
+
+def perform_transaction_sync(user_id: int, access_token: str, plaid_item: PlaidItem = None) -> dict:
     """
-    Syncs transactions from Plaid for a given user and access token.
-    Returns dict with sync results: {'saved': int, 'total': int}
+    Incrementally syncs transactions from Plaid using the stored cursor, so
+    each run only fetches what changed. Handles added, modified, and removed
+    transactions, flags likely income deposits, and re-runs recurring
+    detection. Returns {'saved': int, 'modified': int, 'removed': int, 'total': int}.
     Raises exceptions on failure.
     """
     client = get_plaid_client()
-    request_data = TransactionsSyncRequest(access_token=access_token)
-    response = client.transactions_sync(request_data).to_dict()
 
-    transactions = response.get('added', [])
+    if plaid_item is None:
+        # Tokens are encrypted at rest, so match by decrypting each item's token
+        plaid_item = next(
+            (item for item in PlaidItem.query.filter_by(user_id=int(user_id)).all()
+             if item.get_access_token() == access_token),
+            None
+        )
+
+    cursor = plaid_item.sync_cursor if plaid_item else None
+
+    added, modified, removed = [], [], []
+    while True:
+        kwargs = {'access_token': access_token}
+        if cursor:
+            kwargs['cursor'] = cursor
+        response = client.transactions_sync(TransactionsSyncRequest(**kwargs)).to_dict()
+        added.extend(response.get('added', []))
+        modified.extend(response.get('modified', []))
+        removed.extend(response.get('removed', []))
+        cursor = response.get('next_cursor') or cursor
+        if not response.get('has_more'):
+            break
+
+    # Map Plaid's string account ids to our PlaidAccount rows
+    account_map = {
+        a.plaid_account_id: a.id
+        for a in PlaidAccount.query.filter_by(user_id=int(user_id)).all()
+    }
+
     saved_count = 0
-
-    for txn in transactions:
+    new_transactions = []
+    for txn in added:
         # Check for duplicate
         existing = Transaction.query.filter_by(
             plaid_transaction_id=txn['transaction_id']
@@ -49,23 +94,121 @@ def perform_transaction_sync(user_id: int, access_token: str) -> dict:
                 transaction_type='expense' if txn['amount'] > 0 else 'income',
                 source='plaid',
                 plaid_transaction_id=txn['transaction_id'],
+                plaid_account_id=account_map.get(txn.get('account_id')),
                 transaction_notes=f"Merchant: {txn.get('merchant_name', 'N/A')}"
             )
             db.session.add(transaction)
+            new_transactions.append(transaction)
             saved_count += 1
+        elif existing.plaid_account_id is None:
+            # Backfill account linkage on rows synced before accounts existed
+            existing.plaid_account_id = account_map.get(txn.get('account_id'))
+
+    modified_count = 0
+    for txn in modified:
+        existing = Transaction.query.filter_by(
+            plaid_transaction_id=txn['transaction_id']).first()
+        if existing:
+            existing.amount = abs(txn['amount'])
+            existing.description = txn['name']
+            existing.category = txn['personal_finance_category']['primary'] \
+                if txn.get('personal_finance_category') else existing.category
+            existing.transaction_date = txn['date']
+            existing.transaction_type = 'expense' if txn['amount'] > 0 else 'income'
+            modified_count += 1
+
+    removed_count = 0
+    for txn in removed:
+        existing = Transaction.query.filter_by(
+            plaid_transaction_id=txn.get('transaction_id')).first()
+        if existing:
+            _delete_removed_transaction(existing)
+            removed_count += 1
+
+    db.session.flush()  # assign ids so income events can reference them
+
+    # Flag likely paycheck deposits for the allocation prompt
+    for transaction in new_transactions:
+        record_income_event(transaction)
+
+    if plaid_item:
+        plaid_item.sync_cursor = cursor
+        plaid_item.last_sync_timestamp = datetime.utcnow()
 
     db.session.commit()
 
-    # Update last sync timestamp for PlaidItem
-    plaid_item = PlaidItem.query.filter_by(access_token=access_token).first()
-    if plaid_item:
-        plaid_item.last_sync_timestamp = datetime.utcnow()
-        db.session.commit()
+    # Keep recurring series up to date (new occurrences, price creep, candidates)
+    if saved_count or modified_count or removed_count:
+        try:
+            detect_recurring(int(user_id))
+        except Exception as e:
+            print(f"[RECURRING] detection after sync failed: {e}")
 
     return {
         'saved': saved_count,
-        'total': len(transactions)
+        'modified': modified_count,
+        'removed': removed_count,
+        'total': len(added)
     }
+
+
+def sync_accounts_for_item(plaid_item: PlaidItem) -> int:
+    """Fetch real-time balances for all accounts under a PlaidItem and upsert
+    PlaidAccount rows. Returns number of accounts synced. Caller handles exceptions."""
+    client = get_plaid_client()
+    request_data = AccountsBalanceGetRequest(access_token=plaid_item.get_access_token())
+    response = client.accounts_balance_get(request_data).to_dict()
+
+    synced = 0
+    for acct in response.get('accounts', []):
+        account = PlaidAccount.query.filter_by(plaid_account_id=acct['account_id']).first()
+        if not account:
+            account = PlaidAccount(
+                user_id=plaid_item.user_id,
+                plaid_item_id=plaid_item.id,
+                plaid_account_id=acct['account_id']
+            )
+            db.session.add(account)
+
+        account.name = acct.get('name') or 'Account'
+        account.official_name = acct.get('official_name')
+        account.account_type = str(acct.get('type')) if acct.get('type') else None
+        account.account_subtype = str(acct.get('subtype')) if acct.get('subtype') else None
+        account.mask = acct.get('mask')
+        balances = acct.get('balances') or {}
+        account.current_balance = balances.get('current')
+        account.available_balance = balances.get('available')
+        account.iso_currency_code = balances.get('iso_currency_code')
+        account.balance_updated_at = datetime.utcnow()
+        synced += 1
+
+    db.session.commit()
+    return synced
+
+
+@plaid_bp.route('/sync-accounts', methods=['POST'])
+@jwt_required()
+def sync_accounts():
+    """Refresh account list + balances for all of the user's connected banks"""
+    try:
+        user_id = get_jwt_identity()
+        plaid_items = PlaidItem.query.filter_by(user_id=int(user_id)).all()
+
+        if not plaid_items:
+            return jsonify({'error': 'No bank account connected. Please connect a bank account first.'}), 404
+
+        total = 0
+        for item in plaid_items:
+            total += sync_accounts_for_item(item)
+
+        accounts = PlaidAccount.query.filter_by(user_id=int(user_id)).order_by(PlaidAccount.name).all()
+        return jsonify({
+            'message': f'Synced {total} accounts',
+            'accounts': [a.to_dict() for a in accounts]
+        }), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
 
 
 @plaid_bp.route('/create-link-token', methods=['POST'])
@@ -136,21 +279,30 @@ def exchange_public_token():
         existing_item = PlaidItem.query.filter_by(item_id=item_id).first()
 
         if existing_item:
-            # Update existing item
-            existing_item.access_token = access_token
+            # Update existing item (token re-encrypted; cursor reset for the new grant)
+            existing_item.set_access_token(access_token)
             existing_item.institution_name = institution_name
+            existing_item.sync_cursor = None
             existing_item.updated_at = datetime.utcnow()
         else:
             # Create new PlaidItem record
             plaid_item = PlaidItem(
                 user_id=int(user_id),
                 item_id=item_id,
-                access_token=access_token,
                 institution_name=institution_name
             )
+            plaid_item.set_access_token(access_token)
             db.session.add(plaid_item)
 
         db.session.commit()
+
+        # Pull the item's accounts + balances right away so envelopes can link to them
+        try:
+            item_record = PlaidItem.query.filter_by(item_id=item_id).first()
+            if item_record:
+                sync_accounts_for_item(item_record)
+        except Exception as e:
+            print(f"Failed to sync accounts after link: {e}")
 
         return jsonify({
             'item_id': item_id,
@@ -173,6 +325,7 @@ def sync_transactions():
 
         # Support both old and new API: access_token in body OR fetch from database
         access_token = data.get('access_token')
+        plaid_item = None
 
         if not access_token:
             # New behavior: Fetch access token from PlaidItem table
@@ -184,14 +337,16 @@ def sync_transactions():
                     'error': 'No bank account connected. Please connect a bank account first.'
                 }), 404
 
-            access_token = plaid_item.access_token
+            access_token = plaid_item.get_access_token()
 
-        result = perform_transaction_sync(int(user_id), access_token)
+        result = perform_transaction_sync(int(user_id), access_token, plaid_item)
 
         return jsonify({
             'message': f'Successfully synced {result["saved"]} transactions',
             'total_transactions': result['total'],
-            'saved_transactions': result['saved']
+            'saved_transactions': result['saved'],
+            'modified_transactions': result['modified'],
+            'removed_transactions': result['removed']
         }), 200
 
     except Exception as e:
@@ -242,7 +397,8 @@ def plaid_webhook():
                 # Perform sync using helper function
                 result = perform_transaction_sync(
                     user_id=plaid_item.user_id,
-                    access_token=plaid_item.access_token
+                    access_token=plaid_item.get_access_token(),
+                    plaid_item=plaid_item
                 )
 
                 print(f"[PLAID WEBHOOK SUCCESS] Synced {result['saved']} transactions for user {plaid_item.user_id}")

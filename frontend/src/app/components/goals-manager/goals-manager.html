@@ -98,6 +98,19 @@
                 </mat-form-field>
               </div>
             </div>
+
+            <div class="form-group" *ngIf="accounts.length > 0">
+              <label>Linked Account (Envelope Mode)</label>
+              <div class="input-wrapper">
+                <select class="account-select" [(ngModel)]="newGoal.linked_account_id">
+                  <option [ngValue]="null">Not linked</option>
+                  <option *ngFor="let account of accounts" [ngValue]="account.id">
+                    {{ account.name }}<ng-container *ngIf="account.mask"> (*{{ account.mask }})</ng-container>
+                    — {{ account.institution_name }}
+                  </option>
+                </select>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -140,6 +153,13 @@
             <p class="goal-description" *ngIf="!isEditing(goal) && goal.description">
               {{ goal.description }}
             </p>
+            <div class="envelope-badge" *ngIf="!isEditing(goal) && goal.linked_account_name">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="4" width="20" height="16" rx="2"/>
+                <path d="M22 7l-10 6L2 7"/>
+              </svg>
+              <span>{{ goal.linked_account_name }}</span>
+            </div>
             <div *ngIf="isEditing(goal)" class="inline-edit-field">
               <textarea [(ngModel)]="editingGoal.description" rows="2" placeholder="Description"></textarea>
             </div>
@@ -274,6 +294,18 @@
                   <mat-datepicker-toggle matSuffix [for]="editPicker"></mat-datepicker-toggle>
                   <mat-datepicker #editPicker></mat-datepicker>
                 </mat-form-field>
+              </div>
+            </div>
+
+            <div class="form-group" *ngIf="accounts.length > 0">
+              <label>Linked Account</label>
+              <div class="input-wrapper">
+                <select class="account-select" [(ngModel)]="editingGoal.linked_account_id">
+                  <option [ngValue]="null">Not linked</option>
+                  <option *ngFor="let account of accounts" [ngValue]="account.id">
+                    {{ account.name }}<ng-container *ngIf="account.mask"> (*{{ account.mask }})</ng-container>
+                  </option>
+                </select>
               </div>
             </div>
           </div>

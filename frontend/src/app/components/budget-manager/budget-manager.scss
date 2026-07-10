@@ -677,3 +677,19 @@ tr.mat-row {
     }
   }
 }
+// Recurring subtotal badge under each category (links to /recurring)
+.recurring-subtotal {
+  margin-top: 6px;
+  display: inline-block;
+  padding: 3px 10px;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 50px;
+  font-size: 0.72rem;
+  color: #3b82f6;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(59, 130, 246, 0.18);
+  }
+}

@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -12,6 +13,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { BudgetService } from '../../services/budget.service';
 import { CategoryService, CategoryInfo } from '../../services/category.service';
 import { ModalService } from '../../services/modal.service';
+import { RecurringService } from '../../services/recurring.service';
 
 @Component({
   selector: 'app-budget-manager',
@@ -19,6 +21,7 @@ import { ModalService } from '../../services/modal.service';
   imports: [
     CommonModule,
     FormsModule,
+    RouterModule,
     MatCardModule,
     MatButtonModule,
     MatFormFieldModule,
@@ -45,10 +48,14 @@ export class BudgetManager implements OnInit {
 
   categories: CategoryInfo[] = [];
 
+  // category -> monthly-equivalent recurring subtotal (confirmed series only)
+  recurringByCategory: { [category: string]: { monthly_total: number; count: number } } = {};
+
   constructor(
     private budgetService: BudgetService,
     public categoryService: CategoryService,
-    private modalService: ModalService
+    private modalService: ModalService,
+    private recurringService: RecurringService
   ) {
     this.categories = this.categoryService.getAllCategories();
   }
@@ -56,6 +63,26 @@ export class BudgetManager implements OnInit {
   ngOnInit() {
     this.loadBudgets();
     this.loadBudgetProgress();
+    this.loadRecurringSummary();
+  }
+
+  loadRecurringSummary() {
+    this.recurringService.getSummary().subscribe({
+      next: (summary) => {
+        this.recurringByCategory = {};
+        for (const entry of summary.categories) {
+          this.recurringByCategory[entry.category] = {
+            monthly_total: entry.monthly_total,
+            count: entry.count
+          };
+        }
+      },
+      error: (error) => console.error('Error loading recurring summary:', error)
+    });
+  }
+
+  recurringFor(category: string) {
+    return this.recurringByCategory[category] || null;
   }
 
   get displayMonth(): string {

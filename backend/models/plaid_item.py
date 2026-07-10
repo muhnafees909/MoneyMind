@@ -1,5 +1,6 @@
 from datetime import datetime
 from models.user import db
+from utils.token_crypto import encrypt_token, decrypt_token
 
 
 class PlaidItem(db.Model):
@@ -9,11 +10,18 @@ class PlaidItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     item_id = db.Column(db.String(255), unique=True, nullable=False)
-    access_token = db.Column(db.String(500), nullable=False)  # Encrypted in production
+    access_token = db.Column(db.String(500), nullable=False)  # Fernet-encrypted at rest
     institution_name = db.Column(db.String(255), nullable=True)
     last_sync_timestamp = db.Column(db.DateTime, nullable=True)
+    sync_cursor = db.Column(db.String(255), nullable=True)  # transactions_sync incremental cursor
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def set_access_token(self, token: str):
+        self.access_token = encrypt_token(token)
+
+    def get_access_token(self) -> str:
+        return decrypt_token(self.access_token)
 
     # Relationship to User
     user = db.relationship('User', backref=db.backref('plaid_items', lazy=True))

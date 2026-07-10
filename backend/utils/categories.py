@@ -126,3 +126,5 @@ def get_all_categories():
         }
         for cat in CATEGORY_DISPLAY_NAMES.keys()
     ]
+
+

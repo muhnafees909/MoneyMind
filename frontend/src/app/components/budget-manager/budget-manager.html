@@ -89,6 +89,12 @@
           <th mat-header-cell *matHeaderCellDef>Category</th>
           <td mat-cell *matCellDef="let item">
             <span class="category-badge">{{ categoryService.getCategoryDisplayName(item.category) }}</span>
+            <div class="recurring-subtotal" *ngIf="recurringFor(item.category) as recurring"
+                 title="{{ recurring.count }} confirmed recurring expense(s) in this category"
+                 routerLink="/recurring">
+              🔁 Recurring: {{ recurring.monthly_total | currency }} of
+              {{ item.budgeted | currency }} budgeted
+            </div>
           </td>
         </ng-container>
 

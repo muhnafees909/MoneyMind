@@ -39,6 +39,24 @@
           <span>Goals</span>
         </a>
 
+        <a routerLink="/envelopes" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="4" width="20" height="16" rx="2"/>
+            <path d="M22 7l-10 6L2 7"/>
+          </svg>
+          <span>Envelopes</span>
+        </a>
+
+        <a routerLink="/recurring" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="17 1 21 5 17 9"/>
+            <path d="M3 11V9a4 4 0 0 1 4-4h14"/>
+            <polyline points="7 23 3 19 7 15"/>
+            <path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+          </svg>
+          <span>Recurring</span>
+        </a>
+
         <a routerLink="/chat" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link ai-advisor">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
@@ -98,6 +116,24 @@
         <span>Goals</span>
       </a>
   
+      <a routerLink="/envelopes" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="mobile-link" (click)="closeMobileMenu()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="4" width="20" height="16" rx="2"/>
+          <path d="M22 7l-10 6L2 7"/>
+        </svg>
+        <span>Envelopes</span>
+      </a>
+
+      <a routerLink="/recurring" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="mobile-link" (click)="closeMobileMenu()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="17 1 21 5 17 9"/>
+          <path d="M3 11V9a4 4 0 0 1 4-4h14"/>
+          <polyline points="7 23 3 19 7 15"/>
+          <path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+        </svg>
+        <span>Recurring</span>
+      </a>
+
       <a routerLink="/chat" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="mobile-link" (click)="closeMobileMenu()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>

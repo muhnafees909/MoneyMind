@@ -10,6 +10,8 @@ from models.user import db
 from models.transaction import Transaction
 from models.budget import Budget
 from models.goal import FinancialGoal
+from models.plaid_account import PlaidAccount
+from models.recurring import RecurringExpense
 import calendar
 
 
@@ -326,6 +328,72 @@ def get_spending_trends(user_id):
         }
 
 
+def get_envelope_context(user_id):
+    """
+    Per linked account: bank balance vs envelope balances vs unallocated cash.
+    Mirrors the Envelopes reconciliation screen so the advisor can answer
+    "how much do I actually have for Hajj?" style questions.
+    """
+    from routes.envelopes import envelope_balance  # local import to avoid circularity
+
+    accounts = PlaidAccount.query.filter_by(user_id=int(user_id)).all()
+    result = []
+    for account in accounts:
+        goals = FinancialGoal.query.filter_by(
+            user_id=int(user_id), linked_account_id=account.id).all()
+        envelopes = []
+        allocated = Decimal('0')
+        for goal in goals:
+            balance = envelope_balance(goal.id)
+            allocated += balance
+            envelopes.append({
+                'goal_name': goal.name,
+                'envelope_balance': float(balance),
+                'target_amount': float(goal.target_amount)
+            })
+        actual = Decimal(account.current_balance) if account.current_balance is not None else None
+        result.append({
+            'account_name': account.name,
+            'institution': account.plaid_item.institution_name if account.plaid_item else None,
+            'actual_balance': float(actual) if actual is not None else None,
+            'allocated_total': float(allocated),
+            'unallocated_cash': float(actual - allocated) if actual is not None else None,
+            'envelopes': envelopes
+        })
+    return result
+
+
+def get_recurring_context(user_id):
+    """
+    Confirmed recurring expenses (with price-creep flags) plus how many
+    candidates are waiting in the review queue.
+    """
+    confirmed = RecurringExpense.query.filter_by(
+        user_id=int(user_id), status='active', confirmed_by_user=True).all()
+    pending_review = RecurringExpense.query.filter_by(
+        user_id=int(user_id), status='active', confirmed_by_user=False).count()
+
+    series_list = []
+    total_monthly = Decimal('0')
+    for series in confirmed:
+        total_monthly += series.monthly_equivalent
+        series_list.append({
+            'merchant': series.merchant_name,
+            'category': series.category,
+            'expected_amount': float(series.expected_amount),
+            'cadence': series.cadence,
+            'monthly_equivalent': float(series.monthly_equivalent),
+            'next_expected_date': series.next_expected_date.isoformat() if series.next_expected_date else None,
+            'price_creep': series.price_creep
+        })
+
+    return {
+        'series': series_list,
+        'total_monthly': float(total_monthly),
+        'pending_review_count': pending_review
+    }
+
+
 def format_context_for_llm(user_id):
     """
     Gather all financial context and format it into a structured
@@ -386,13 +454,27 @@ def format_context_for_llm(user_id):
             'current_spending': 0
         }
 
+    try:
+        envelope_accounts = get_envelope_context(user_id)
+    except Exception as e:
+        print(f"Error getting envelope context: {e}")
+        envelope_accounts = []
+
+    try:
+        recurring = get_recurring_context(user_id)
+    except Exception as e:
+        print(f"Error getting recurring context: {e}")
+        recurring = {'series': [], 'total_monthly': 0.0, 'pending_review_count': 0}
+
     return {
         'budgets': budgets,
         'goals': goals,
         'spending_summary': spending_summary,
         'recent_transactions': recent_transactions,
         'spending_by_category': spending_by_category,
-        'spending_trends': spending_trends
+        'spending_trends': spending_trends,
+        'envelope_accounts': envelope_accounts,
+        'recurring': recurring
     }
 
 
@@ -479,7 +561,35 @@ def build_context_string(context):
     else:
         lines.append("\n🎯 FINANCIAL GOALS: None set yet")
 
-    # 6. RECENT TRANSACTIONS SECTION
+    # 6. ENVELOPES SECTION (virtual sub-allocations of real accounts)
+    envelope_accounts = context.get('envelope_accounts', [])
+    if envelope_accounts:
+        lines.append("\n✉️ ENVELOPES (how linked bank accounts are divided across goals)")
+        for account in envelope_accounts:
+            balance_text = f"${account['actual_balance']:,.2f}" if account['actual_balance'] is not None else "unknown"
+            lines.append(f"  🏦 {account['account_name']}: balance {balance_text}, "
+                         f"allocated ${account['allocated_total']:,.2f}")
+            for envelope in account['envelopes']:
+                lines.append(f"     ✉️ {envelope['goal_name']}: ${envelope['envelope_balance']:,.2f} "
+                             f"of ${envelope['target_amount']:,.2f} target")
+            if account['unallocated_cash'] is not None:
+                flag = " ⚠️ OVER-ALLOCATED" if account['unallocated_cash'] < 0 else ""
+                lines.append(f"     💵 Unallocated: ${account['unallocated_cash']:,.2f}{flag}")
+
+    # 7. RECURRING EXPENSES SECTION
+    recurring = context.get('recurring', {})
+    if recurring.get('series'):
+        lines.append(f"\n🔁 RECURRING EXPENSES (${recurring['total_monthly']:,.2f}/month total)")
+        for series in recurring['series']:
+            creep = series.get('price_creep')
+            creep_text = f" 🔴 PRICE UP {creep['increase_pct']}% (was ${creep['previous_average']:,.2f})" if creep else ""
+            next_date = f", next ~{series['next_expected_date']}" if series['next_expected_date'] else ""
+            lines.append(f"  🔁 {series['merchant']}: ${series['expected_amount']:,.2f} {series['cadence']}"
+                         f" (${series['monthly_equivalent']:,.2f}/mo){next_date}{creep_text}")
+    if recurring.get('pending_review_count'):
+        lines.append(f"  📥 {recurring['pending_review_count']} possible recurring charge(s) awaiting review")
+
+    # 8. RECENT TRANSACTIONS SECTION
     if transactions:
         lines.append("\n💳 RECENT TRANSACTIONS (Last 10)")
         for tx in transactions[:10]:

@@ -165,6 +165,8 @@ def send_message(user_id, user_message):
             'monthly_spending': context['spending_summary']['month_spending'],
             'categories_analyzed': len(context['spending_by_category']),
             'recent_transactions_analyzed': len(context['recent_transactions']),
+            'envelope_accounts': len(context.get('envelope_accounts', [])),
+            'recurring_expenses': len(context.get('recurring', {}).get('series', [])),
             'model_used': MODEL
         }
 

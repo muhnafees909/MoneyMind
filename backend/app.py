@@ -2,6 +2,7 @@ from flask import Flask
 from dotenv import load_dotenv
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
+from flask_migrate import Migrate
 from datetime import timedelta
 import os
 # Load environment variables
@@ -39,7 +40,13 @@ db.init_app(app)
 from models.budget import Budget
 from models.goal import FinancialGoal
 from models.plaid_item import PlaidItem
+from models.transaction import Transaction
+from models.plaid_account import PlaidAccount
+from models.envelope import EnvelopeAllocation, AllocationRule
+from models.income_event import IncomeEvent
+from models.recurring import RecurringExpense, RecurringExpenseOccurrence
 
+migrate = Migrate(app, db)
 
 jwt = JWTManager(app)
 
@@ -64,13 +71,18 @@ app.register_blueprint(goals_bp, url_prefix='/api/goals')
 from routes.chat import chat_bp
 app.register_blueprint(chat_bp, url_prefix='/api/chat')
 
+from routes.envelopes import envelopes_bp
+app.register_blueprint(envelopes_bp, url_prefix='/api/envelopes')
+
+from routes.recurring import recurring_bp
+app.register_blueprint(recurring_bp, url_prefix='/api/recurring')
+
 @app.route('/')
 def moneyMindWorks(): 
     return {'message': 'MoneyMind is working'}
 
-# Create tables
-with app.app_context(): 
-    db.create_all()
+# Schema is managed by Flask-Migrate now (run: flask db upgrade).
+# db.create_all() removed — it cannot alter existing tables.
 
 if __name__ == '__main__':
     app.run(debug=True)

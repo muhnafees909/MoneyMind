@@ -1,0 +1,108 @@
+<div class="recurring-container">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-left">
+      <h1>Recurring Expenses</h1>
+      <p class="subtitle">Subscriptions and bills detected from your transactions</p>
+    </div>
+    <div class="header-stats">
+      <div class="stat-pill" *ngIf="confirmed.length > 0">
+        <span class="stat-icon">🔁</span>
+        <span>{{ totalMonthly | currency }}/mo across {{ confirmed.length }} recurring</span>
+      </div>
+      <div class="stat-pill detecting" *ngIf="detecting">
+        <span class="stat-icon">🔎</span>
+        <span>Scanning…</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Review queue -->
+  <div class="section-card review-card" *ngIf="reviewQueue.length > 0">
+    <h2>Needs review <span class="count-badge">{{ reviewQueue.length }}</span></h2>
+    <p class="section-hint">
+      These look recurring. Confirm the real ones — grocery-run lookalikes can be dismissed.
+    </p>
+
+    <div class="series-row candidate" *ngFor="let series of reviewQueue">
+      <div class="series-main" (click)="toggleExpand(series)">
+        <div class="series-title">
+          <span class="merchant">{{ series.merchant_name }}</span>
+          <span class="cadence-chip">{{ cadenceLabel(series.cadence) }}</span>
+        </div>
+        <div class="series-detail">
+          {{ series.expected_amount | currency }} · seen {{ series.occurrence_count }} times ·
+          last on {{ series.last_occurred_at | date:'MMM d' }} ·
+          next expected {{ series.next_expected_date | date:'MMM d' }}
+        </div>
+        <div class="occurrence-history" *ngIf="expandedSeries === series.id">
+          <div class="occurrence" *ngFor="let occurrence of series.occurrences">
+            <span>{{ occurrence.occurred_at | date:'MMM d, y' }}</span>
+            <span>{{ occurrence.amount | currency }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="series-actions">
+        <select class="category-select" [(ngModel)]="reviewCategory[series.id]">
+          <option value="">No category</option>
+          <option *ngFor="let cat of categories" [value]="cat.value">{{ cat.displayName }}</option>
+        </select>
+        <button class="action-btn confirm" (click)="confirm(series)">Confirm</button>
+        <button class="action-btn dismiss" (click)="dismiss(series)">Dismiss</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading / empty -->
+  <div *ngIf="loading" class="empty-state">
+    <div class="empty-icon">⏳</div>
+    <p>Scanning transactions…</p>
+  </div>
+
+  <div *ngIf="!loading && reviewQueue.length === 0 && confirmed.length === 0" class="empty-state">
+    <div class="empty-icon">🔁</div>
+    <p>No recurring expenses detected yet</p>
+    <span>Sync more transactions — detection needs at least 3 charges from the same merchant.</span>
+  </div>
+
+  <!-- Confirmed list -->
+  <div class="section-card" *ngIf="confirmed.length > 0">
+    <h2>Your recurring expenses</h2>
+
+    <div class="series-row" *ngFor="let series of confirmed">
+      <div class="series-main" (click)="toggleExpand(series)">
+        <div class="series-title">
+          <span class="merchant">{{ series.merchant_name }}</span>
+          <span class="cadence-chip">{{ cadenceLabel(series.cadence) }}</span>
+          <span class="creep-chip" *ngIf="series.price_creep"
+                title="Was averaging {{ series.price_creep.previous_average | currency }}">
+            ▲ Price up {{ series.price_creep.increase_pct }}%
+          </span>
+        </div>
+        <div class="series-detail">
+          {{ series.expected_amount | currency }}
+          <span class="monthly-eq" *ngIf="series.cadence !== 'monthly'">
+            ({{ series.monthly_equivalent | currency }}/mo)
+          </span>
+          · next expected {{ series.next_expected_date | date:'MMM d' }}
+        </div>
+        <div class="occurrence-history" *ngIf="expandedSeries === series.id">
+          <div class="occurrence" *ngFor="let occurrence of series.occurrences">
+            <span>{{ occurrence.occurred_at | date:'MMM d, y' }}</span>
+            <span>{{ occurrence.amount | currency }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="series-actions">
+        <select class="category-select" [ngModel]="series.category || ''"
+                (ngModelChange)="updateCategory(series, $event)">
+          <option value="">No category</option>
+          <option *ngFor="let cat of categories" [value]="cat.value">{{ cat.displayName }}</option>
+        </select>
+        <button class="action-btn dismiss" (click)="cancelSeries(series)">I cancelled this</button>
+      </div>
+    </div>
+  </div>
+</div>

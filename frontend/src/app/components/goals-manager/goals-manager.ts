@@ -12,6 +12,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatChipsModule } from '@angular/material/chips';
 import { GoalService } from '../../services/goal.service';
 import { ModalService } from '../../services/modal.service';
+import { EnvelopeService, PlaidAccount } from '../../services/envelope.service';
 
 @Component({
   selector: 'app-goals-manager',
@@ -36,13 +37,15 @@ export class GoalsManagerComponent implements OnInit {
   goals: any[] = [];
   activeGoals: any[] = [];
   completedGoals: any[] = [];
-  
-  newGoal = {
+  accounts: PlaidAccount[] = [];
+
+  newGoal: any = {
     name: '',
     description: '',
     target_amount: null,
     current_amount: 0,
-    target_date: null
+    target_date: null,
+    linked_account_id: null
   };
 
   addingProgress: { [key: number]: number } = {};
@@ -50,11 +53,20 @@ export class GoalsManagerComponent implements OnInit {
 
   constructor(
     private goalService: GoalService,
-    private modalService: ModalService
+    private modalService: ModalService,
+    private envelopeService: EnvelopeService
   ) {}
 
   ngOnInit() {
     this.loadGoals();
+    this.loadAccounts();
+  }
+
+  loadAccounts() {
+    this.envelopeService.getAccounts().subscribe({
+      next: (data) => (this.accounts = data),
+      error: (error) => console.error('Error loading accounts:', error)
+    });
   }
 
   loadGoals() {
@@ -96,7 +108,8 @@ export class GoalsManagerComponent implements OnInit {
           description: '',
           target_amount: null,
           current_amount: 0,
-          target_date: null
+          target_date: null,
+          linked_account_id: null
         };
       },
       error: (error) => {
@@ -159,7 +172,8 @@ export class GoalsManagerComponent implements OnInit {
       target_amount: this.editingGoal.target_amount,
       current_amount: this.editingGoal.current_amount,
       target_date: this.editingGoal.target_date ?
-        this.formatDate(this.editingGoal.target_date) : null
+        this.formatDate(this.editingGoal.target_date) : null,
+      linked_account_id: this.editingGoal.linked_account_id
     };
 
     this.goalService.updateGoal(this.editingGoal.id, updateData).subscribe({
