@@ -25,6 +25,9 @@ export class EnvelopesComponent implements OnInit {
 
   // per-goal input state for fund/withdraw
   allocationAmounts: { [goalId: number]: number | null } = {};
+  // per-goal edit mode state
+  editingEnvelope: number | null = null;
+  editAmounts: { [goalId: number]: number | null } = {};
 
   // ----- paycheck prompt state -----
   incomeEvents: IncomeEvent[] = [];
@@ -98,6 +101,34 @@ export class EnvelopesComponent implements OnInit {
       error: (error) => {
         const message = error?.error?.error || 'Failed to save allocation';
         this.modalService.showError(message);
+      }
+    });
+  }
+
+  editEnvelope(envelope: EnvelopeSummary) {
+    this.editingEnvelope = envelope.goal_id;
+    this.editAmounts[envelope.goal_id] = envelope.envelope_balance;
+  }
+
+  cancelEdit() {
+    this.editingEnvelope = null;
+  }
+
+  saveEnvelopeEdit(envelope: EnvelopeSummary) {
+    const newAmount = this.editAmounts[envelope.goal_id];
+    if (newAmount === null || newAmount === undefined || newAmount < 0) {
+      this.modalService.showError('Please enter a valid amount', 'Validation Error');
+      return;
+    }
+
+    this.envelopeService.updateAllocation(envelope.goal_id, newAmount).subscribe({
+      next: () => {
+        this.editingEnvelope = null;
+        this.loadReconciliation();
+        this.modalService.showSuccess('Envelope updated');
+      },
+      error: (error) => {
+        this.modalService.showError(error?.error?.error || 'Failed to update envelope');
       }
     });
   }

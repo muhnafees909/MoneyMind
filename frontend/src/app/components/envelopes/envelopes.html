@@ -124,7 +124,8 @@
     <!-- Envelopes -->
     <div class="envelope-list" *ngIf="entry.envelopes.length > 0">
       <div *ngFor="let envelope of entry.envelopes" class="envelope-row">
-        <div class="envelope-main">
+        <!-- Normal view -->
+        <div *ngIf="editingEnvelope !== envelope.goal_id" class="envelope-main">
           <div class="envelope-name-row">
             <span class="envelope-name">{{ envelope.goal_name }}</span>
             <span class="envelope-amounts">
@@ -136,17 +137,41 @@
             <div class="progress-bar-fill" [style.width.%]="envelopeProgress(envelope)"></div>
           </div>
         </div>
-        <div class="envelope-actions">
+
+        <!-- Edit mode -->
+        <div *ngIf="editingEnvelope === envelope.goal_id" class="envelope-main edit-mode">
+          <div class="envelope-name-row">
+            <span class="envelope-name">{{ envelope.goal_name }}</span>
+          </div>
           <div class="amount-input-wrapper">
             <span class="input-prefix">$</span>
-            <input type="number" min="0" placeholder="100"
-                   [(ngModel)]="allocationAmounts[envelope.goal_id]">
+            <input type="number" min="0" step="0.01" placeholder="0.00"
+                   [(ngModel)]="editAmounts[envelope.goal_id]" autofocus>
           </div>
-          <button class="action-btn fund" (click)="allocate(envelope, 'manual')">Fund</button>
-          <button class="action-btn withdraw" (click)="allocate(envelope, 'withdrawal')">Withdraw</button>
-          <button class="action-btn delete" (click)="deleteEnvelope(envelope)" title="Delete this envelope">
-            🗑️
-          </button>
+        </div>
+
+        <!-- Actions -->
+        <div class="envelope-actions">
+          <ng-container *ngIf="editingEnvelope !== envelope.goal_id">
+            <div class="amount-input-wrapper">
+              <span class="input-prefix">$</span>
+              <input type="number" min="0" placeholder="100"
+                     [(ngModel)]="allocationAmounts[envelope.goal_id]">
+            </div>
+            <button class="action-btn fund" (click)="allocate(envelope, 'manual')">Fund</button>
+            <button class="action-btn withdraw" (click)="allocate(envelope, 'withdrawal')">Withdraw</button>
+            <button class="action-btn edit" (click)="editEnvelope(envelope)" title="Edit amount">
+              ✎️
+            </button>
+            <button class="action-btn delete" (click)="deleteEnvelope(envelope)" title="Delete this envelope">
+              🗑️
+            </button>
+          </ng-container>
+
+          <ng-container *ngIf="editingEnvelope === envelope.goal_id">
+            <button class="action-btn confirm" (click)="saveEnvelopeEdit(envelope)">Save</button>
+            <button class="action-btn cancel" (click)="cancelEdit()">Cancel</button>
+          </ng-container>
         </div>
       </div>
     </div>

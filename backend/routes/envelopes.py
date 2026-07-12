@@ -140,6 +140,38 @@ def create_allocation():
     }), 201
 
 
+@envelopes_bp.route('/allocations/<int:goal_id>', methods=['PUT'])
+@jwt_required()
+def update_allocation(goal_id):
+    """Edit the current envelope balance for a goal by adjusting the amount.
+    Body: {amount} — the new target balance (calculates delta from current)"""
+    user_id = get_jwt_identity()
+    goal = FinancialGoal.query.filter_by(id=goal_id, user_id=int(user_id)).first()
+    if not goal:
+        return jsonify({'error': 'Goal not found'}), 404
+    if not goal.linked_account_id:
+        return jsonify({'error': 'Goal is not linked to an account'}), 400
+
+    data = request.get_json() or {}
+    new_amount = parse_amount(data.get('amount'))
+    if new_amount is None:
+        return jsonify({'error': 'Valid positive amount required'}), 400
+
+    # Calculate delta from current envelope balance
+    current = envelope_balance(goal.id)
+    delta = Decimal(new_amount) - current
+
+    # Create correction ledger entry for the delta
+    allocation = apply_allocation(goal, delta, 'correction', note='Envelope amount edited')
+    db.session.commit()
+
+    return jsonify({
+        'allocation': allocation.to_dict(),
+        'goal': goal.to_dict(),
+        'envelope_balance': float(envelope_balance(goal.id))
+    }), 200
+
+
 @envelopes_bp.route('/allocations', methods=['GET'])
 @jwt_required()
 def list_allocations():

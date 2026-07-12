@@ -126,6 +126,14 @@ export class EnvelopeService {
     });
   }
 
+  updateAllocation(goalId: number, amount: number): Observable<any> {
+    return this.http.put(
+      `${this.apiUrl}/allocations/${goalId}`,
+      { amount },
+      { headers: this.getHeaders() }
+    );
+  }
+
   // ----- Income events (paycheck prompt) -----
 
   getIncomeEvents(status: string = 'pending'): Observable<IncomeEvent[]> {
