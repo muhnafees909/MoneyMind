@@ -99,4 +99,15 @@ export class RecurringService {
       headers: this.getHeaders()
     });
   }
+
+  createManual(data: {
+    category: string;
+    expected_amount: number;
+    cadence: 'weekly' | 'biweekly' | 'monthly' | 'annual';
+    description?: string;
+  }): Observable<RecurringExpense> {
+    return this.http.post<RecurringExpense>(`${this.apiUrl}/manual`, data, {
+      headers: this.getHeaders()
+    });
+  }
 }

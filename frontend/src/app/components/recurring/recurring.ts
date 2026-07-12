@@ -24,6 +24,16 @@ export class RecurringComponent implements OnInit {
   reviewCategory: { [id: number]: string } = {};
   expandedSeries: number | null = null;
 
+  // Manual entry form state
+  showManualForm = false;
+  manualEntry = {
+    category: '',
+    expected_amount: null as number | null,
+    cadence: 'monthly' as 'weekly' | 'biweekly' | 'monthly' | 'annual',
+    description: ''
+  };
+  creatingManual = false;
+
   constructor(
     private recurringService: RecurringService,
     public categoryService: CategoryService,
@@ -113,5 +123,37 @@ export class RecurringComponent implements OnInit {
 
   cadenceLabel(cadence: string): string {
     return { weekly: 'Weekly', biweekly: 'Every 2 weeks', monthly: 'Monthly', annual: 'Yearly' }[cadence] || cadence;
+  }
+
+  createManualRecurring() {
+    if (!this.manualEntry.category || !this.manualEntry.expected_amount) {
+      this.modalService.showError('Category and amount are required', 'Validation Error');
+      return;
+    }
+
+    this.creatingManual = true;
+    this.recurringService.createManual({
+      category: this.manualEntry.category,
+      expected_amount: this.manualEntry.expected_amount,
+      cadence: this.manualEntry.cadence,
+      description: this.manualEntry.description || undefined
+    }).subscribe({
+      next: () => {
+        this.creatingManual = false;
+        this.showManualForm = false;
+        this.manualEntry = {
+          category: '',
+          expected_amount: null,
+          cadence: 'monthly',
+          description: ''
+        };
+        this.modalService.showSuccess('Recurring expense created', 'Success');
+        this.loadAll();
+      },
+      error: (error) => {
+        this.creatingManual = false;
+        this.modalService.showError(error?.error?.error || 'Failed to create recurring expense');
+      }
+    });
   }
 }

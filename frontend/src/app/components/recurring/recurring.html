@@ -17,6 +17,51 @@
     </div>
   </div>
 
+  <!-- Manual entry form -->
+  <div class="section-card manual-form-card" *ngIf="showManualForm">
+    <h2>Add Manual Recurring Expense</h2>
+    <p class="section-hint">Create a recurring expense entry (e.g., rent if only seen 1-2 times so far).</p>
+
+    <div class="form-group">
+      <label>Name/Description</label>
+      <input type="text" placeholder="e.g. Rent, Netflix" [(ngModel)]="manualEntry.description">
+    </div>
+
+    <div class="form-group">
+      <label>Category</label>
+      <select [(ngModel)]="manualEntry.category">
+        <option value="">Pick a category…</option>
+        <option *ngFor="let cat of categories" [value]="cat.value">{{ cat.displayName }}</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Amount</label>
+      <input type="number" min="0" step="0.01" placeholder="0.00" [(ngModel)]="manualEntry.expected_amount">
+    </div>
+
+    <div class="form-group">
+      <label>Frequency</label>
+      <select [(ngModel)]="manualEntry.cadence">
+        <option value="weekly">Weekly</option>
+        <option value="biweekly">Every 2 weeks</option>
+        <option value="monthly">Monthly</option>
+        <option value="annual">Yearly</option>
+      </select>
+    </div>
+
+    <div class="form-actions">
+      <button class="action-btn" (click)="showManualForm = false">Cancel</button>
+      <button class="action-btn confirm" (click)="createManualRecurring()" [disabled]="creatingManual">
+        {{ creatingManual ? 'Creating…' : 'Create' }}
+      </button>
+    </div>
+  </div>
+
+  <div class="section-card add-manual-card" *ngIf="!showManualForm">
+    <button class="action-btn confirm" (click)="showManualForm = true">+ Add Manual Recurring Expense</button>
+  </div>
+
   <!-- Review queue -->
   <div class="section-card review-card" *ngIf="reviewQueue.length > 0">
     <h2>Needs review <span class="count-badge">{{ reviewQueue.length }}</span></h2>

@@ -9,6 +9,53 @@ from datetime import timedelta
 recurring_bp = Blueprint('recurring', __name__)
 
 
+@recurring_bp.route('/manual', methods=['POST'])
+@jwt_required()
+def create_manual_recurring():
+    """Create a manual recurring expense entry for tracking (e.g. rent if only 1-2 historical transactions).
+    Body: {category, expected_amount, cadence, description?}"""
+    user_id = get_jwt_identity()
+    data = request.get_json() or {}
+
+    # Validate required fields
+    if not data.get('category'):
+        return jsonify({'error': 'category required'}), 400
+    if 'expected_amount' not in data:
+        return jsonify({'error': 'expected_amount required'}), 400
+    if not data.get('cadence'):
+        return jsonify({'error': 'cadence required'}), 400
+    if data['cadence'] not in RECURRING_CADENCES:
+        return jsonify({'error': f'cadence must be one of {", ".join(RECURRING_CADENCES)}'}), 400
+
+    try:
+        amount = Decimal(str(data['expected_amount']))
+    except Exception:
+        return jsonify({'error': 'Invalid expected_amount'}), 400
+    if amount <= 0:
+        return jsonify({'error': 'expected_amount must be positive'}), 400
+
+    # Normalize merchant name (use description if provided, else default)
+    merchant_name = data.get('description', 'Manual Entry')
+    merchant_key = merchant_name.lower().strip()  # Simple normalization
+
+    # Create recurring expense record
+    recurring = RecurringExpense(
+        user_id=int(user_id),
+        merchant_name=merchant_name,
+        merchant_key=merchant_key,
+        category=data['category'],
+        expected_amount=amount,
+        cadence=data['cadence'],
+        confirmed_by_user=True,  # User confirmed by creating it manually
+        status='active',
+        next_expected_date=None  # No historical occurrences to base this on
+    )
+    db.session.add(recurring)
+    db.session.commit()
+
+    return jsonify(recurring.to_dict()), 201
+
+
 @recurring_bp.route('/detect', methods=['POST'])
 @jwt_required()
 def run_detection():

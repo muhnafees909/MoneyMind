@@ -12,9 +12,9 @@ goals_bp = Blueprint('goals', __name__)
 @goals_bp.route('', methods=['GET'])
 @jwt_required()
 def get_goals():
-    """Get all goals for the current user"""
+    """Get all non-deleted goals for the current user"""
     user_id = get_jwt_identity()
-    goals = FinancialGoal.query.filter_by(user_id=int(user_id)).order_by(
+    goals = FinancialGoal.query.filter_by(user_id=int(user_id), deleted_at=None).order_by(
         FinancialGoal.is_completed.asc(),
         FinancialGoal.created_at.desc()
     ).all()
@@ -83,8 +83,8 @@ def update_goal(goal_id):
     """Update a goal"""
     user_id = get_jwt_identity()
     goal = FinancialGoal.query.filter_by(id=goal_id, user_id=int(user_id)).first()
-    
-    if not goal:
+
+    if not goal or goal.deleted_at:
         return jsonify({'error': 'Goal not found'}), 404
     
     data = request.get_json()
@@ -148,8 +148,8 @@ def add_progress(goal_id):
     """Add progress to a goal (add money toward goal)"""
     user_id = get_jwt_identity()
     goal = FinancialGoal.query.filter_by(id=goal_id, user_id=int(user_id)).first()
-    
-    if not goal:
+
+    if not goal or goal.deleted_at:
         return jsonify({'error': 'Goal not found'}), 404
     
     data = request.get_json()
@@ -178,14 +178,40 @@ def add_progress(goal_id):
 @goals_bp.route('/<int:goal_id>', methods=['DELETE'])
 @jwt_required()
 def delete_goal(goal_id):
-    """Delete a goal"""
+    """Soft-delete a goal. User can restore it within 30 days."""
     user_id = get_jwt_identity()
     goal = FinancialGoal.query.filter_by(id=goal_id, user_id=int(user_id)).first()
-    
+
     if not goal:
         return jsonify({'error': 'Goal not found'}), 404
-    
-    db.session.delete(goal)
+    if goal.deleted_at:
+        return jsonify({'error': 'Goal already deleted'}), 409
+
+    goal.deleted_at = datetime.utcnow()
     db.session.commit()
-    
-    return jsonify({'message': 'Goal deleted'}), 200
+
+    return jsonify({
+        'message': 'Goal deleted. You can restore it within 30 days.',
+        'goal': goal.to_dict()
+    }), 200
+
+
+@goals_bp.route('/<int:goal_id>/restore', methods=['POST'])
+@jwt_required()
+def restore_goal(goal_id):
+    """Restore a soft-deleted goal."""
+    user_id = get_jwt_identity()
+    goal = FinancialGoal.query.filter_by(id=goal_id, user_id=int(user_id)).first()
+
+    if not goal:
+        return jsonify({'error': 'Goal not found'}), 404
+    if not goal.deleted_at:
+        return jsonify({'error': 'Goal is not deleted'}), 400
+
+    goal.deleted_at = None
+    db.session.commit()
+
+    return jsonify({
+        'message': 'Goal restored',
+        'goal': goal.to_dict()
+    }), 200

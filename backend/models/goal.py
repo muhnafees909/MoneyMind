@@ -17,6 +17,7 @@ class FinancialGoal(db.Model):
     # Status
     is_completed = db.Column(db.Boolean, default=False)
     completed_at = db.Column(db.DateTime, nullable=True)
+    deleted_at = db.Column(db.DateTime, nullable=True)  # Soft delete timestamp
 
     # Envelope mode: set linked_account_id to treat this goal as a virtual
     # sub-allocation ("envelope") of a real Plaid-linked account

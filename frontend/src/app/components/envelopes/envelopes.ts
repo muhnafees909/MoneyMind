@@ -107,6 +107,26 @@ export class EnvelopesComponent implements OnInit {
     return Math.min((envelope.envelope_balance / envelope.target_amount) * 100, 100);
   }
 
+  async deleteEnvelope(envelope: EnvelopeSummary) {
+    const confirmed = await this.modalService.showConfirm(
+      `Delete "${envelope.goal_name}"? You can restore it within 30 days.`,
+      'Confirm Delete',
+      'Delete',
+      'Cancel'
+    );
+    if (!confirmed) return;
+
+    this.envelopeService.deleteEnvelope(envelope.goal_id).subscribe({
+      next: () => {
+        this.modalService.showSuccess(`"${envelope.goal_name}" deleted. You can restore it from the dashboard.`, 'Envelope Deleted');
+        this.loadReconciliation();
+      },
+      error: (error) => {
+        this.modalService.showError(error?.error?.error || 'Failed to delete envelope');
+      }
+    });
+  }
+
   hasAccounts(): boolean {
     return this.reconciliation.length > 0;
   }

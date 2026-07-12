@@ -54,6 +54,44 @@ def parse_amount(raw):
     return amount
 
 
+@envelopes_bp.route('/envelopes/<int:goal_id>', methods=['DELETE'])
+@jwt_required()
+def delete_envelope(goal_id):
+    """Soft-delete a goal (envelope). User can restore it within 30 days."""
+    user_id = get_jwt_identity()
+    goal = FinancialGoal.query.filter_by(id=goal_id, user_id=int(user_id)).first()
+    if not goal:
+        return jsonify({'error': 'Goal not found'}), 404
+    if goal.deleted_at:
+        return jsonify({'error': 'Goal already deleted'}), 409
+
+    goal.deleted_at = datetime.utcnow()
+    db.session.commit()
+    return jsonify({
+        'message': 'Goal deleted. You can restore it within 30 days.',
+        'goal': goal.to_dict()
+    }), 200
+
+
+@envelopes_bp.route('/envelopes/<int:goal_id>/restore', methods=['POST'])
+@jwt_required()
+def restore_envelope(goal_id):
+    """Restore a soft-deleted goal (envelope)."""
+    user_id = get_jwt_identity()
+    goal = FinancialGoal.query.filter_by(id=goal_id, user_id=int(user_id)).first()
+    if not goal:
+        return jsonify({'error': 'Goal not found'}), 404
+    if not goal.deleted_at:
+        return jsonify({'error': 'Goal is not deleted'}), 400
+
+    goal.deleted_at = None
+    db.session.commit()
+    return jsonify({
+        'message': 'Goal restored',
+        'goal': goal.to_dict()
+    }), 200
+
+
 @envelopes_bp.route('/accounts', methods=['GET'])
 @jwt_required()
 def get_accounts():
@@ -131,7 +169,7 @@ def reconciliation():
         envelopes = []
         allocated_total = Decimal('0')
         goals = FinancialGoal.query.filter_by(
-            user_id=int(user_id), linked_account_id=account.id
+            user_id=int(user_id), linked_account_id=account.id, deleted_at=None
         ).order_by(FinancialGoal.priority_order.asc().nullslast(), FinancialGoal.created_at.asc()).all()
 
         for goal in goals:

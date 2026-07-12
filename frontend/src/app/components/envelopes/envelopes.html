@@ -144,6 +144,9 @@
           </div>
           <button class="action-btn fund" (click)="allocate(envelope, 'manual')">Fund</button>
           <button class="action-btn withdraw" (click)="allocate(envelope, 'withdrawal')">Withdraw</button>
+          <button class="action-btn delete" (click)="deleteEnvelope(envelope)" title="Delete this envelope">
+            🗑️
+          </button>
         </div>
       </div>
     </div>
@@ -216,6 +219,10 @@
         </div>
 
         <button class="action-btn fund" (click)="addRule()">Add Rule</button>
+      </div>
+
+      <div class="no-envelopes" *ngIf="goalsWithoutRules().length === 0 && rules.length > 0">
+        All linked goals already have a rule. <a routerLink="/goals">Create more goals</a> to add more rules.
       </div>
     </div>
   </div>

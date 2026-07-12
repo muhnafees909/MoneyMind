@@ -178,4 +178,18 @@ export class EnvelopeService {
       headers: this.getHeaders()
     });
   }
+
+  // ----- Envelope (goal) deletion -----
+
+  deleteEnvelope(goalId: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/envelopes/${goalId}`, {
+      headers: this.getHeaders()
+    });
+  }
+
+  restoreEnvelope(goalId: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}/envelopes/${goalId}/restore`, {}, {
+      headers: this.getHeaders()
+    });
+  }
 }
