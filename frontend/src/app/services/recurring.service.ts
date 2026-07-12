@@ -20,6 +20,7 @@ export interface PriceCreep {
 export interface RecurringExpense {
   id: number;
   merchant_name: string;
+  merchant_entity_id: string | null;
   category: string | null;
   expected_amount: number;
   monthly_equivalent: number;
@@ -105,8 +106,21 @@ export class RecurringService {
     expected_amount: number;
     cadence: 'weekly' | 'biweekly' | 'monthly' | 'annual';
     description?: string;
+    next_expected_date?: string;
   }): Observable<RecurringExpense> {
     return this.http.post<RecurringExpense>(`${this.apiUrl}/manual`, data, {
+      headers: this.getHeaders()
+    });
+  }
+
+  createFromTransactions(data: {
+    transaction_ids: number[];
+    category?: string;
+    name?: string;
+    cadence?: 'weekly' | 'biweekly' | 'monthly' | 'annual';
+    expected_amount?: number;
+  }): Observable<RecurringExpense> {
+    return this.http.post<RecurringExpense>(`${this.apiUrl}/from-transactions`, data, {
       headers: this.getHeaders()
     });
   }

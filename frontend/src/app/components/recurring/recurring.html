@@ -17,49 +17,136 @@
     </div>
   </div>
 
-  <!-- Manual entry form -->
-  <div class="section-card manual-form-card" *ngIf="showManualForm">
-    <h2>Add Manual Recurring Expense</h2>
-    <p class="section-hint">Create a recurring expense entry (e.g., rent if only seen 1-2 times so far).</p>
-
-    <div class="form-group">
-      <label>Name/Description</label>
-      <input type="text" placeholder="e.g. Rent, Netflix" [(ngModel)]="manualEntry.description">
-    </div>
-
-    <div class="form-group">
-      <label>Category</label>
-      <select [(ngModel)]="manualEntry.category">
-        <option value="">Pick a category…</option>
-        <option *ngFor="let cat of categories" [value]="cat.value">{{ cat.displayName }}</option>
-      </select>
-    </div>
-
-    <div class="form-group">
-      <label>Amount</label>
-      <input type="number" min="0" step="0.01" placeholder="0.00" [(ngModel)]="manualEntry.expected_amount">
-    </div>
-
-    <div class="form-group">
-      <label>Frequency</label>
-      <select [(ngModel)]="manualEntry.cadence">
-        <option value="weekly">Weekly</option>
-        <option value="biweekly">Every 2 weeks</option>
-        <option value="monthly">Monthly</option>
-        <option value="annual">Yearly</option>
-      </select>
-    </div>
-
-    <div class="form-actions">
-      <button class="action-btn" (click)="showManualForm = false">Cancel</button>
-      <button class="action-btn confirm" (click)="createManualRecurring()" [disabled]="creatingManual">
-        {{ creatingManual ? 'Creating…' : 'Create' }}
-      </button>
-    </div>
+  <!-- Trigger -->
+  <div class="section-card add-manual-card" *ngIf="!showAddForm">
+    <button class="action-btn confirm" (click)="openAddForm()">+ Track a Recurring Bill</button>
   </div>
 
-  <div class="section-card add-manual-card" *ngIf="!showManualForm">
-    <button class="action-btn confirm" (click)="showManualForm = true">+ Add Manual Recurring Expense</button>
+  <!-- Add-recurring form -->
+  <div class="section-card manual-form-card" *ngIf="showAddForm">
+    <h2>Track a Recurring Bill</h2>
+
+    <!-- Mode toggle -->
+    <div class="mode-toggle">
+      <button class="mode-btn" [class.active]="addMode === 'history'" (click)="addMode = 'history'">
+        Pick from history
+      </button>
+      <button class="mode-btn" [class.active]="addMode === 'manual'" (click)="addMode = 'manual'">
+        Enter manually
+      </button>
+    </div>
+
+    <!-- ===== History picker ===== -->
+    <ng-container *ngIf="addMode === 'history'">
+      <p class="section-hint">
+        Pick 1–3 past payments for this bill (e.g. your last few rent charges). We'll match
+        future ones automatically — even if the description changes month to month.
+      </p>
+
+      <div class="form-group">
+        <input type="text" placeholder="🔍 Search your transactions…" [(ngModel)]="txnSearch">
+      </div>
+
+      <div *ngIf="loadingTransactions" class="picker-loading">Loading transactions…</div>
+
+      <div class="txn-picker" *ngIf="!loadingTransactions">
+        <label class="txn-option" *ngFor="let txn of filteredTransactions()"
+               [class.selected]="isSelected(txn)">
+          <input type="checkbox" [checked]="isSelected(txn)" (change)="toggleTxn(txn)">
+          <span class="txn-desc">{{ txn.description }}</span>
+          <span class="txn-amount">{{ txn.amount | currency }}</span>
+          <span class="txn-date">{{ txn.transaction_date | date:'MMM d, y' }}</span>
+        </label>
+        <div class="picker-empty" *ngIf="filteredTransactions().length === 0">
+          No matching transactions.
+        </div>
+      </div>
+
+      <div class="detected-hint" *ngIf="selectedTxnIds.length > 0">
+        <span *ngIf="detectedCadence()">✓ Detected: {{ cadenceLabel(detectedCadence()!) }} · avg {{ form.expected_amount | currency }}</span>
+        <span *ngIf="!detectedCadence()">{{ selectedTxnIds.length }} selected · pick 2+ to auto-detect frequency</span>
+      </div>
+
+      <!-- Confirm details (pre-filled) -->
+      <div class="confirm-fields" *ngIf="selectedTxnIds.length > 0">
+        <div class="form-group">
+          <label>Name</label>
+          <input type="text" placeholder="e.g. Rent" [(ngModel)]="form.name">
+        </div>
+        <div class="form-group">
+          <label>Category</label>
+          <select [(ngModel)]="form.category">
+            <option value="">Pick a category…</option>
+            <option *ngFor="let cat of categories" [value]="cat.value">{{ cat.displayName }}</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Amount</label>
+            <input type="number" min="0" step="0.01" placeholder="0.00" [(ngModel)]="form.expected_amount">
+          </div>
+          <div class="form-group">
+            <label>Frequency</label>
+            <select [(ngModel)]="form.cadence">
+              <option value="weekly">Weekly</option>
+              <option value="biweekly">Every 2 weeks</option>
+              <option value="monthly">Monthly</option>
+              <option value="annual">Yearly</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="action-btn" (click)="closeAddForm()">Cancel</button>
+        <button class="action-btn confirm" (click)="submitFromHistory()"
+                [disabled]="creating || selectedTxnIds.length === 0">
+          {{ creating ? 'Saving…' : 'Track Bill' }}
+        </button>
+      </div>
+    </ng-container>
+
+    <!-- ===== Manual fallback ===== -->
+    <ng-container *ngIf="addMode === 'manual'">
+      <p class="section-hint">
+        No matching transactions yet? Enter the bill manually — we'll still try to match future
+        charges by amount and due date.
+      </p>
+
+      <div class="form-group">
+        <label>Name/Description</label>
+        <input type="text" placeholder="e.g. Rent, Netflix" [(ngModel)]="manualEntry.description">
+      </div>
+      <div class="form-group">
+        <label>Category</label>
+        <select [(ngModel)]="manualEntry.category">
+          <option value="">Pick a category…</option>
+          <option *ngFor="let cat of categories" [value]="cat.value">{{ cat.displayName }}</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Amount</label>
+          <input type="number" min="0" step="0.01" placeholder="0.00" [(ngModel)]="manualEntry.expected_amount">
+        </div>
+        <div class="form-group">
+          <label>Frequency</label>
+          <select [(ngModel)]="manualEntry.cadence">
+            <option value="weekly">Weekly</option>
+            <option value="biweekly">Every 2 weeks</option>
+            <option value="monthly">Monthly</option>
+            <option value="annual">Yearly</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="action-btn" (click)="closeAddForm()">Cancel</button>
+        <button class="action-btn confirm" (click)="submitManual()" [disabled]="creating">
+          {{ creating ? 'Creating…' : 'Create' }}
+        </button>
+      </div>
+    </ng-container>
   </div>
 
   <!-- Review queue -->

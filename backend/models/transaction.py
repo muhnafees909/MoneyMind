@@ -17,6 +17,10 @@ class Transaction(db.Model):
     plaid_transaction_id = db.Column(db.String(255), unique=True, nullable=True)
     # Which bank account this landed on (Plaid-synced transactions only)
     plaid_account_id = db.Column(db.Integer, db.ForeignKey('plaid_accounts.id'), nullable=True)
+    # Plaid's cleaned merchant name (e.g. "Netflix") — distinct from the raw description
+    merchant_name = db.Column(db.String(255), nullable=True)
+    # Plaid's stable merchant entity id — the most reliable recurring-match key when present
+    merchant_entity_id = db.Column(db.String(255), nullable=True, index=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def to_dict(self):
@@ -32,6 +36,8 @@ class Transaction(db.Model):
             'source': self.source,
             'plaid_transaction_id': self.plaid_transaction_id,
             'plaid_account_id': self.plaid_account_id,
+            'merchant_name': self.merchant_name,
+            'merchant_entity_id': self.merchant_entity_id,
             'created_at': self.created_at.isoformat()
         }
 

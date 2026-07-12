@@ -4,6 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { RecurringService, RecurringExpense } from '../../services/recurring.service';
 import { CategoryService, CategoryInfo } from '../../services/category.service';
 import { ModalService } from '../../services/modal.service';
+import { TransactionService } from '../../services/transactionService';
+
+type Cadence = 'weekly' | 'biweekly' | 'monthly' | 'annual';
 
 @Component({
   selector: 'app-recurring',
@@ -24,20 +27,38 @@ export class RecurringComponent implements OnInit {
   reviewCategory: { [id: number]: string } = {};
   expandedSeries: number | null = null;
 
-  // Manual entry form state
-  showManualForm = false;
+  // ----- Add-recurring form state -----
+  showAddForm = false;
+  addMode: 'history' | 'manual' = 'history';
+  creating = false;
+
+  // History picker
+  allTransactions: any[] = [];
+  loadingTransactions = false;
+  txnSearch = '';
+  selectedTxnIds: number[] = [];
+
+  // Confirm fields (prefilled from selection, editable)
+  form = {
+    name: '',
+    category: '',
+    expected_amount: null as number | null,
+    cadence: 'monthly' as Cadence
+  };
+
+  // Free-text fallback
   manualEntry = {
     category: '',
     expected_amount: null as number | null,
-    cadence: 'monthly' as 'weekly' | 'biweekly' | 'monthly' | 'annual',
+    cadence: 'monthly' as Cadence,
     description: ''
   };
-  creatingManual = false;
 
   constructor(
     private recurringService: RecurringService,
     public categoryService: CategoryService,
-    private modalService: ModalService
+    private modalService: ModalService,
+    private transactionService: TransactionService
   ) {
     this.categories = this.categoryService.getAllCategories();
   }
@@ -125,35 +146,177 @@ export class RecurringComponent implements OnInit {
     return { weekly: 'Weekly', biweekly: 'Every 2 weeks', monthly: 'Monthly', annual: 'Yearly' }[cadence] || cadence;
   }
 
-  createManualRecurring() {
+  // ----- Add-recurring form -----
+
+  openAddForm() {
+    this.showAddForm = true;
+    this.addMode = 'history';
+    this.resetForm();
+    this.loadTransactionsForPicker();
+  }
+
+  closeAddForm() {
+    this.showAddForm = false;
+    this.resetForm();
+  }
+
+  resetForm() {
+    this.selectedTxnIds = [];
+    this.txnSearch = '';
+    this.form = { name: '', category: '', expected_amount: null, cadence: 'monthly' };
+    this.manualEntry = { category: '', expected_amount: null, cadence: 'monthly', description: '' };
+  }
+
+  loadTransactionsForPicker() {
+    this.loadingTransactions = true;
+    this.transactionService.getTransactions().subscribe({
+      next: (data: any[]) => {
+        // Only expenses can back a recurring bill; newest first
+        this.allTransactions = (data || [])
+          .filter((t) => t.transaction_type === 'expense')
+          .sort((a, b) => (a.transaction_date < b.transaction_date ? 1 : -1));
+        this.loadingTransactions = false;
+      },
+      error: () => {
+        this.loadingTransactions = false;
+        this.modalService.showError('Could not load your transactions');
+      }
+    });
+  }
+
+  filteredTransactions(): any[] {
+    const q = this.txnSearch.trim().toLowerCase();
+    const list = q
+      ? this.allTransactions.filter(
+          (t) =>
+            (t.description || '').toLowerCase().includes(q) ||
+            String(t.amount).includes(q)
+        )
+      : this.allTransactions;
+    return list.slice(0, 50); // keep the list manageable
+  }
+
+  isSelected(txn: any): boolean {
+    return this.selectedTxnIds.includes(txn.id);
+  }
+
+  toggleTxn(txn: any) {
+    if (this.isSelected(txn)) {
+      this.selectedTxnIds = this.selectedTxnIds.filter((id) => id !== txn.id);
+    } else {
+      if (this.selectedTxnIds.length >= 3) {
+        this.modalService.showError('Pick at most 3 payments', 'Selection limit');
+        return;
+      }
+      this.selectedTxnIds = [...this.selectedTxnIds, txn.id];
+    }
+    this.prefillFromSelection();
+  }
+
+  private selectedTransactions(): any[] {
+    return this.allTransactions.filter((t) => this.selectedTxnIds.includes(t.id));
+  }
+
+  /** Recompute the confirm-field defaults from the current selection. */
+  private prefillFromSelection() {
+    const picks = this.selectedTransactions();
+    if (picks.length === 0) return;
+
+    const latest = [...picks].sort((a, b) => (a.transaction_date < b.transaction_date ? 1 : -1))[0];
+    this.form.name = latest.merchant_name || latest.description || '';
+
+    const sum = picks.reduce((s, t) => s + Number(t.amount || 0), 0);
+    this.form.expected_amount = Math.round((sum / picks.length) * 100) / 100;
+
+    // Most common category among the picks
+    const counts: { [c: string]: number } = {};
+    for (const t of picks) {
+      if (t.category) counts[t.category] = (counts[t.category] || 0) + 1;
+    }
+    const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+    if (top) this.form.category = top[0];
+
+    const inferred = this.detectedCadence();
+    if (inferred) this.form.cadence = inferred;
+  }
+
+  /** Client-side cadence hint from the selected dates (mirrors the server bands). */
+  detectedCadence(): Cadence | null {
+    const dates = this.selectedTransactions()
+      .map((t) => new Date(t.transaction_date).getTime())
+      .sort((a, b) => a - b);
+    if (dates.length < 2) return null;
+
+    const gaps: number[] = [];
+    for (let i = 1; i < dates.length; i++) {
+      gaps.push((dates[i] - dates[i - 1]) / (1000 * 60 * 60 * 24));
+    }
+    const avg = gaps.reduce((s, g) => s + g, 0) / gaps.length;
+    if (avg >= 5 && avg <= 9) return 'weekly';
+    if (avg >= 11 && avg <= 18) return 'biweekly';
+    if (avg >= 24 && avg <= 36) return 'monthly';
+    if (avg >= 330 && avg <= 400) return 'annual';
+    return null;
+  }
+
+  submitFromHistory() {
+    if (this.selectedTxnIds.length === 0) {
+      this.modalService.showError('Select 1–3 past payments first', 'Validation Error');
+      return;
+    }
+    if (!this.form.category || !this.form.expected_amount) {
+      this.modalService.showError('Category and amount are required', 'Validation Error');
+      return;
+    }
+
+    this.creating = true;
+    this.recurringService
+      .createFromTransactions({
+        transaction_ids: this.selectedTxnIds,
+        category: this.form.category,
+        name: this.form.name || undefined,
+        cadence: this.form.cadence,
+        expected_amount: this.form.expected_amount
+      })
+      .subscribe({
+        next: () => {
+          this.creating = false;
+          this.closeAddForm();
+          this.modalService.showSuccess('Now tracking this recurring bill', 'Success');
+          this.loadAll();
+        },
+        error: (error) => {
+          this.creating = false;
+          this.modalService.showError(error?.error?.error || 'Failed to create recurring expense');
+        }
+      });
+  }
+
+  submitManual() {
     if (!this.manualEntry.category || !this.manualEntry.expected_amount) {
       this.modalService.showError('Category and amount are required', 'Validation Error');
       return;
     }
 
-    this.creatingManual = true;
-    this.recurringService.createManual({
-      category: this.manualEntry.category,
-      expected_amount: this.manualEntry.expected_amount,
-      cadence: this.manualEntry.cadence,
-      description: this.manualEntry.description || undefined
-    }).subscribe({
-      next: () => {
-        this.creatingManual = false;
-        this.showManualForm = false;
-        this.manualEntry = {
-          category: '',
-          expected_amount: null,
-          cadence: 'monthly',
-          description: ''
-        };
-        this.modalService.showSuccess('Recurring expense created', 'Success');
-        this.loadAll();
-      },
-      error: (error) => {
-        this.creatingManual = false;
-        this.modalService.showError(error?.error?.error || 'Failed to create recurring expense');
-      }
-    });
+    this.creating = true;
+    this.recurringService
+      .createManual({
+        category: this.manualEntry.category,
+        expected_amount: this.manualEntry.expected_amount,
+        cadence: this.manualEntry.cadence,
+        description: this.manualEntry.description || undefined
+      })
+      .subscribe({
+        next: () => {
+          this.creating = false;
+          this.closeAddForm();
+          this.modalService.showSuccess('Recurring expense created', 'Success');
+          this.loadAll();
+        },
+        error: (error) => {
+          this.creating = false;
+          this.modalService.showError(error?.error?.error || 'Failed to create recurring expense');
+        }
+      });
   }
 }

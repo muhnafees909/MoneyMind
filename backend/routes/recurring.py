@@ -1,10 +1,15 @@
+from collections import Counter
 from decimal import Decimal
+from datetime import timedelta, date
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models.user import db
-from models.recurring import RecurringExpense, RECURRING_CADENCES
-from utils.recurring import detect_recurring, cadence_nominal_days
-from datetime import timedelta
+from models.transaction import Transaction
+from models.recurring import RecurringExpense, RecurringExpenseOccurrence, RECURRING_CADENCES
+from utils.recurring import (
+    detect_recurring, cadence_nominal_days, normalize_merchant, infer_cadence,
+    _attach_occurrences,
+)
 
 recurring_bp = Blueprint('recurring', __name__)
 
@@ -34,26 +39,120 @@ def create_manual_recurring():
     if amount <= 0:
         return jsonify({'error': 'expected_amount must be positive'}), 400
 
-    # Normalize merchant name (use description if provided, else default)
     merchant_name = data.get('description', 'Manual Entry')
-    merchant_key = merchant_name.lower().strip()  # Simple normalization
 
-    # Create recurring expense record
+    # Anchor a schedule so amount+date-window matching can catch future charges,
+    # even without a historical transaction to seed from.
+    anchor = data.get('next_expected_date')
+    if anchor:
+        try:
+            next_expected = date.fromisoformat(anchor)
+        except Exception:
+            return jsonify({'error': 'Invalid next_expected_date (use YYYY-MM-DD)'}), 400
+    else:
+        next_expected = date.today() + timedelta(days=cadence_nominal_days(data['cadence']))
+
     recurring = RecurringExpense(
         user_id=int(user_id),
         merchant_name=merchant_name,
-        merchant_key=merchant_key,
+        # Use the same normalization detection uses, so a typed name has a chance
+        # of matching future transactions by key.
+        merchant_key=normalize_merchant(merchant_name),
         category=data['category'],
         expected_amount=amount,
         cadence=data['cadence'],
         confirmed_by_user=True,  # User confirmed by creating it manually
         status='active',
-        next_expected_date=None  # No historical occurrences to base this on
+        next_expected_date=next_expected
     )
     db.session.add(recurring)
     db.session.commit()
 
     return jsonify(recurring.to_dict()), 201
+
+
+@recurring_bp.route('/from-transactions', methods=['POST'])
+@jwt_required()
+def create_from_transactions():
+    """Create a confirmed recurring series seeded from 1–3 real past transactions.
+    Storing the exact Plaid description + merchant_entity_id from those picks means
+    future syncs can match new charges reliably.
+    Body: {transaction_ids:[...], category?, name?, cadence?, expected_amount?}"""
+    user_id = get_jwt_identity()
+    data = request.get_json() or {}
+
+    ids = data.get('transaction_ids') or []
+    if not isinstance(ids, list) or not ids:
+        return jsonify({'error': 'transaction_ids (1–3) required'}), 400
+    if len(ids) > 3:
+        return jsonify({'error': 'Select at most 3 transactions'}), 400
+
+    txns = Transaction.query.filter(
+        Transaction.id.in_(ids),
+        Transaction.user_id == int(user_id),
+        Transaction.transaction_type == 'expense'
+    ).all()
+    if not txns:
+        return jsonify({'error': 'No matching expense transactions found'}), 404
+
+    # Don't double-link a transaction that already belongs to a series
+    already = {
+        o.transaction_id for o in RecurringExpenseOccurrence.query.filter(
+            RecurringExpenseOccurrence.transaction_id.in_([t.id for t in txns])).all()
+    }
+    usable = [t for t in txns if t.id not in already]
+    if not usable:
+        return jsonify({'error': 'Those transactions are already tracked by a recurring expense'}), 400
+
+    usable.sort(key=lambda t: t.transaction_date)
+    latest = usable[-1]
+    dates = sorted(t.transaction_date.date() for t in usable)
+    amounts = [Decimal(t.amount) for t in usable]
+
+    # Cadence: explicit override, else inferred from the picked dates, else monthly
+    cadence = data.get('cadence')
+    if cadence:
+        if cadence not in RECURRING_CADENCES:
+            return jsonify({'error': f'cadence must be one of {", ".join(RECURRING_CADENCES)}'}), 400
+    else:
+        cadence = (infer_cadence(dates) if len(dates) >= 2 else None) or 'monthly'
+
+    # Entity id only if all picks agree; varying/blank ids fall back to name/date matching
+    entity_ids = {t.merchant_entity_id for t in usable if t.merchant_entity_id}
+    merchant_entity_id = next(iter(entity_ids)) if len(entity_ids) == 1 else None
+
+    category = data.get('category')
+    if not category:
+        counts = Counter(t.category for t in usable if t.category)
+        category = counts.most_common(1)[0][0] if counts else None
+
+    series = RecurringExpense(
+        user_id=int(user_id),
+        merchant_name=(data.get('name') or latest.merchant_name or latest.description),
+        merchant_key=normalize_merchant(latest.description),
+        merchant_entity_id=merchant_entity_id,
+        category=category,
+        expected_amount=(sum(amounts) / len(amounts)).quantize(Decimal('0.01')),
+        cadence=cadence,
+        status='active',
+        confirmed_by_user=True
+    )
+    db.session.add(series)
+    db.session.flush()
+    _attach_occurrences(series, usable)  # sets expected_amount(avg) + next_expected_date
+
+    # Explicit amount override wins over the averaged value
+    if data.get('expected_amount') is not None:
+        try:
+            override = Decimal(str(data['expected_amount']))
+        except Exception:
+            return jsonify({'error': 'Invalid expected_amount'}), 400
+        if override <= 0:
+            return jsonify({'error': 'expected_amount must be positive'}), 400
+        series.expected_amount = override
+
+    db.session.commit()
+    return jsonify(series.to_dict(include_occurrences=True)), 201
 
 
 @recurring_bp.route('/detect', methods=['POST'])

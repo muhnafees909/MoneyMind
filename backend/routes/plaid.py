@@ -95,6 +95,8 @@ def perform_transaction_sync(user_id: int, access_token: str, plaid_item: PlaidI
                 source='plaid',
                 plaid_transaction_id=txn['transaction_id'],
                 plaid_account_id=account_map.get(txn.get('account_id')),
+                merchant_name=txn.get('merchant_name'),
+                merchant_entity_id=txn.get('merchant_entity_id'),
                 transaction_notes=f"Merchant: {txn.get('merchant_name', 'N/A')}"
             )
             db.session.add(transaction)
@@ -103,6 +105,10 @@ def perform_transaction_sync(user_id: int, access_token: str, plaid_item: PlaidI
         elif existing.plaid_account_id is None:
             # Backfill account linkage on rows synced before accounts existed
             existing.plaid_account_id = account_map.get(txn.get('account_id'))
+            # Backfill merchant identifiers on older rows too
+            if existing.merchant_entity_id is None:
+                existing.merchant_name = txn.get('merchant_name')
+                existing.merchant_entity_id = txn.get('merchant_entity_id')
 
     modified_count = 0
     for txn in modified:
@@ -115,6 +121,8 @@ def perform_transaction_sync(user_id: int, access_token: str, plaid_item: PlaidI
                 if txn.get('personal_finance_category') else existing.category
             existing.transaction_date = txn['date']
             existing.transaction_type = 'expense' if txn['amount'] > 0 else 'income'
+            existing.merchant_name = txn.get('merchant_name')
+            existing.merchant_entity_id = txn.get('merchant_entity_id')
             modified_count += 1
 
     removed_count = 0

@@ -19,6 +19,8 @@ class RecurringExpense(db.Model):
 
     merchant_name = db.Column(db.String(255), nullable=False)   # display name (raw description)
     merchant_key = db.Column(db.String(255), nullable=False)    # normalized key used for matching
+    # Plaid's stable merchant entity id — highest-priority match key when present
+    merchant_entity_id = db.Column(db.String(255), nullable=True, index=True)
     category = db.Column(db.String(50), nullable=True)          # links to Budget tab by category string
     expected_amount = db.Column(db.Numeric(12, 2), nullable=False)
     cadence = db.Column(db.String(20), nullable=False)          # weekly | biweekly | monthly | annual
@@ -71,6 +73,7 @@ class RecurringExpense(db.Model):
         data = {
             'id': self.id,
             'merchant_name': self.merchant_name,
+            'merchant_entity_id': self.merchant_entity_id,
             'category': self.category,
             'expected_amount': float(self.expected_amount),
             'monthly_equivalent': float(self.monthly_equivalent),

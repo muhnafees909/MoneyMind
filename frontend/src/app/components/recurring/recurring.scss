@@ -242,6 +242,140 @@ $font-primary: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-seri
   }
 }
 
+// ----- Add-recurring form (history picker + manual fallback) -----
+.manual-form-card {
+  h2 { margin: 0 0 16px; font-size: 1.15rem; }
+}
+
+.mode-toggle {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  background: $bg-input;
+  border-radius: $radius-pill;
+  margin-bottom: 16px;
+
+  .mode-btn {
+    padding: 6px 16px;
+    border: none;
+    background: transparent;
+    color: $text-secondary;
+    border-radius: $radius-pill;
+    font-family: $font-primary;
+    font-weight: 600;
+    font-size: 0.82rem;
+    cursor: pointer;
+
+    &.active {
+      background: rgba($accent-orange, 0.18);
+      color: $accent-orange;
+    }
+  }
+}
+
+.form-group {
+  margin-bottom: 14px;
+
+  label {
+    display: block;
+    font-size: 0.8rem;
+    color: $text-secondary;
+    margin-bottom: 6px;
+  }
+
+  input,
+  select {
+    width: 100%;
+    padding: 10px 12px;
+    background: $bg-input;
+    border: 1px solid $border-color;
+    border-radius: $radius-md;
+    color: $text-primary;
+    font-family: $font-primary;
+    font-size: 0.9rem;
+
+    &:focus {
+      outline: none;
+      border-color: rgba($accent-orange, 0.5);
+    }
+  }
+}
+
+.form-row {
+  display: flex;
+  gap: 12px;
+
+  .form-group { flex: 1; }
+}
+
+.txn-picker {
+  max-height: 260px;
+  overflow-y: auto;
+  border: 1px solid $border-color;
+  border-radius: $radius-md;
+  margin-bottom: 12px;
+
+  .txn-option {
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    gap: 10px;
+    align-items: center;
+    padding: 10px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid $border-color;
+
+    &:last-child { border-bottom: none; }
+    &:hover { background: rgba(148, 163, 184, 0.05); }
+    &.selected { background: rgba($accent-orange, 0.1); }
+
+    input { accent-color: $accent-orange; }
+
+    .txn-desc {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 0.88rem;
+    }
+    .txn-amount { font-weight: 600; font-size: 0.88rem; }
+    .txn-date { color: $text-muted; font-size: 0.8rem; }
+  }
+}
+
+.picker-loading,
+.picker-empty {
+  padding: 20px;
+  text-align: center;
+  color: $text-secondary;
+  font-size: 0.9rem;
+}
+
+.detected-hint {
+  padding: 8px 12px;
+  margin-bottom: 14px;
+  background: rgba($accent-green, 0.08);
+  border-radius: $radius-md;
+  color: $accent-green;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.confirm-fields {
+  padding-top: 4px;
+  border-top: 1px solid $border-color;
+  margin-top: 4px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.add-manual-card {
+  text-align: center;
+}
+
 .empty-state {
   text-align: center;
   padding: 60px 20px;
