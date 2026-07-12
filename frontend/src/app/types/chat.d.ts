@@ -29,4 +29,5 @@ export interface ChatError {
 
 export interface ChatRequest {
   message: string;
+  history?: Pick<ChatMessage, 'role' | 'content'>[];
 }

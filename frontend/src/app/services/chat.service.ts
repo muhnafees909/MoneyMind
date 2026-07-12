@@ -46,10 +46,13 @@ export class ChatService {
     });
   }
 
-  sendMessage(message: string): Observable<ChatResponse> {
+  sendMessage(message: string, history: ChatMessage[] = []): Observable<ChatResponse> {
     return this.http.post<ChatResponse>(
       `${this.apiUrl}/message`,
-      { message },
+      {
+        message,
+        history: history.map(({ role, content }) => ({ role, content }))
+      },
       { headers: this.getHeaders() }
     );
   }

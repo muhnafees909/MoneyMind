@@ -151,7 +151,7 @@ def get_spending_summary(user_id):
         extract('year', Transaction.transaction_date) == current_year
     ).scalar()
 
-    # Average monthly (all transactions divided by months active)
+    # Average monthly spending over distinct months that have expense data
     all_spending = db.session.query(
         func.sum(Transaction.amount)
     ).filter(
@@ -159,16 +159,17 @@ def get_spending_summary(user_id):
         Transaction.transaction_type == 'expense'
     ).scalar()
 
-    transaction_count = db.session.query(
-        func.count(Transaction.id)
+    months_active = db.session.query(
+        func.count(func.distinct(
+            extract('year', Transaction.transaction_date) * 100
+            + extract('month', Transaction.transaction_date)
+        ))
     ).filter(
         Transaction.user_id == int(user_id),
         Transaction.transaction_type == 'expense'
-    ).scalar()
+    ).scalar() or 0
 
-    # Estimate months of data (rough: divide by typical transactions per month)
-    months_active = max(1, transaction_count // max(1, (transaction_count // 12)))
-    average_monthly = float(all_spending) / months_active if all_spending else 0.0
+    average_monthly = float(all_spending) / months_active if all_spending and months_active else 0.0
 
     return {
         'month_spending': float(month_spending) if month_spending else 0.0,
@@ -178,6 +179,52 @@ def get_spending_summary(user_id):
         'ytd_income': float(ytd_income) if ytd_income else 0.0,
         'average_monthly_spending': round(average_monthly, 2)
     }
+
+
+def get_monthly_spending_history(user_id, months=3):
+    """
+    Spending totals for the last `months` FULL calendar months (excludes the
+    current partial month, so averages aren't dragged down by an incomplete month).
+
+    Returns dict with:
+    - months: list of {'label': 'April 2026', 'total': 1234.56,
+      'by_category': {'rent': 1150.0, ...}}, oldest first; months with no
+      expense data are omitted
+    - average: average total across the listed months (0.0 if none)
+    """
+    current_date = date.today()
+    first_day_this_month = date(current_date.year, current_date.month, 1)
+
+    history = []
+    period_end = first_day_this_month
+    for _ in range(months):
+        period_start = date(
+            period_end.year if period_end.month > 1 else period_end.year - 1,
+            period_end.month - 1 if period_end.month > 1 else 12,
+            1
+        )
+        rows = db.session.query(
+            Transaction.category,
+            func.sum(Transaction.amount).label('total')
+        ).filter(
+            Transaction.user_id == int(user_id),
+            Transaction.transaction_type == 'expense',
+            Transaction.transaction_date >= period_start,
+            Transaction.transaction_date < period_end
+        ).group_by(Transaction.category).all()
+
+        if rows:
+            history.append({
+                'label': period_start.strftime('%B %Y'),
+                'total': round(sum(float(r.total) for r in rows), 2),
+                'by_category': {r.category: round(float(r.total), 2) for r in rows}
+            })
+        period_end = period_start
+
+    history.reverse()  # oldest first
+    average = round(sum(m['total'] for m in history) / len(history), 2) if history else 0.0
+
+    return {'months': history, 'average': average}
 
 
 def get_recent_transactions(user_id, limit=20):
@@ -455,6 +502,12 @@ def format_context_for_llm(user_id):
         }
 
     try:
+        spending_history = get_monthly_spending_history(user_id)
+    except Exception as e:
+        print(f"Error getting spending history: {e}")
+        spending_history = {'months': [], 'average': 0.0}
+
+    try:
         envelope_accounts = get_envelope_context(user_id)
     except Exception as e:
         print(f"Error getting envelope context: {e}")
@@ -470,6 +523,7 @@ def format_context_for_llm(user_id):
         'budgets': budgets,
         'goals': goals,
         'spending_summary': spending_summary,
+        'spending_history': spending_history,
         'recent_transactions': recent_transactions,
         'spending_by_category': spending_by_category,
         'spending_trends': spending_trends,
@@ -499,15 +553,33 @@ def build_context_string(context):
     month_name = current_date.strftime("%B %Y")
 
     # Header
-    lines.append(f"USER FINANCIAL SNAPSHOT ({month_name})")
+    lines.append(f"USER FINANCIAL SNAPSHOT (as of {current_date.strftime('%B %d, %Y')})")
     lines.append("=" * 60)
 
     # 1. MONTHLY SUMMARY SECTION
-    lines.append("\n📊 MONTHLY SUMMARY")
+    lines.append(f"\n📊 MONTHLY SUMMARY ({month_name}, month-to-date — month is not finished)")
     lines.append(f"  Income: ${summary.get('month_income', 0):,.2f}")
     lines.append(f"  Spending: ${summary.get('month_spending', 0):,.2f}")
     lines.append(f"  Net: ${summary.get('month_net', 0):,.2f}")
     lines.append(f"  Days remaining: {trends.get('days_remaining', 0)} of {trends.get('days_in_month', 30)}")
+
+    # 1b. SPENDING HISTORY SECTION (completed months — the reliable baseline for averages)
+    history = context.get('spending_history', {})
+    if history.get('months'):
+        month_labels = ", ".join(m['label'] for m in history['months'])
+        lines.append(f"\n📅 TOTAL SPENDING BY MONTH (last {len(history['months'])} completed month(s))")
+        for m in history['months']:
+            lines.append(f"  {m['label']}: ${m['total']:,.2f}")
+            by_cat = m.get('by_category', {})
+            if by_cat:
+                cat_parts = ", ".join(
+                    f"{cat}: ${amt:,.2f}"
+                    for cat, amt in sorted(by_cat.items(), key=lambda kv: kv[1], reverse=True)
+                )
+                lines.append(f"    by category — {cat_parts}")
+        lines.append(f"  → Average TOTAL monthly spending ({month_labels}): ${history['average']:,.2f}")
+        lines.append("  Note: this average includes discretionary spending. For baseline/essential")
+        lines.append("  cost questions, prefer the RECURRING EXPENSES total below.")
 
     # 2. ALERTS SECTION (if any budgets are over)
     alerts = trends.get('budget_alerts', [])
@@ -579,7 +651,11 @@ def build_context_string(context):
     # 7. RECURRING EXPENSES SECTION
     recurring = context.get('recurring', {})
     if recurring.get('series'):
-        lines.append(f"\n🔁 RECURRING EXPENSES (${recurring['total_monthly']:,.2f}/month total)")
+        lines.append(f"\n🔁 RECURRING EXPENSES — confirmed baseline bills: ${recurring['total_monthly']:,.2f}/month total")
+        lines.append("  This is the user's confirmed essential/baseline monthly cost. Use it (not total")
+        lines.append("  spending) for emergency-fund sizing and bare-minimum budget questions. Caveat:")
+        lines.append("  it only covers detected recurring charges — essentials without a detected series")
+        lines.append("  (e.g. rent paid by check, groceries) are NOT included.")
         for series in recurring['series']:
             creep = series.get('price_creep')
             creep_text = f" 🔴 PRICE UP {creep['increase_pct']}% (was ${creep['previous_average']:,.2f})" if creep else ""

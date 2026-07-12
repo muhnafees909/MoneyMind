@@ -60,6 +60,12 @@ export class ChatComponent implements OnInit, AfterViewChecked {
       return;
     }
 
+    // Prior turns (before this message) so the advisor can follow up on its
+    // own clarifying questions. Skip the canned greeting; cap at 10 turns.
+    const history = this.messages
+      .filter((m, i) => !(i === 0 && m.role === 'assistant'))
+      .slice(-10);
+
     const userMessage: ChatMessage = {
       role: 'user',
       content: this.userInput,
@@ -73,7 +79,7 @@ export class ChatComponent implements OnInit, AfterViewChecked {
     this.error = null;
     this.shouldScroll = true;
 
-    this.chatService.sendMessage(messageToSend).subscribe({
+    this.chatService.sendMessage(messageToSend, history).subscribe({
       next: (response: ChatResponse) => {
         const aiMessage: ChatMessage = {
           role: 'assistant',

@@ -18,7 +18,11 @@ def send_chat_message():
 
     Request JSON:
     {
-        "message": "user's question or message"
+        "message": "user's question or message",
+        "history": [                       // optional: prior turns, oldest first
+            {"role": "user", "content": "..."},
+            {"role": "assistant", "content": "..."}
+        ]
     }
 
     Response JSON (200):
@@ -67,8 +71,24 @@ def send_chat_message():
                 'error': 'Message is too long. Please keep it under 5000 characters.'
             }), 400
 
+        # Validate optional conversation history
+        history = data.get('history') or []
+        if not isinstance(history, list):
+            return jsonify({
+                'error': 'Invalid request. "history" must be a list of messages.'
+            }), 400
+        for msg in history:
+            if (not isinstance(msg, dict)
+                    or msg.get('role') not in ('user', 'assistant')
+                    or not isinstance(msg.get('content'), str)
+                    or len(msg['content']) > 5000):
+                return jsonify({
+                    'error': 'Invalid request. Each history entry needs a role of '
+                             '"user" or "assistant" and content under 5000 characters.'
+                }), 400
+
         # Get AI response
-        result = send_message(int(user_id), user_message)
+        result = send_message(int(user_id), user_message, history=history)
 
         # Check if there was an error
         if result.get('error'):
