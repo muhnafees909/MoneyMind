@@ -41,32 +41,160 @@ body {
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 
+// Material's `font: var(--mat-sys-body-medium)` above sets a FIXED 14px/20px
+// line-height that inherits as 20px into every element. Body copy wants that,
+// but any heading that forgets its own line-height renders large glyphs in a
+// 20px line box and visually overlaps neighboring text. Give headings a sane
+// ratio default; display-size titles still set their own tighter values.
+h1, h2, h3 {
+  line-height: 1.2;
+}
+
+// ============================================
+// MONEYMIND DESIGN TOKENS (v2 design system)
+// Single dominant neutral (near-black), one accent (mint),
+// semantic financial states, validated categorical chart slots.
+// ============================================
+:root {
+  // ——— Warm editorial ledger ———
+  // Neutral plane: warm ink-black, like unbleached paper photographed at night
+  --mm-bg: #121110;            // page
+  --mm-surface: #181613;       // card
+  --mm-surface-2: #1e1b18;     // raised / hover
+  --mm-surface-3: #292522;
+  --mm-hairline: rgba(244, 241, 236, 0.06);
+  --mm-hairline-2: rgba(244, 241, 236, 0.13);
+
+  // Ink (warm)
+  --mm-text-1: #f4f1ec;
+  --mm-text-2: #a8a29a;
+  --mm-text-3: #6f6862;
+
+  // The accent: deep fern green — the color of ledgers and banknotes,
+  // not SaaS chrome. Carries brand, actions, and money coming in.
+  --mm-brand: #7ca982;
+  --mm-brand-strong: #9cc4a1;
+  --mm-brand-ink: #131b12;     // text/icon set on solid brand
+  --mm-brand-dim: rgba(124, 169, 130, 0.12);
+  --mm-brand-glow: rgba(124, 169, 130, 0.3);
+  // Saturated fern fill for icon chips — "solid" presence, not a faint wash
+  --mm-brand-chip: linear-gradient(135deg, #6fa476 0%, #8fbd95 100%);
+
+  // Supporting accent: brass — the gilt edge on a green ledger. Reserved for
+  // secondary emphasis: trend/delta indicators, highlighted stats, "this
+  // month" markers. Yellower than --mm-warn (amber = attention) on purpose.
+  --mm-brass: #d8b95e;
+  --mm-brass-strong: #ecd287;
+  --mm-brass-dim: rgba(216, 185, 94, 0.14);
+
+  // Financial states. Opinion: being fine is silent (plain ink) — color only
+  // appears when money needs attention. Never color-alone: icon/sign always.
+  // Positive is a teal, deliberately distinct from brand fern: fern = the
+  // product acting, teal = money arriving, amber/red = money needing attention.
+  --mm-pos: #4d9d8f;           // income / money in (teal)
+  --mm-warn: #e0a458;          // approaching limit (warm amber)
+  --mm-neg: #e2574b;           // overspent (warm red)
+  --mm-pos-dim: rgba(77, 157, 143, 0.12);
+  --mm-warn-dim: rgba(224, 164, 88, 0.12);
+  --mm-neg-dim: rgba(226, 87, 75, 0.12);
+
+  // Categorical chart slots — the "heritage" family, v2 "gallery" tuning:
+  // same eight hues, lifted chroma + luminance so category color reads vivid
+  // on the dark surface instead of receding into it. Fixed order, never
+  // cycled; color follows the category, never its rank. (Hue spacing is
+  // unchanged from the CVD-validated set; only saturation/lightness moved.)
+  --mm-cat-1: #6c9de6;   // cornflower
+  --mm-cat-2: #dba43e;   // ochre
+  --mm-cat-3: #27b9de;   // petrol
+  --mm-cat-4: #e27c4e;   // terracotta
+  --mm-cat-5: #b189e0;   // mauve
+  --mm-cat-6: #a9bf49;   // olive
+  --mm-cat-7: #e07b9f;   // rose
+  --mm-cat-8: #8f93ea;   // indigo
+  --mm-cat-other: #86817a;
+
+  // Type, three voices: a Clarendon serif for the headline numbers and titles
+  // (Besley — the ledger/banknote letterform, ships tabular figures), a
+  // grotesque for UI, a mono for data columns (tabular by construction).
+  --mm-font-serif: 'Besley', Georgia, 'Times New Roman', serif;
+  --mm-font-display: 'Besley', Georgia, serif;
+  --mm-font-ui: 'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --mm-font-num: 'Spline Sans Mono', 'Cascadia Mono', Consolas, monospace;
+
+  // Shape: print corners, not app corners. Cards get a small 6px ease;
+  // anything typographic or data-bearing (buttons, inputs, bars) is 2px-sharp.
+  --mm-surface-raised: linear-gradient(180deg, #1b1815 0%, #171512 100%);
+  --mm-radius-lg: 10px;  // hero only
+  --mm-radius: 6px;      // cards
+  --mm-radius-sm: 4px;   // menus, tooltips, hover washes
+  --mm-radius-xs: 2px;   // buttons, inputs, bars, swatches
+  --mm-shadow-1:
+    inset 0 1px 0 rgba(255, 250, 240, 0.04),
+    0 1px 2px rgba(0, 0, 0, 0.45),
+    0 10px 28px rgba(0, 0, 0, 0.32);
+  --mm-shadow-2:
+    inset 0 1px 0 rgba(255, 250, 240, 0.06),
+    0 2px 4px rgba(0, 0, 0, 0.5),
+    0 24px 64px rgba(0, 0, 0, 0.45);
+
+  // Motion
+  --mm-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --mm-dur-fast: 140ms;
+  --mm-dur: 260ms;
+}
+
+// ============================================
+// SCREEN TRANSITIONS — every app screen rises in on navigation,
+// matching the landing page's easing. Fast enough for repeated use.
+// ============================================
+@media (prefers-reduced-motion: no-preference) {
+  .mm-dash {
+    animation: mm-screen-in 0.3s var(--mm-ease-out);
+  }
+
+  @keyframes mm-screen-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+}
+
+// ============================================
+// DIALOG OVERLAY — shared backdrop treatment for every modal
+// ============================================
+.cdk-overlay-dark-backdrop {
+  background: rgba(12, 11, 10, 0.72) !important;
+  backdrop-filter: blur(5px);
+}
+
 // ============================================
 // TRANSACTION FORM DIALOG OVERRIDES
+// Warm editorial ledger palette (see .claude/skills/moneymind-design-system)
 // ============================================
 // Variables
-$bg-primary: #0f1219;
-$bg-secondary: #1a1f2e;
-$bg-card: #232a3b;
-$bg-input: #1e2433;
-$accent-orange: #f97316;
-$accent-green: #22c55e;
-$text-primary: #ffffff;
-$text-secondary: #94a3b8;
-$text-muted: #64748b;
-$border-color: rgba(148, 163, 184, 0.1);
+$bg-primary: #1b1815;
+$bg-secondary: #171512;
+$bg-card: #292522;
+$bg-input: #14120f;
+$accent-orange: #7ca982;   // fern brand (legacy variable name kept)
+$accent-green: #7ca982;
+$text-primary: #f4f1ec;
+$text-secondary: #a8a29a;
+$text-muted: #6f6862;
+$border-color: rgba(244, 241, 236, 0.08);
 $gradient-bg: linear-gradient(180deg, $bg-primary 0%, $bg-secondary 100%);
-$shadow-md: 0 4px 20px rgba(0, 0, 0, 0.3);
-$shadow-glow: 0 0 40px rgba(249, 115, 22, 0.15);
-$shadow-glow-green: 0 0 30px rgba(34, 197, 94, 0.15);
-$transition-base: 0.25s ease;
+$shadow-md: 0 4px 20px rgba(0, 0, 0, 0.35);
+$shadow-glow: 0 24px 64px rgba(0, 0, 0, 0.45);
+$shadow-glow-green: 0 4px 16px -4px rgba(124, 169, 130, 0.22);
+$transition-base: 0.14s ease;
 
 // Override Material Dialog Container
 .mat-mdc-dialog-container {
   background: $gradient-bg !important;
   border: 1px solid $border-color !important;
   box-shadow: $shadow-md, $shadow-glow !important;
-  border-radius: 20px !important;
+  border-radius: 10px !important;
   padding: 0 !important;
 
   .mdc-dialog__surface {
@@ -82,20 +210,44 @@ $transition-base: 0.25s ease;
   min-width: 450px;
   max-height: 90vh;
   overflow: hidden;
-  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 .modal-header {
-  padding: 28px 28px 20px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 24px 24px 18px 28px;
   border-bottom: 1px solid $border-color;
 }
 
+.modal-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: $text-muted;
+  cursor: pointer;
+  transition: $transition-base;
+
+  &:hover {
+    background: rgba(244, 241, 236, 0.08);
+    color: $text-primary;
+  }
+}
+
 .modal-title {
-  font-size: 24px;
-  font-weight: 700;
+  font-family: 'Besley', Georgia, serif;
+  font-size: 21px;
+  font-weight: 600;
   color: $text-primary;
   margin: 0;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
 }
 
 .modal-content {
@@ -158,8 +310,8 @@ $transition-base: 0.25s ease;
   padding: 14px 16px;
   background: $bg-input;
   border: 1px solid $border-color;
-  border-radius: 12px;
-  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  border-radius: 2px;
+  font-family: 'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 15px;
   color: $text-primary;
   outline: none;
@@ -176,7 +328,7 @@ $transition-base: 0.25s ease;
 
   &:focus {
     border-color: $accent-orange;
-    box-shadow: 0 0 0 3px rgba($accent-orange, 0.1);
+    box-shadow: 0 0 0 3px rgba($accent-orange, 0.12);
   }
 }
 
@@ -239,8 +391,8 @@ $transition-base: 0.25s ease;
   padding: 14px 16px;
   background: $bg-input;
   border: 1px solid $border-color;
-  border-radius: 12px;
-  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  border-radius: 2px;
+  font-family: 'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 15px;
   color: $text-primary;
   cursor: pointer;
@@ -286,7 +438,7 @@ $transition-base: 0.25s ease;
   right: 0;
   background: $bg-card;
   border: 1px solid $border-color;
-  border-radius: 12px;
+  border-radius: 4px;
   box-shadow: $shadow-md;
   z-index: 1000;
   overflow: hidden;
@@ -331,8 +483,8 @@ $transition-base: 0.25s ease;
   gap: 10px;
   padding: 12px 24px;
   border: none;
-  border-radius: 50px;
-  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  border-radius: 2px;
+  font-family: 'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
@@ -363,13 +515,16 @@ $transition-base: 0.25s ease;
 }
 
 .btn-save {
-  background: linear-gradient(135deg, #22c55e 0%, #10b981 100%);
-  color: $text-primary;
+  background: $accent-green;
+  color: #131b12;
   box-shadow: $shadow-glow-green;
 
   &:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: $shadow-glow-green, $shadow-md;
+    background: #9cc4a1;
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.97);
   }
 }
 
@@ -407,54 +562,54 @@ $transition-base: 0.25s ease;
 // ============================================
 // Global styles for the datepicker calendar popup
 .mat-datepicker-content {
-  background-color: #232a3b !important;
-  color: #ffffff !important;
+  background-color: #292522 !important;
+  color: #f4f1ec !important;
 
   .mat-calendar {
-    background-color: #232a3b !important;
-    color: #ffffff !important;
+    background-color: #292522 !important;
+    color: #f4f1ec !important;
   }
 
   // Calendar header
   .mat-calendar-header {
-    background-color: #232a3b !important;
-    color: #ffffff !important;
+    background-color: #292522 !important;
+    color: #f4f1ec !important;
   }
 
   .mat-calendar-period-button,
   .mat-calendar-arrow {
-    color: #ffffff !important;
+    color: #f4f1ec !important;
   }
 
   // Calendar body
   .mat-calendar-body-label,
   .mat-calendar-table-header th {
-    color: #94a3b8 !important;
+    color: #a8a29a !important;
   }
 
   .mat-calendar-body-cell-content {
-    color: #ffffff !important;
+    color: #f4f1ec !important;
     background-color: transparent !important;
   }
 
   // Today's date
   .mat-calendar-body-today {
-    border-color: #f97316 !important;
+    border-color: #7ca982 !important;
   }
 
   // Selected date
   .mat-calendar-body-selected {
-    background-color: #f97316 !important;
-    color: #ffffff !important;
+    background-color: #7ca982 !important;
+    color: #131b12 !important;
   }
 
   // Hover state
   .mat-calendar-body-cell:not(.mat-calendar-body-disabled):hover > .mat-calendar-body-cell-content:not(.mat-calendar-body-selected) {
-    background-color: rgba(249, 115, 22, 0.2) !important;
+    background-color: rgba(124, 169, 130, 0.2) !important;
   }
 
   // Disabled dates
   .mat-calendar-body-disabled {
-    color: #64748b !important;
+    color: #6f6862 !important;
   }
 }

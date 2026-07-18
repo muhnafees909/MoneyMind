@@ -122,6 +122,9 @@ YOUR RESPONSE RULES (all mandatory):
 
 STYLE: Start with a direct answer. Be specific with amounts, dates, and percentages. Be
 encouraging but realistic. Relate general finance questions back to the user's own data.
+Refer to spending categories by their plain-English names exactly as they appear in the
+snapshot (e.g. "Rent & Utilities", "Food & Drink") — never raw identifiers like
+"RENT_AND_UTILITIES" or "Rent_And_Utilities", even if one appears in the conversation.
 
 Here is the user's current financial data to inform your advice:
 
@@ -245,23 +248,28 @@ def send_message(user_id, user_message, history=None):
         }
 
     except RateLimitError:
+        # OpenAI throttling US — distinct from MoneyMind's own per-user
+        # limits (ADVISOR_RATE_LIMIT / ADVISOR_DAILY_LIMIT in routes/chat.py)
         return {
             'response': None,
-            'error': 'API rate limit exceeded. Please try again in a moment.',
+            'error': 'The advisor is handling a lot of requests right now. '
+                     'Your message wasn\'t lost — try again in a minute.',
             'error_code': 'RATE_LIMIT'
         }
 
     except APITimeoutError:
         return {
             'response': None,
-            'error': 'AI advisor is thinking... please try again in a moment.',
+            'error': 'That answer took too long to compute. Try asking again — '
+                     'shorter questions usually come back faster.',
             'error_code': 'TIMEOUT'
         }
 
     except APIConnectionError as e:
         return {
             'response': None,
-            'error': 'Unable to connect to AI service. Please check your connection and try again.',
+            'error': 'The advisor couldn\'t be reached. Your data is fine — '
+                     'try again shortly.',
             'error_code': 'CONNECTION_ERROR'
         }
 

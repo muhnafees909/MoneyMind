@@ -3,6 +3,8 @@ import os
 # Must be set before importing app — load_dotenv() won't override existing env vars
 os.environ['DATABASE_URL'] = 'sqlite://'
 os.environ['JWT_SECRET_KEY'] = 'test-secret-key'
+# utils.openai_client raises at import without a key; tests never call OpenAI
+os.environ.setdefault('OPENAI_API_KEY', 'test-key')
 
 import pytest
 from flask_jwt_extended import create_access_token

@@ -1,222 +1,118 @@
-<!-- login.component.html -->
-<div class="login-container">
-  <!-- Left Side - Login Form -->
-  <div class="login-side">
-    <div class="login-card">
-      <!-- Logo -->
-      <div class="logo">
-        <div class="logo-pill">
-          <img
-            src="logo8.png"
-            alt="MoneyMind logo"
-            class="logo-icon"
-          />
-          <span class="logo-text">MoneyMind</span>
+<div class="auth">
+  <!-- Brand panel -->
+  <aside class="brand-panel">
+    <div class="brand-bloom" aria-hidden="true"></div>
+    <div class="brand-top">
+      <a routerLink="/" class="brand-home" title="MoneyMind home">
+        <mm-wordmark [size]="19"></mm-wordmark>
+      </a>
+    </div>
+
+    <div class="brand-body">
+      <h1 class="brand-headline">Every dollar,<br />accounted for.</h1>
+      <p class="brand-sub">
+        A calm, considered ledger for the money you have — spending, budgets, and
+        goals, all in one clear picture.
+      </p>
+
+      <ul class="brand-points">
+        <li>
+          <span class="point-icon"><svg lucideTrendingUp [size]="16"></svg></span>
+          <span>See where the month actually went</span>
+        </li>
+        <li>
+          <span class="point-icon"><svg lucideTarget [size]="16"></svg></span>
+          <span>Envelope real cash toward real goals</span>
+        </li>
+        <li>
+          <span class="point-icon"><svg lucideShieldCheck [size]="16"></svg></span>
+          <span>Advice grounded in your own numbers</span>
+        </li>
+      </ul>
+    </div>
+
+    <p class="brand-foot">Your data stays yours. Bank connections are read-only.</p>
+  </aside>
+
+  <!-- Form panel -->
+  <main class="form-panel">
+    <div class="form-shell" data-animate>
+      <header class="form-head">
+        <h2>Welcome back</h2>
+        <p>Sign in to pick up where you left off.</p>
+      </header>
+
+      @if (sessionNotice) {
+        <div class="form-notice" role="status">
+          <svg lucideTriangleAlert [size]="14"></svg>
+          <span>{{ sessionNotice }}</span>
         </div>
-      </div>
-
-      <!-- Header -->
-      <div class="form-header">
-        <h1>Welcome back</h1>
-        <p class="subtitle">Sign in and take control of your finances</p>
-      </div>
-
-      <!-- Login Form -->
-      <form (ngSubmit)="onLogin()" class="login-form">
-        <div class="form-group">
-          <label for="email">Email</label>
-          <div class="input-wrapper">
-            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-              <polyline points="22,6 12,13 2,6"/>
-            </svg>
-            <input 
-              type="email" 
-              id="email"
-              [(ngModel)]="email" 
-              name="email" 
-              placeholder="johndoe@gmail.com" 
-              required>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label for="password">Password</label>
-          <div class="input-wrapper">
-            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-            </svg>
-            <input
-              [type]="showPassword ? 'text' : 'password'"
-              id="password"
-              [(ngModel)]="password"
-              name="password"
-              placeholder="••••••••"
-              required>
-            <button type="button" class="toggle-password" (click)="togglePasswordVisibility()">
-              <svg *ngIf="!showPassword" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                <circle cx="12" cy="12" r="3"/>
-              </svg>
-              <svg *ngIf="showPassword" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
-                <line x1="1" y1="1" x2="23" y2="23"/>
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        <button type="submit" class="login-button">
-          <span>Sign in</span>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="5" y1="12" x2="19" y2="12"/>
-            <polyline points="12 5 19 12 12 19"/>
-          </svg>
-        </button>
-
-        <div *ngIf="errorMessage" class="error-message">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"/>
-            <line x1="12" y1="8" x2="12" y2="12"/>
-            <line x1="12" y1="16" x2="12.01" y2="16"/>
-          </svg>
+      }
+      @if (errorMessage) {
+        <div class="form-error" role="alert">
+          <svg lucideOctagonAlert [size]="14"></svg>
           <span>{{ errorMessage }}</span>
         </div>
+      }
+
+      <form class="auth-form" (ngSubmit)="onLogin()">
+        <label class="field">
+          <span class="field-label">Email</span>
+          <input
+            type="email"
+            name="email"
+            [(ngModel)]="email"
+            placeholder="you@example.com"
+            autocomplete="email"
+            required
+          />
+        </label>
+
+        <label class="field">
+          <span class="field-label">
+            Password
+            <a routerLink="/login" class="field-link" (click)="$event.preventDefault()">
+              Forgot?
+            </a>
+          </span>
+          <div class="password-wrap">
+            <input
+              [type]="showPassword ? 'text' : 'password'"
+              name="password"
+              [(ngModel)]="password"
+              placeholder="Enter your password"
+              autocomplete="current-password"
+              required
+            />
+            <button
+              type="button"
+              class="reveal"
+              (click)="togglePasswordVisibility()"
+              [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
+            >
+              @if (showPassword) {
+                <svg lucideEyeOff [size]="16"></svg>
+              } @else {
+                <svg lucideEye [size]="16"></svg>
+              }
+            </button>
+          </div>
+        </label>
+
+        <button type="submit" class="btn btn-solid submit" [class.loading]="isLoading" [disabled]="isLoading">
+          @if (isLoading) {
+            <span class="load-rule"><span></span></span>
+            <span>Signing in…</span>
+          } @else {
+            <span>Sign in</span>
+            <svg lucideArrowRight [size]="16"></svg>
+          }
+        </button>
       </form>
 
-      <!-- Social Login -->
-      <div class="divider">
-        <span>or continue with</span>
-      </div>
-
-      <div class="social-buttons">
-        <button type="button" class="social-btn apple">
-          <svg viewBox="0 0 24 24" fill="currentColor">
-            <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
-          </svg>
-          <span>Apple</span>
-        </button>
-        <button type="button" class="social-btn google">
-          <svg viewBox="0 0 24 24">
-            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-          </svg>
-          <span>Google</span>
-        </button>
-      </div>
-
-      <!-- Footer -->
-      <div class="form-footer">
-        <span>Don't have an account?</span>
-        <a routerLink="/register" class="signup-link">Sign up</a>
-      </div>
+      <p class="form-switch">
+        New to MoneyMind? <a routerLink="/register">Create an account</a>
+      </p>
     </div>
-
-    <!-- Terms -->
-    <div class="terms">
-      <a href="#">Terms & Conditions</a>
-      <span class="dot">•</span>
-      <a href="#">Privacy Policy</a>
-    </div>
-  </div>
-
-  <!-- Right Side - Info Panel -->
-  <div class="info-side">
-    <div class="info-content">
-      <!-- Floating Elements -->
-      <div class="floating-elements">
-        <!-- Balance Card -->
-        <div class="floating-card balance-card">
-          <div class="card-header">
-            <span class="card-label">Total Balance</span>
-            <span class="card-trend positive">+12.5%</span>
-          </div>
-          <div class="card-value">$24,562.00</div>
-          <div class="mini-chart">
-            <svg viewBox="0 0 100 30" preserveAspectRatio="none">
-              <path d="M0,25 Q10,20 20,22 T40,15 T60,18 T80,8 T100,12" fill="none" stroke="url(#chartGradient)" stroke-width="2"/>
-              <defs>
-                <linearGradient id="chartGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" style="stop-color:#f97316"/>
-                  <stop offset="100%" style="stop-color:#a855f7"/>
-                </linearGradient>
-              </defs>
-            </svg>
-          </div>
-        </div>
-
-        <!-- Transaction Card -->
-        <div class="floating-card transaction-card">
-          <div class="transaction-icon income">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="12" y1="19" x2="12" y2="5"/>
-              <polyline points="5 12 12 5 19 12"/>
-            </svg>
-          </div>
-          <div class="transaction-info">
-            <span class="transaction-label">Income</span>
-            <span class="transaction-amount">+$3,240.00</span>
-          </div>
-        </div>
-
-        <!-- Expense Card -->
-        <div class="floating-card expense-card">
-          <div class="transaction-icon expense">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="12" y1="5" x2="12" y2="19"/>
-              <polyline points="19 12 12 19 5 12"/>
-            </svg>
-          </div>
-          <div class="transaction-info">
-            <span class="transaction-label">Expenses</span>
-            <span class="transaction-amount">-$1,890.00</span>
-          </div>
-        </div>
-
-        <!-- AI Advisor Card -->
-        <div class="floating-card advisor-card">
-          <div class="advisor-avatar">🤖</div>
-          <div class="advisor-bubble">
-            <p>"You've saved 23% more this month! Keep it up!"</p>
-          </div>
-        </div>
-      </div>
-      <!-- Main Headline -->
-      <div class="info-headline">
-        <h2>Take Control of Your <span class="gradient-text">Financial Future</span></h2>
-        <p>AI-powered insights to help you save smarter, spend wiser, and achieve your financial goals faster.</p>
-      </div>
-
-      <!-- Stats Row -->
-      <div class="stats-row">
-        <div class="stat-item">
-          <span class="stat-icon">🤖</span>
-          <span>AI Financial Advisor</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-icon">🔒</span>
-          <span>Bank-level Security</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-icon">📊</span>
-          <span>Smart Analytics</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-icon">🎯</span>
-          <span>Goal Tracking</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-icon">📊</span>
-          <span>Budget Management</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-icon">💳</span>
-          <span>Multi-Account</span>
-        </div>
-      </div>
-    </div>
-  </div>
+  </main>
 </div>

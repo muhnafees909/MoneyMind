@@ -1,206 +1,200 @@
-<div class="budget-container">
-  <!-- Page Header -->
-  <div class="page-header">
-    <div class="header-left">
-      <h1>Budget Manager</h1>
-      <p class="subtitle">Set and track your monthly spending limits</p>
+<div class="mm-dash" [class.pre-anim]="preAnim">
+  @if (initialLoading) {
+    <div class="skeleton-page" aria-hidden="true">
+      <div class="sk sk-head"></div>
+      <div class="sk sk-hero"></div>
+      <div class="sk sk-card"></div>
     </div>
-  </div>
-
-  <!-- Add Budget Form -->
-  <div class="section-card add-budget-card">
-    <div class="section-header">
-      <div class="section-title">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10"/>
-          <line x1="12" y1="8" x2="12" y2="16"/>
-          <line x1="8" y1="12" x2="16" y2="12"/>
-        </svg>
-        <div class="title-group">
-          <h3>Create Recurring Monthly Budget</h3>
-          <span class="section-subtitle">Set a budget that applies to every month. Update it anytime!</span>
-        </div>
+  } @else {
+    <!-- ============ HEADER ============ -->
+    <header class="dash-head" data-animate>
+      <div>
+        <h1>Budgets</h1>
+        <p class="head-date">Monthly limits that repeat, tracked against real spending</p>
       </div>
-    </div>
-
-    <div class="card-content">
-      <div class="budget-form">
-        <div class="form-group">
-          <label>Category</label>
-          <div class="select-wrapper">
-            <select [(ngModel)]="newBudget.category">
-              <option value="" disabled selected>Select category</option>
-              <option *ngFor="let cat of categories" [value]="cat.value">
-                {{ cat.displayName }}
-              </option>
-            </select>
-            <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="6 9 12 15 18 9"/>
-            </svg>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label>Monthly Amount</label>
-          <div class="input-wrapper">
-            <span class="input-prefix">$</span>
-            <input 
-              type="number" 
-              [(ngModel)]="newBudget.amount" 
-              placeholder="500"
-              min="0"
-              step="10">
-          </div>
-          <span class="input-hint">This budget will apply every month</span>
-        </div>
-
-        <button class="submit-btn" (click)="addBudget()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"/>
-            <line x1="12" y1="8" x2="12" y2="16"/>
-            <line x1="8" y1="12" x2="16" y2="12"/>
-          </svg>
-          <span>Add Budget</span>
+      <div class="head-actions">
+        <button class="btn btn-solid" (click)="toggleAddPanel()">
+          <svg lucidePlus [size]="16"></svg>
+          <span>New budget</span>
         </button>
       </div>
-    </div>
-  </div>
+    </header>
 
-  <!-- Budget Progress Section -->
-  <div class="section-card progress-card">
-    <div class="section-header">
-      <div class="section-title">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21.21 15.89A10 10 0 1 1 8 2.83"/>
-          <path d="M22 12A10 10 0 0 0 12 2v10z"/>
-        </svg>
-        <div class="title-group">
-          <h3>Budget Progress <span class="month-badge">{{ displayMonth }}</span></h3>
-          <span class="section-subtitle">Track your spending against your monthly budgets</span>
+    <!-- ============ HERO: left to spend ============ -->
+    <section class="hero" data-animate>
+      <div class="hero-main">
+        <span class="eyebrow">Left to spend · {{ monthLabel() }}</span>
+        <div
+          class="hero-figure"
+          [class.negative]="totals.left < 0"
+          [mmCountUp]="totals.left"
+          [mmDur]="0.9"
+          aria-live="polite"
+        ></div>
+        <p class="hero-hint">
+          {{ isCurrentMonth() ? 'Across all budgeted categories this month' : 'How this month closed against your limits' }}
+        </p>
+      </div>
+      <div class="hero-stats">
+        <div class="stat">
+          <span class="stat-label">Budgeted</span>
+          <span class="stat-value" [mmCountUp]="totals.budgeted"></span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Spent</span>
+          <span class="stat-value">−<span [mmCountUp]="totals.spent"></span></span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Over limit</span>
+          <span class="stat-value" [class.overrun]="totals.overCount > 0">
+            {{ totals.overCount }}
+            <span class="stat-unit">of {{ budgetRows.length }}</span>
+          </span>
         </div>
       </div>
-    </div>
+    </section>
 
-    <div class="table-container">
-      <table mat-table [dataSource]="budgetProgress" class="budget-table">
-        
-        <!-- Category Column -->
-        <ng-container matColumnDef="category">
-          <th mat-header-cell *matHeaderCellDef>Category</th>
-          <td mat-cell *matCellDef="let item">
-            <span class="category-badge">{{ categoryService.getCategoryDisplayName(item.category) }}</span>
-            <div class="recurring-subtotal" *ngIf="recurringFor(item.category) as recurring"
-                 title="{{ recurring.count }} confirmed recurring expense(s) in this category"
-                 routerLink="/recurring">
-              🔁 Recurring: {{ recurring.monthly_total | currency }} of
-              {{ item.budgeted | currency }} budgeted
-            </div>
-          </td>
-        </ng-container>
+    <!-- ============ CATEGORIES ============ -->
+    <section class="card" data-animate>
+      <header class="card-head">
+        <h2>Categories · {{ monthLabel() }}</h2>
+        <div class="month-stepper">
+          <button class="icon-btn" (click)="prevMonth()" title="Previous month">
+            <svg lucideChevronLeft [size]="15"></svg>
+          </button>
+          <span class="stepper-label">{{ monthLabel() }} {{ viewYear }}</span>
+          <button
+            class="icon-btn"
+            (click)="nextMonth()"
+            [disabled]="isCurrentMonth()"
+            title="Next month"
+          >
+            <svg lucideChevronRight [size]="15"></svg>
+          </button>
+        </div>
+      </header>
 
-        <!-- Budgeted Column -->
-        <ng-container matColumnDef="budgeted">
-          <th mat-header-cell *matHeaderCellDef>Monthly Budget</th>
-          <td mat-cell *matCellDef="let item">
-            <div *ngIf="!isEditing(item)" class="budget-amount">
-              ${{ item.budgeted | number:'1.2-2' }}
-            </div>
-            <div *ngIf="isEditing(item)" class="inline-edit">
-              <div class="input-wrapper small">
-                <span class="input-prefix">$</span>
-                <input type="number" [(ngModel)]="editingBudget.amount" min="0">
+      @if (showAddPanel) {
+        <div class="add-panel">
+          <label class="f-field">
+            <span>Category</span>
+            <select [(ngModel)]="newBudget.category">
+              <option value="" disabled>Choose…</option>
+              @for (cat of availableCategories(); track cat.value) {
+                <option [value]="cat.value">{{ cat.displayName }}</option>
+              }
+            </select>
+          </label>
+          <label class="f-field">
+            <span>Monthly limit</span>
+            <input
+              type="number"
+              [(ngModel)]="newBudget.amount"
+              placeholder="0.00"
+              step="0.01"
+              min="0"
+            />
+          </label>
+          <div class="add-actions">
+            <button class="btn btn-text" (click)="toggleAddPanel()">Cancel</button>
+            <button class="btn btn-solid" (click)="addBudget()">
+              <svg lucideCheck [size]="15"></svg>
+              <span>Create budget</span>
+            </button>
+          </div>
+        </div>
+      }
+
+      @if (budgetRows.length > 0) {
+        <ul class="budget-list">
+          @for (row of budgetRows; track row.budget_id; let i = $index) {
+            <li class="budget-row">
+              <div class="budget-top">
+                <span class="cat-dot" [style.background]="categoryColor(row.category)"></span>
+                <span class="budget-name">
+                  {{ categoryService.getCategoryDisplayName(row.category) }}
+                </span>
+                <span class="state-line" [class]="'state-line ' + row.state">
+                  @switch (row.state) {
+                    @case ('ok') {
+                      <svg lucideCircleCheck [size]="13"></svg>
+                    }
+                    @case ('warn') {
+                      <svg lucideTriangleAlert [size]="13"></svg>
+                    }
+                    @case ('over') {
+                      <svg lucideOctagonAlert [size]="13"></svg>
+                    }
+                  }
+                  {{ stateLabel(row) }}
+                </span>
+
+                @if (editingId === row.budget_id) {
+                  <span class="edit-controls">
+                    <input
+                      class="edit-input"
+                      type="number"
+                      [(ngModel)]="editingAmount"
+                      step="0.01"
+                      min="0"
+                      aria-label="Monthly limit"
+                    />
+                    <button class="icon-btn confirm" (click)="saveEdit()" title="Save">
+                      <svg lucideCheck [size]="14"></svg>
+                    </button>
+                    <button class="icon-btn" (click)="cancelEdit()" title="Cancel">
+                      <svg lucideX [size]="14"></svg>
+                    </button>
+                  </span>
+                } @else {
+                  <span class="budget-amounts">
+                    <span class="spent">{{ row.spent | currency }}</span>
+                    <span class="of">/ {{ row.budgeted | currency }}</span>
+                  </span>
+                  <span class="row-actions">
+                    <button class="icon-btn" (click)="startEdit(row)" title="Edit limit">
+                      <svg lucidePencil [size]="14"></svg>
+                    </button>
+                    <button
+                      class="icon-btn danger"
+                      (click)="deleteBudget(row.budget_id)"
+                      title="Delete budget"
+                    >
+                      <svg lucideTrash2 [size]="14"></svg>
+                    </button>
+                  </span>
+                }
               </div>
-            </div>
-          </td>
-        </ng-container>
-
-        <!-- Spent Column -->
-        <ng-container matColumnDef="spent">
-          <th mat-header-cell *matHeaderCellDef>Spent</th>
-          <td mat-cell *matCellDef="let item">
-            <span class="spent-amount" [class.over-budget]="isOverBudget(item)">
-              ${{ item.spent | number:'1.2-2' }}
-            </span>
-          </td>
-        </ng-container>
-
-        <!-- Remaining Column -->
-        <ng-container matColumnDef="remaining">
-          <th mat-header-cell *matHeaderCellDef>Remaining</th>
-          <td mat-cell *matCellDef="let item">
-            <span class="remaining-amount" 
-                  [class.negative]="item.remaining < 0" 
-                  [class.positive]="item.remaining >= 0">
-              <span class="amount-sign">{{ item.remaining < 0 ? '-' : '+' }}</span>
-              ${{ (item.remaining < 0 ? -item.remaining : item.remaining) | number:'1.2-2' }}
-            </span>
-          </td>
-        </ng-container>
-
-        <!-- Progress Column -->
-        <ng-container matColumnDef="progress">
-          <th mat-header-cell *matHeaderCellDef>Progress</th>
-          <td mat-cell *matCellDef="let item">
-            <div class="progress-wrapper">
-              <div class="progress-bar-container">
-                <div class="progress-bar-fill" 
-                     [style.width.%]="item.percentage > 100 ? 100 : item.percentage"
-                     [class.warning]="item.percentage >= 75 && item.percentage < 100"
-                     [class.danger]="item.percentage >= 100">
-                </div>
+              <div class="meter" [class.over]="row.state === 'over'">
+                <div
+                  class="meter-fill"
+                  [class]="'meter-fill ' + row.state"
+                  [style.width.%]="revealed ? Math.min(row.percentage, 100) : 0"
+                  [style.transition-delay.ms]="i * 70"
+                ></div>
               </div>
-              <span class="progress-text" [class.over-budget]="isOverBudget(item)">
-                {{ item.percentage | number:'1.0-0' }}%
-              </span>
-            </div>
-          </td>
-        </ng-container>
-
-        <!-- Actions Column -->
-        <ng-container matColumnDef="actions">
-          <th mat-header-cell *matHeaderCellDef>Actions</th>
-          <td mat-cell *matCellDef="let item">
-            <div *ngIf="!isEditing(item)" class="action-buttons">
-              <button class="icon-btn edit" (click)="startEdit(item)" title="Edit">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                </svg>
-              </button>
-              <button class="icon-btn delete" (click)="deleteBudget(item.budget_id)" title="Delete">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polyline points="3 6 5 6 21 6"/>
-                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                  <line x1="10" y1="11" x2="10" y2="17"/>
-                  <line x1="14" y1="11" x2="14" y2="17"/>
-                </svg>
-              </button>
-            </div>
-            <div *ngIf="isEditing(item)" class="action-buttons">
-              <button class="icon-btn save" (click)="saveEdit()" title="Save">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polyline points="20 6 9 17 4 12"/>
-                </svg>
-              </button>
-              <button class="icon-btn cancel" (click)="cancelEdit()" title="Cancel">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <line x1="18" y1="6" x2="6" y2="18"/>
-                  <line x1="6" y1="6" x2="18" y2="18"/>
-                </svg>
-              </button>
-            </div>
-          </td>
-        </ng-container>
-
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-      </table>
-    </div>
-
-    <div *ngIf="budgetProgress.length === 0" class="empty-state">
-      <div class="empty-icon">📊</div>
-      <p>No budgets set yet</p>
-      <span>Create your first recurring budget above!</span>
-    </div>
-  </div>
+              @if (recurringFor(row.category); as rec) {
+                <p class="recurring-note">
+                  <svg lucideRepeat [size]="11"></svg>
+                  {{ rec.monthly_total | currency }}/mo recurring across {{ rec.count }}
+                  {{ rec.count === 1 ? 'series' : 'series' }}
+                </p>
+              }
+            </li>
+          }
+        </ul>
+      } @else {
+        <div class="empty">
+          <svg lucideWallet [size]="22"></svg>
+          <p>No budgets yet</p>
+          <span class="empty-sub">
+            Set a monthly limit per category and MoneyMind tracks it against your spending
+          </span>
+          <button class="inline-link as-btn" (click)="showAddPanel = true">
+            Create your first budget
+          </button>
+        </div>
+      }
+    </section>
+  }
 </div>

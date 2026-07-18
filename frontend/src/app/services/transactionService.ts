@@ -162,6 +162,29 @@ export class TransactionService {
     );
   }
   
+  bulkRecategorize(transactionIds: number[], category: string): Observable<any> {
+    this.logger.info(
+      `Recategorizing ${transactionIds.length} transactions to ${category}`,
+      'TransactionService'
+    );
+    const payload = { transaction_ids: transactionIds, category };
+    this.logger.apiRequest('POST', `${this.apiUrl}/transactions/recategorize`, payload);
+
+    return this.http.post(`${this.apiUrl}/transactions/recategorize`, payload, {
+      headers: this.getHeaders()
+    }).pipe(
+      tap((data: any) => {
+        this.logger.success(`Recategorized ${data.updated} transactions`, 'TransactionService');
+        this.logger.apiResponse('POST', `${this.apiUrl}/transactions/recategorize`, 200);
+      }),
+      catchError(error => {
+        this.logger.error('Failed to bulk recategorize', 'TransactionService', error);
+        this.logger.apiError('POST', `${this.apiUrl}/transactions/recategorize`, error);
+        return throwError(() => error);
+      })
+    );
+  }
+
   deleteTransaction(id: number): Observable<any> {
     this.logger.warn(`Deleting transaction ID: ${id}`, 'TransactionService');
     this.logger.apiRequest('DELETE', `${this.apiUrl}/transactions/${id}`);

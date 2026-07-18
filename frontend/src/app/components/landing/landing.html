@@ -1,0 +1,279 @@
+<div class="landing" [class.no-anim]="reducedMotion">
+  <!-- ============ TOP BAR — the CTA never leaves the frame ============ -->
+  <header class="topbar">
+    <mm-wordmark [size]="17"></mm-wordmark>
+    <nav class="topbar-actions">
+      <a routerLink="/login" class="link-quiet">Sign in</a>
+      <a routerLink="/register" class="btn btn-solid magnetic">
+        <span>Open your ledger</span>
+        <svg lucideArrowRight [size]="15"></svg>
+      </a>
+    </nav>
+  </header>
+
+  <!-- ============ HERO ============ -->
+  <section class="hero" #hero>
+    <div class="hero-bloom" #bloom aria-hidden="true"></div>
+
+    <div class="hero-inner">
+      <div class="hero-copy">
+        <p class="hero-eyebrow">A ledger, not a feed</p>
+        <h1 class="headline" aria-label="Know where every dollar sleeps tonight.">
+          <span class="line"><span class="line-inner">Know where</span></span>
+          <span class="line"><span class="line-inner">every dollar</span></span>
+          <span class="line"><span class="line-inner">sleeps tonight.</span></span>
+        </h1>
+        <p class="hero-sub">
+          MoneyMind seals your real cash into envelopes for real goals, catches the
+          subscriptions quietly eating your months, and gives advice computed from your
+          own ledger — never the internet's.
+        </p>
+        <div class="hero-ctas">
+          <a routerLink="/register" class="btn btn-solid lg magnetic">
+            <span>Open your ledger</span>
+            <svg lucideArrowRight [size]="16"></svg>
+          </a>
+          <a routerLink="/login" class="btn btn-ghost lg">Sign in</a>
+        </div>
+        <p class="hero-trust">Read-only bank connections · Your data stays yours</p>
+      </div>
+
+      <!-- The product's signature: the number, elevated -->
+      <aside class="hero-card">
+        <span class="card-eyebrow">Net balance</span>
+        <div class="hero-figure" [mmCountUp]="heroBalance" [mmDur]="1.4" aria-live="polite"></div>
+        <p class="hero-delta">
+          <svg lucideCheck [size]="12"></svg>
+          Every dollar of it has a job
+        </p>
+        <div class="band" aria-hidden="true">
+          <span class="band-seg" [style.width.%]="heroRevealed ? 41 : 0" style="background: #6c9de6"></span>
+          <span class="band-seg" [style.width.%]="heroRevealed ? 18 : 0" style="background: #27b9de"></span>
+          <span class="band-seg" [style.width.%]="heroRevealed ? 13 : 0" style="background: #b189e0"></span>
+          <span class="band-seg" [style.width.%]="heroRevealed ? 14 : 0" style="background: #4a453f"></span>
+        </div>
+        <ul class="hero-envelopes">
+          <li><span class="swatch" style="background:#6c9de6"></span>Emergency fund<span class="val">$5,100</span></li>
+          <li><span class="swatch" style="background:#27b9de"></span>Japan trip<span class="val">$2,250</span></li>
+          <li><span class="swatch" style="background:#b189e0"></span>Roth IRA<span class="val">$1,640</span></li>
+          <li><span class="swatch free"></span>Unallocated<span class="val">$1,743</span></li>
+        </ul>
+      </aside>
+    </div>
+
+    <p class="scroll-hint">
+      <svg lucideChevronDown [size]="14"></svg>
+      The ledger opens below
+    </p>
+  </section>
+
+  <!-- ============ THREE RULES ============ -->
+  <section class="principles" data-section>
+    <p class="kicker" data-reveal>How MoneyMind keeps money</p>
+    <div class="rule" data-reveal>
+      <span class="rule-rank">01</span>
+      <h2 class="rule-title">Every dollar gets a job.</h2>
+      <p class="rule-copy">
+        Unallocated cash is a to-do list. Envelopes seal your real balance toward real
+        goals — rent, the emergency fund, Japan — so "can I afford this?" always has an
+        honest answer.
+      </p>
+    </div>
+    <div class="rule" data-reveal>
+      <span class="rule-rank">02</span>
+      <h2 class="rule-title">Advice from your numbers.</h2>
+      <p class="rule-copy">
+        The advisor reads your budgets, goals, and transactions before it says a word.
+        No generic tips, no advice about money you don't have.
+      </p>
+    </div>
+    <div class="rule" data-reveal>
+      <span class="rule-rank">03</span>
+      <h2 class="rule-title">Principled by default.</h2>
+      <p class="rule-copy">
+        Built halal-conscious: interest-aware tracking, no debt-push, no dark patterns —
+        a ledger for people who keep money by principle, whatever the principle.
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ FEATURE A — ENVELOPES / PAYDAY WATERFALL ============ -->
+  <section class="feature" data-section data-demo="payday">
+    <div class="feature-copy" data-reveal>
+      <p class="kicker"><svg lucideMail [size]="13"></svg> Envelopes</p>
+      <h2 class="feature-title">Payday,<br />choreographed.</h2>
+      <p class="feature-sub">
+        When a deposit lands, your waterfall runs: the emergency fund takes its cut
+        first, then the trip, then whatever rule you've ranked next. Watch it happen —
+        this is the real mechanic, not an illustration.
+      </p>
+      <button class="btn btn-ghost replay" (click)="runPayday()" [disabled]="paydayRunning">
+        <svg lucideRefreshCw [size]="14" [class.spin]="paydayRunning"></svg>
+        <span>{{ paydayRunning ? 'Running payday…' : 'Run payday again' }}</span>
+      </button>
+    </div>
+
+    <div class="feature-demo" data-reveal>
+      <div class="demo-card">
+        <header class="demo-head">
+          <span class="demo-title"><svg lucideLandmark [size]="13"></svg> Chase Checking <span class="mask">··4821</span></span>
+          <span class="demo-balance" [mmCountUp]="accountBalance"></span>
+        </header>
+        <div class="deposit-chip" [class.visible]="depositVisible">
+          +{{ payday.deposit | currency }} · payday detected
+        </div>
+        <div class="band tall">
+          @for (env of payday.envelopes; track env.name; let i = $index) {
+            <span class="band-seg" [style.width.%]="bandWidth(envBalances[i])" [style.background]="env.color"></span>
+          }
+          <span class="band-seg" [style.width.%]="bandWidth(unallocated)" style="background:#4a453f"></span>
+        </div>
+        <ul class="demo-envelopes">
+          @for (env of payday.envelopes; track env.name; let i = $index) {
+            <li>
+              <span class="swatch" [style.background]="env.color"></span>
+              <span class="env-name">{{ env.name }}</span>
+              <span class="rule-tag">{{ env.rule }}</span>
+              <span class="val"><span [mmCountUp]="envBalances[i]"></span> <span class="of">/ {{ env.target | currency : 'USD' : 'symbol' : '1.0-0' }}</span></span>
+            </li>
+          }
+          <li>
+            <span class="swatch free"></span>
+            <span class="env-name">Unallocated</span>
+            <span class="val" [mmCountUp]="unallocated"></span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FEATURE B — RECURRING DETECTION ============ -->
+  <section class="feature flip" data-section data-demo="recurring">
+    <div class="feature-copy" data-reveal>
+      <p class="kicker"><svg lucideRepeat [size]="13"></svg> Recurring</p>
+      <h2 class="feature-title">It notices<br />before you do.</h2>
+      <p class="feature-sub">
+        Three quiet charges become one loud fact. MoneyMind stitches repeat payments into
+        series, totals your true monthly cost, and flags the price creep hiding inside
+        "just $15.49".
+      </p>
+      <button class="btn btn-ghost replay" (click)="replayRecurring()" [disabled]="recStage !== 0 && recStage !== 4">
+        <svg lucideRefreshCw [size]="14"></svg>
+        <span>Detect again</span>
+      </button>
+    </div>
+
+    <div class="feature-demo" data-reveal>
+      <div class="demo-card">
+        <ul class="detect-list" [class.linked]="recStage >= 2">
+          <li class="detect-row" [class.in]="recStage >= 1" style="transition-delay: 0ms">
+            <span class="d-date">May 7</span><span class="d-name">NETFLIX.COM</span><span class="val">−$14.15</span>
+          </li>
+          <li class="detect-row" [class.in]="recStage >= 1" style="transition-delay: 140ms">
+            <span class="d-date">Jun 7</span><span class="d-name">NETFLIX.COM</span><span class="val">−$14.28</span>
+          </li>
+          <li class="detect-row" [class.in]="recStage >= 1" style="transition-delay: 280ms">
+            <span class="d-date">Jul 7</span><span class="d-name">NETFLIX.COM</span><span class="val">−$15.49</span>
+          </li>
+        </ul>
+        <div class="detect-result" [class.in]="recStage >= 3">
+          <span class="series"><svg lucideRepeat [size]="12"></svg> Netflix · Monthly · −$15.49/mo</span>
+          <span class="state-line warn" [class.in]="recStage >= 4">
+            <svg lucideTriangleAlert [size]="12"></svg>
+            +8% creep
+          </span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FEATURE C — ADVISOR ============ -->
+  <section class="feature" data-section data-demo="advisor">
+    <div class="feature-copy" data-reveal>
+      <p class="kicker"><svg lucideMessageSquareText [size]="13"></svg> Advisor</p>
+      <h2 class="feature-title">Ask your<br />ledger anything.</h2>
+      <p class="feature-sub">
+        Every answer starts by reading your actual budgets, goals, and transactions —
+        and shows its work, with the numbers it used pinned right in the reply.
+      </p>
+      <button class="btn btn-ghost replay" (click)="replayAdvisor()" [disabled]="advStage !== 0 && advStage !== 3">
+        <svg lucideRefreshCw [size]="14"></svg>
+        <span>Ask again</span>
+      </button>
+    </div>
+
+    <div class="feature-demo" data-reveal>
+      <div class="demo-card transcript">
+        <div class="turn-label"><span class="who you">You</span></div>
+        <p class="question">{{ typedQuestion }}<span class="caret" [class.on]="advStage === 1"></span></p>
+
+        @if (advStage === 2) {
+          <div class="turn-label adv"><span class="advisor-mark"></span><span class="who">Advisor</span></div>
+          <p class="thinking-text">Reading your ledger…</p>
+          <div class="thinking-rule"><span></span></div>
+        }
+        @if (advStage >= 3) {
+          <div class="turn-label adv"><span class="advisor-mark"></span><span class="who">Advisor</span></div>
+          <div class="answer">
+            <p>
+              Yes — with room. At <code>$675</code> per payday, the trip envelope reaches
+              <code>$3,500</code> by <code>Feb 27</code>, five days early. Keep
+              Entertainment under its <code>$150</code> cap and it's comfortable.
+            </p>
+            <div class="grounding">
+              <span class="grounding-title">Grounded in</span>
+              <span class="ground-chip">6 budgets</span>
+              <span class="ground-chip">3 goals</span>
+              <span class="ground-chip">214 transactions</span>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ STATEMENT ============ -->
+  <section class="statement" data-section>
+    <h2 class="statement-line" aria-label="Calm is a feature.">
+      <span data-word>Calm</span>&ngsp;<span data-word>is</span>&ngsp;<span data-word>a</span>&ngsp;<span
+        data-word
+        class="fern"
+        >feature.</span
+      >
+    </h2>
+    <p class="statement-sub" data-reveal>
+      No confetti. No streaks. No guilt mechanics. A warm, quiet ledger you can read in
+      thirty seconds — built to be checked daily and forgotten happily.
+    </p>
+  </section>
+
+  <!-- ============ CLOSING CTA ============ -->
+  <section class="closing" data-section>
+    <div class="closing-bloom" aria-hidden="true"></div>
+    <p class="kicker" data-reveal>Free to start · Two minutes to set up</p>
+    <h2 class="closing-title" data-reveal>Open your ledger.</h2>
+    <div class="closing-ctas" data-reveal>
+      <a routerLink="/register" class="btn btn-solid xl magnetic">
+        <span>Create your account</span>
+        <svg lucideArrowRight [size]="17"></svg>
+      </a>
+      <a routerLink="/login" class="btn btn-ghost xl">Sign in</a>
+    </div>
+    <p class="closing-trust" data-reveal>
+      <svg lucideShieldCheck [size]="13"></svg>
+      Read-only bank connections · No card required · Your data stays yours
+    </p>
+  </section>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="footer">
+    <mm-wordmark [size]="15"></mm-wordmark>
+    <span class="foot-line">Every dollar, accounted for.</span>
+    <nav class="foot-links">
+      <a routerLink="/login">Sign in</a>
+      <a routerLink="/register">Create account</a>
+      <a routerLink="/legal" fragment="terms">Terms</a>
+      <a routerLink="/legal" fragment="privacy">Privacy</a>
+    </nav>
+  </footer>
+</div>

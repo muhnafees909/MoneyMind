@@ -1,254 +1,503 @@
-<div class="envelopes-container">
-  <!-- Page Header -->
-  <div class="page-header">
-    <div class="header-left">
-      <h1>Envelopes</h1>
-      <p class="subtitle">See exactly how each account is divided across your goals</p>
-    </div>
-    <button class="sync-btn" (click)="syncBalances()" [disabled]="syncing">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" [class.spinning]="syncing">
-        <polyline points="23 4 23 10 17 10"/>
-        <polyline points="1 20 1 14 7 14"/>
-        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-      </svg>
-      <span>{{ syncing ? 'Syncing…' : 'Sync Balances' }}</span>
-    </button>
-  </div>
-
-  <!-- Paycheck detected: allocation prompt -->
-  <div *ngFor="let event of incomeEvents" class="paycheck-card">
-    <div class="paycheck-header">
-      <div class="paycheck-title">
-        <span class="paycheck-icon">💸</span>
-        <div>
-          <h3>Looks like you got paid!</h3>
-          <span class="paycheck-detail">
-            {{ event.amount | currency }} — {{ event.description }}
-            <ng-container *ngIf="event.account_name"> into {{ event.account_name }}</ng-container>
-            <ng-container *ngIf="event.transaction_date"> on {{ event.transaction_date | date:'MMM d' }}</ng-container>
-          </span>
-        </div>
+<div class="mm-dash" [class.pre-anim]="preAnim">
+  @if (initialLoading) {
+    <div class="skeleton-page" aria-hidden="true">
+      <div class="sk sk-head"></div>
+      <div class="sk sk-hero"></div>
+      <div class="sk-grid">
+        <div class="sk sk-card"></div>
+        <div class="sk sk-card"></div>
       </div>
-      <button class="dismiss-btn" (click)="dismissEvent(event)" title="Not a paycheck / skip">
-        Dismiss
-      </button>
     </div>
-
-    <div class="split-editor" *ngIf="event.suggested_split && event.suggested_split.length > 0">
-      <div class="split-row" *ngFor="let row of event.suggested_split">
-        <span class="split-goal">
-          {{ row.goal_name }}
-          <span class="rule-chip" *ngIf="row.rule_type">{{ row.rule_type === 'fixed_amount' ? 'fixed' : row.rule_type }}</span>
-        </span>
-        <div class="amount-input-wrapper">
-          <span class="input-prefix">$</span>
-          <input type="number" min="0" placeholder="0"
-                 [(ngModel)]="splitEdits[event.id][row.goal_id]">
-        </div>
+  } @else {
+    <!-- ============ HEADER ============ -->
+    <header class="dash-head" data-animate>
+      <div>
+        <h1>Goals &amp; Envelopes</h1>
+        <p class="head-date">Set targets, seal cash into envelopes, let deposits fill them in order</p>
       </div>
-
-      <div class="split-footer">
-        <span class="split-summary">
-          Allocating <strong>{{ splitTotal(event) | currency }}</strong> of {{ event.amount | currency }}
-          <span [class.negative]="splitRemainder(event) < 0">
-            ({{ splitRemainder(event) | currency }} left unallocated)
-          </span>
-        </span>
-        <button class="confirm-btn" (click)="confirmEvent(event)"
-                [disabled]="confirmingEvent === event.id || splitRemainder(event) < 0">
-          {{ confirmingEvent === event.id ? 'Allocating…' : 'Confirm Split' }}
+      <div class="head-actions">
+        <button class="btn btn-ghost" (click)="syncBalances()" [disabled]="syncing">
+          <svg lucideRefreshCw [size]="16" [class.spin]="syncing"></svg>
+          <span>{{ syncing ? 'Syncing…' : 'Sync balances' }}</span>
+        </button>
+        <button class="btn btn-solid" (click)="toggleNewGoal()">
+          <svg lucidePlus [size]="16"></svg>
+          <span>New goal</span>
         </button>
       </div>
-    </div>
+    </header>
 
-    <div class="split-editor empty" *ngIf="!event.suggested_split || event.suggested_split.length === 0">
-      No goals are linked to an account yet — <a routerLink="/goals">link a goal</a> to allocate this deposit.
-    </div>
-  </div>
-
-  <!-- Loading -->
-  <div *ngIf="loading" class="empty-state">
-    <div class="empty-icon">⏳</div>
-    <p>Loading accounts…</p>
-  </div>
-
-  <!-- No accounts -->
-  <div *ngIf="!loading && !hasAccounts()" class="empty-state">
-    <div class="empty-icon">🏦</div>
-    <p>No linked bank accounts yet</p>
-    <span>Connect a bank from the Dashboard, then sync balances to start using envelopes.</span>
-  </div>
-
-  <!-- Account cards -->
-  <div *ngFor="let entry of reconciliation" class="account-card">
-    <div class="account-header">
-      <div class="account-info">
-        <h3>
-          {{ entry.account.name }}
-          <span class="mask" *ngIf="entry.account.mask">*{{ entry.account.mask }}</span>
-        </h3>
-        <span class="institution">{{ entry.account.institution_name }}</span>
+    <!-- ============ HERO ============ -->
+    <section class="hero" data-animate>
+      <div class="hero-main">
+        <span class="eyebrow">Saved so far</span>
+        <div class="hero-figure" [mmCountUp]="totals.saved" [mmDur]="0.9" aria-live="polite"></div>
+        <p class="hero-hint">Across {{ goals.length }} {{ goals.length === 1 ? 'goal' : 'goals' }}</p>
       </div>
-      <div class="account-balance">
-        <span class="balance-label">Bank Balance</span>
-        <span class="balance-value" *ngIf="entry.actual_balance !== null">
-          {{ entry.actual_balance | currency }}
-        </span>
-        <span class="balance-value unknown" *ngIf="entry.actual_balance === null">—</span>
-        <span class="balance-updated" *ngIf="entry.account.balance_updated_at">
-          as of {{ entry.account.balance_updated_at + 'Z' | date:'MMM d, h:mm a' }}
-        </span>
-      </div>
-    </div>
-
-    <!-- Reconciliation summary bar -->
-    <div class="reconciliation-summary">
-      <div class="summary-item">
-        <span class="summary-label">Allocated to envelopes</span>
-        <span class="summary-value">{{ entry.allocated_total | currency }}</span>
-      </div>
-      <div class="summary-item" *ngIf="entry.unallocated_cash !== null">
-        <span class="summary-label">Unallocated cash</span>
-        <span class="summary-value"
-              [class.positive]="entry.unallocated_cash >= 0"
-              [class.negative]="entry.unallocated_cash < 0">
-          {{ entry.unallocated_cash | currency }}
-        </span>
-      </div>
-    </div>
-    <div class="over-allocated-warning" *ngIf="entry.unallocated_cash !== null && entry.unallocated_cash < 0">
-      ⚠️ Your envelopes total more than the account balance — money may have been spent outside
-      MoneyMind. Withdraw from an envelope or re-sync balances.
-    </div>
-
-    <!-- Envelopes -->
-    <div class="envelope-list" *ngIf="entry.envelopes.length > 0">
-      <div *ngFor="let envelope of entry.envelopes" class="envelope-row">
-        <!-- Normal view -->
-        <div *ngIf="editingEnvelope !== envelope.goal_id" class="envelope-main">
-          <div class="envelope-name-row">
-            <span class="envelope-name">{{ envelope.goal_name }}</span>
-            <span class="envelope-amounts">
-              {{ envelope.envelope_balance | currency }}
-              <span class="target">/ {{ envelope.target_amount | currency }}</span>
-            </span>
-          </div>
-          <div class="progress-bar-container">
-            <div class="progress-bar-fill" [style.width.%]="envelopeProgress(envelope)"></div>
-          </div>
+      <div class="hero-stats">
+        <div class="stat">
+          <span class="stat-label">Target</span>
+          <span class="stat-value" [mmCountUp]="totals.target"></span>
         </div>
-
-        <!-- Edit mode -->
-        <div *ngIf="editingEnvelope === envelope.goal_id" class="envelope-main edit-mode">
-          <div class="envelope-name-row">
-            <span class="envelope-name">{{ envelope.goal_name }}</span>
-          </div>
-          <div class="amount-input-wrapper">
-            <span class="input-prefix">$</span>
-            <input type="number" min="0" step="0.01" placeholder="0.00"
-                   [(ngModel)]="editAmounts[envelope.goal_id]" autofocus>
-          </div>
+        <div class="stat">
+          <span class="stat-label">In envelopes</span>
+          <span class="stat-value" [mmCountUp]="totals.envelopeCash"></span>
         </div>
-
-        <!-- Actions -->
-        <div class="envelope-actions">
-          <ng-container *ngIf="editingEnvelope !== envelope.goal_id">
-            <div class="amount-input-wrapper">
-              <span class="input-prefix">$</span>
-              <input type="number" min="0" placeholder="100"
-                     [(ngModel)]="allocationAmounts[envelope.goal_id]">
-            </div>
-            <button class="action-btn fund" (click)="allocate(envelope, 'manual')">Fund</button>
-            <button class="action-btn withdraw" (click)="allocate(envelope, 'withdrawal')">Withdraw</button>
-            <button class="action-btn edit" (click)="editEnvelope(envelope)" title="Edit amount">
-              ✎️
-            </button>
-            <button class="action-btn delete" (click)="deleteEnvelope(envelope)" title="Delete this envelope">
-              🗑️
-            </button>
-          </ng-container>
-
-          <ng-container *ngIf="editingEnvelope === envelope.goal_id">
-            <button class="action-btn confirm" (click)="saveEnvelopeEdit(envelope)">Save</button>
-            <button class="action-btn cancel" (click)="cancelEdit()">Cancel</button>
-          </ng-container>
+        <div class="stat">
+          <span class="stat-label">Unallocated</span>
+          <span
+            class="stat-value"
+            [class.overrun]="totals.unallocated < 0"
+            [mmCountUp]="totals.unallocated"
+          ></span>
         </div>
       </div>
-    </div>
+    </section>
 
-    <div class="no-envelopes" *ngIf="entry.envelopes.length === 0">
-      No goals linked to this account yet.
-      <a routerLink="/goals">Link a goal</a> to start allocating.
-    </div>
-  </div>
-
-  <!-- Allocation rules (paycheck waterfall) -->
-  <div class="account-card rules-card" *ngIf="!loading && hasAccounts()">
-    <div class="account-header rules-toggle" (click)="showRules = !showRules">
-      <div class="account-info">
-        <h3>Paycheck Allocation Rules</h3>
-        <span class="institution">
-          When a paycheck is detected, pre-fill the split using these rules in priority order
-        </span>
-      </div>
-      <span class="chevron">{{ showRules ? '▾' : '▸' }}</span>
-    </div>
-
-    <div *ngIf="showRules" class="rules-body">
-      <div class="rule-row" *ngFor="let rule of rules; let i = index" [class.inactive]="!rule.is_active">
-        <div class="rule-priority">
-          <button class="priority-btn" (click)="moveRule(rule, -1)" [disabled]="i === 0">▲</button>
-          <span>#{{ rule.priority_order }}</span>
-          <button class="priority-btn" (click)="moveRule(rule, 1)" [disabled]="i === rules.length - 1">▼</button>
-        </div>
-        <span class="rule-goal">{{ rule.goal_name }}</span>
-        <span class="rule-value">{{ ruleValueLabel(rule) }}</span>
-        <div class="rule-actions">
-          <button class="action-btn" (click)="toggleRule(rule)">
-            {{ rule.is_active ? 'Pause' : 'Resume' }}
+    <!-- ============ NEW GOAL PANEL ============ -->
+    @if (showNewGoal) {
+      <div class="add-panel wide">
+        <label class="f-field">
+          <span>Name</span>
+          <input type="text" [(ngModel)]="newGoal.name" placeholder="Emergency fund" />
+        </label>
+        <label class="f-field">
+          <span>Target amount</span>
+          <input type="number" [(ngModel)]="newGoal.target_amount" placeholder="0.00" step="0.01" min="0" />
+        </label>
+        <label class="f-field">
+          <span>Target date · optional</span>
+          <input type="date" [(ngModel)]="newGoal.target_date" />
+        </label>
+        <label class="f-field">
+          <span>Envelope account · optional</span>
+          <select [(ngModel)]="newGoal.linked_account_id">
+            <option [ngValue]="null">None — track a target only</option>
+            @for (account of assetAccounts(); track account.id) {
+              <option [ngValue]="account.id">
+                {{ account.name }}{{ account.mask ? ' ··' + account.mask : '' }}
+              </option>
+            }
+          </select>
+        </label>
+        <div class="add-actions">
+          <button class="btn btn-text" (click)="toggleNewGoal()">Cancel</button>
+          <button class="btn btn-solid" (click)="createGoal()">
+            <svg lucideCheck [size]="15"></svg>
+            <span>Create goal</span>
           </button>
-          <button class="action-btn withdraw" (click)="deleteRule(rule)">Delete</button>
         </div>
       </div>
+    }
 
-      <div class="no-envelopes" *ngIf="rules.length === 0">
-        No rules yet — add one below and paycheck prompts will be pre-filled automatically.
+    <!-- ============ PAYCHECK PROMPTS ============ -->
+    @for (event of incomeEvents; track event.id) {
+      <section class="card deposit-card" data-animate>
+        <header class="card-head">
+          <h2>New deposit detected</h2>
+          <span class="deposit-amount">+{{ event.amount | currency }}</span>
+        </header>
+        <p class="deposit-meta">
+          {{ event.description || 'Deposit' }}
+          @if (event.account_name) {
+            · {{ event.account_name }}
+          }
+          @if (event.transaction_date) {
+            · {{ event.transaction_date | date: 'MMM d' }}
+          }
+        </p>
+        <div class="split-grid">
+          @for (row of event.suggested_split || []; track row.goal_id) {
+            <label class="f-field">
+              <span>{{ row.goal_name }}</span>
+              <input
+                type="number"
+                [(ngModel)]="splitEdits[event.id][row.goal_id]"
+                placeholder="0.00"
+                step="0.01"
+                min="0"
+              />
+            </label>
+          }
+        </div>
+        <footer class="deposit-foot">
+          <span class="remainder" [class.neg]="splitRemainder(event) < 0">
+            {{ splitRemainder(event) < 0 ? 'Over by ' : 'Unallocated: '
+            }}{{ Math.abs(splitRemainder(event)) | currency }}
+          </span>
+          <div class="deposit-actions">
+            <button class="btn btn-text" (click)="dismissEvent(event)">Dismiss</button>
+            <button
+              class="btn btn-solid"
+              (click)="confirmEvent(event)"
+              [disabled]="confirmingEvent === event.id"
+            >
+              <svg lucideCheck [size]="15"></svg>
+              <span>{{ confirmingEvent === event.id ? 'Allocating…' : 'Allocate deposit' }}</span>
+            </button>
+          </div>
+        </footer>
+      </section>
+    }
+
+    <!-- ============ MAIN GRID ============ -->
+    <div class="env-grid">
+      <!-- Accounts / reconciliation -->
+      <div class="col-accounts">
+        @if (reconciliation.length > 0) {
+          @for (entry of reconciliation; track entry.account.id) {
+            <section class="card" data-animate>
+              <header class="card-head">
+                <h2>
+                  {{ entry.account.name }}
+                  @if (entry.account.mask) {
+                    <span class="mask">··{{ entry.account.mask }}</span>
+                  }
+                </h2>
+                <span class="card-note">{{ entry.account.institution_name }}</span>
+              </header>
+
+              <div class="recon-balance">
+                <span class="recon-label">Actual balance</span>
+                <span
+                  class="recon-value"
+                  [mmCountUp]="entry.actual_balance ?? entry.allocated_total"
+                ></span>
+              </div>
+
+              <div class="band" role="img" aria-label="How this balance is allocated">
+                @for (seg of accountBand(entry); track seg.key) {
+                  <div
+                    class="band-seg"
+                    [style.width.%]="revealed ? seg.width : 0"
+                    [style.background]="seg.color"
+                    [title]="seg.label + ' · ' + (seg.value | currency)"
+                  ></div>
+                }
+              </div>
+
+              <ul class="env-list">
+                @for (env of entry.envelopes; track env.goal_id) {
+                  <li class="env-row">
+                    <div class="env-top">
+                      <span class="swatch" [style.background]="envelopeColor(entry, env)"></span>
+                      <span class="env-name">{{ env.goal_name }}</span>
+                      @if (editingEnvelope === env.goal_id) {
+                        <span class="edit-controls">
+                          <input
+                            class="edit-input"
+                            type="number"
+                            [(ngModel)]="editAmounts[env.goal_id]"
+                            step="0.01"
+                            min="0"
+                            aria-label="Envelope balance"
+                          />
+                          <button class="icon-btn confirm" (click)="saveEnvelopeEdit(env)" title="Save">
+                            <svg lucideCheck [size]="14"></svg>
+                          </button>
+                          <button class="icon-btn" (click)="cancelEdit()" title="Cancel">
+                            <svg lucideX [size]="14"></svg>
+                          </button>
+                        </span>
+                      } @else {
+                        <span class="env-balance">
+                          {{ env.envelope_balance | currency }}
+                          @if (env.target_amount) {
+                            <span class="of">/ {{ env.target_amount | currency }}</span>
+                          }
+                        </span>
+                        <span class="row-actions">
+                          <button
+                            class="icon-btn"
+                            (click)="toggleMoveMoney(env.goal_id)"
+                            title="Move money"
+                          >
+                            <svg lucidePlus [size]="14"></svg>
+                          </button>
+                          <button class="icon-btn" (click)="editEnvelope(env)" title="Correct balance">
+                            <svg lucidePencil [size]="14"></svg>
+                          </button>
+                          <button
+                            class="icon-btn danger"
+                            (click)="deleteGoal(goalForEnvelope(env))"
+                            title="Delete envelope"
+                          >
+                            <svg lucideTrash2 [size]="14"></svg>
+                          </button>
+                        </span>
+                      }
+                    </div>
+                    @if (moveMoneyGoalId === env.goal_id) {
+                      <div class="move-money">
+                        <input
+                          type="number"
+                          [(ngModel)]="allocationAmounts[env.goal_id]"
+                          placeholder="0.00"
+                          step="0.01"
+                          min="0"
+                          aria-label="Amount"
+                        />
+                        <button class="btn btn-solid sm" (click)="addMoney(goalForEnvelope(env))">
+                          <svg lucidePlus [size]="13"></svg>
+                          <span>Fund</span>
+                        </button>
+                        <button class="btn btn-ghost sm" (click)="withdrawMoney(goalForEnvelope(env))">
+                          <svg lucideMinus [size]="13"></svg>
+                          <span>Withdraw</span>
+                        </button>
+                        <button class="btn btn-text" (click)="toggleMoveMoney(env.goal_id)">
+                          Cancel
+                        </button>
+                      </div>
+                    }
+                  </li>
+                }
+              </ul>
+
+              <footer class="recon-foot">
+                @if (isOverAllocated(entry)) {
+                  <span class="state-line over">
+                    <svg lucideOctagonAlert [size]="13"></svg>
+                    {{ Math.abs(entry.unallocated_cash ?? 0) | currency }} over-allocated
+                  </span>
+                } @else {
+                  <span class="foot-part">Allocated {{ entry.allocated_total | currency }}</span>
+                  <span class="foot-part free">
+                    <span class="swatch free-swatch"></span>
+                    Unallocated {{ entry.unallocated_cash ?? 0 | currency }}
+                  </span>
+                }
+              </footer>
+            </section>
+          }
+        } @else {
+          <section class="card" data-animate>
+            <div class="empty">
+              <svg lucideLandmark [size]="22"></svg>
+              <p>No asset accounts linked</p>
+              <span class="empty-sub">
+                Link a checking or savings account from the dashboard to start using envelopes.
+                Credit cards can't hold envelopes.
+              </span>
+            </div>
+          </section>
+        }
       </div>
 
-      <div class="add-rule-form" *ngIf="goalsWithoutRules().length > 0">
-        <select class="rule-select" [(ngModel)]="newRule.goal_id">
-          <option [ngValue]="null">Pick a goal…</option>
-          <option *ngFor="let goal of goalsWithoutRules()" [ngValue]="goal.goal_id">
-            {{ goal.goal_name }}
-          </option>
-        </select>
+      <!-- Goals + waterfall -->
+      <div class="col-goals">
+        <section class="card" data-animate>
+          <header class="card-head">
+            <h2>Goals</h2>
+            <span class="card-note">{{ goals.length }} total</span>
+          </header>
+          @if (goals.length > 0) {
+            <ul class="goal-list">
+              @for (goal of goals; track goal.id) {
+                <li class="goal-card" [class.complete]="goalComplete(goal)">
+                  <div class="goal-main">
+                    <svg
+                      class="ring-svg"
+                      viewBox="0 0 72 72"
+                      width="84"
+                      height="84"
+                      aria-hidden="true"
+                    >
+                      <circle class="ring-track" cx="36" cy="36" r="30"></circle>
+                      <circle
+                        class="ring-fill"
+                        cx="36"
+                        cy="36"
+                        r="30"
+                        [attr.stroke-dasharray]="ringCircumference()"
+                        [style.stroke-dashoffset]="revealed ? ringOffset(goal) : ringCircumference()"
+                      ></circle>
+                      @if (!goalComplete(goal)) {
+                        <text x="36" y="40" class="ring-pct">
+                          {{ goalPct(goal) | number: '1.0-0' }}%
+                        </text>
+                      }
+                    </svg>
+                    @if (goalComplete(goal)) {
+                      <span class="ring-check"><svg lucideCheck [size]="20"></svg></span>
+                    }
+                    <div class="goal-info">
+                      <span class="goal-name">{{ goal.name }}</span>
+                      <span class="goal-amounts">
+                        {{ goal.current_amount | currency }}
+                        <span class="of">of {{ goal.target_amount | currency }}</span>
+                      </span>
+                      @if (isEnvelope(goal)) {
+                        <span class="link-line envelope">
+                          <svg lucideLandmark [size]="11"></svg>
+                          {{ accountNameFor(goal) }}
+                        </span>
+                      } @else {
+                        <span class="link-line">
+                          <svg lucideTarget [size]="11"></svg>
+                          Target only
+                        </span>
+                      }
+                      @if (goal.target_date) {
+                        <span class="goal-date">by {{ goal.target_date | date: 'MMM d, y' }}</span>
+                      }
+                    </div>
+                    <span class="row-actions">
+                      <button class="icon-btn" (click)="toggleMoveMoney(goal.id)" title="Add money">
+                        <svg lucidePlus [size]="14"></svg>
+                      </button>
+                      <button class="icon-btn danger" (click)="deleteGoal(goal)" title="Delete">
+                        <svg lucideTrash2 [size]="14"></svg>
+                      </button>
+                    </span>
+                  </div>
+                  @if (moveMoneyGoalId === goal.id) {
+                    <div class="move-money">
+                      <input
+                        type="number"
+                        [(ngModel)]="allocationAmounts[goal.id]"
+                        placeholder="0.00"
+                        step="0.01"
+                        min="0"
+                        aria-label="Amount"
+                      />
+                      <button class="btn btn-solid sm" (click)="addMoney(goal)">
+                        <svg lucidePlus [size]="13"></svg>
+                        <span>{{ isEnvelope(goal) ? 'Fund' : 'Add' }}</span>
+                      </button>
+                      @if (isEnvelope(goal)) {
+                        <button class="btn btn-ghost sm" (click)="withdrawMoney(goal)">
+                          <svg lucideMinus [size]="13"></svg>
+                          <span>Withdraw</span>
+                        </button>
+                      }
+                      <button class="btn btn-text" (click)="toggleMoveMoney(goal.id)">Cancel</button>
+                    </div>
+                  }
+                </li>
+              }
+            </ul>
+          } @else {
+            <div class="empty">
+              <svg lucidePiggyBank [size]="22"></svg>
+              <p>No goals yet</p>
+              <span class="empty-sub">Name a target and start putting money against it</span>
+              <button class="inline-link as-btn" (click)="showNewGoal = true">
+                Create your first goal
+              </button>
+            </div>
+          }
+        </section>
 
-        <select class="rule-select" [(ngModel)]="newRule.allocation_type">
-          <option value="fixed_amount">Fixed amount</option>
-          <option value="percentage">% of paycheck</option>
-          <option value="remainder">Remainder</option>
-        </select>
+        <!-- Deposit waterfall -->
+        <section class="card" data-animate>
+          <header class="card-head">
+            <h2>Deposit waterfall</h2>
+            <button class="btn btn-ghost sm" [class.on]="showAddRule" (click)="toggleAddRule()">
+              <svg lucidePlus [size]="14"></svg>
+              <span>Add rule</span>
+            </button>
+          </header>
+          <p class="card-sub">When a deposit lands, envelopes fill in this order</p>
 
-        <div class="amount-input-wrapper" *ngIf="newRule.allocation_type === 'fixed_amount'">
-          <span class="input-prefix">$</span>
-          <input type="number" min="0" placeholder="500" [(ngModel)]="newRule.fixed_amount">
-        </div>
-        <div class="amount-input-wrapper" *ngIf="newRule.allocation_type === 'percentage'">
-          <input type="number" min="0" max="100" placeholder="20" [(ngModel)]="newRule.percentage">
-          <span class="input-prefix">%</span>
-        </div>
+          @if (showAddRule) {
+            <div class="add-panel rules">
+              <label class="f-field">
+                <span>Envelope</span>
+                <select [(ngModel)]="newRule.goal_id">
+                  <option [ngValue]="null" disabled>Choose…</option>
+                  @for (goal of goalsWithoutRules(); track goal.goal_id) {
+                    <option [ngValue]="goal.goal_id">{{ goal.goal_name }}</option>
+                  }
+                </select>
+              </label>
+              <label class="f-field">
+                <span>Type</span>
+                <select [(ngModel)]="newRule.allocation_type">
+                  <option value="fixed_amount">Fixed amount</option>
+                  <option value="percentage">Percentage</option>
+                  <option value="remainder">Remainder</option>
+                </select>
+              </label>
+              @if (newRule.allocation_type === 'fixed_amount') {
+                <label class="f-field">
+                  <span>Amount</span>
+                  <input
+                    type="number"
+                    [(ngModel)]="newRule.fixed_amount"
+                    placeholder="0.00"
+                    step="0.01"
+                    min="0"
+                  />
+                </label>
+              }
+              @if (newRule.allocation_type === 'percentage') {
+                <label class="f-field">
+                  <span>Percent</span>
+                  <input
+                    type="number"
+                    [(ngModel)]="newRule.percentage"
+                    placeholder="10"
+                    step="1"
+                    min="0"
+                    max="100"
+                  />
+                </label>
+              }
+              <div class="add-actions">
+                <button class="btn btn-solid" (click)="addRule()">
+                  <svg lucideCheck [size]="15"></svg>
+                  <span>Add</span>
+                </button>
+              </div>
+            </div>
+          }
 
-        <div class="amount-input-wrapper priority-input">
-          <span class="input-prefix">#</span>
-          <input type="number" min="1" placeholder="1" [(ngModel)]="newRule.priority_order" title="Priority order">
-        </div>
-
-        <button class="action-btn fund" (click)="addRule()">Add Rule</button>
-      </div>
-
-      <div class="no-envelopes" *ngIf="goalsWithoutRules().length === 0 && rules.length > 0">
-        All linked goals already have a rule. <a routerLink="/goals">Create more goals</a> to add more rules.
+          @if (sortedRules().length > 0) {
+            <ol class="rule-list">
+              @for (rule of sortedRules(); track rule.id; let i = $index; let last = $last) {
+                <li class="rule-row" [class.paused]="!rule.is_active">
+                  <span class="rule-rank">{{ i + 1 < 10 ? '0' : '' }}{{ i + 1 }}</span>
+                  <span class="rule-name">{{ rule.goal_name }}</span>
+                  <span class="rule-value">{{ ruleValueLabel(rule) }}</span>
+                  @if (!rule.is_active) {
+                    <span class="state-line warn">paused</span>
+                  }
+                  <span class="row-actions">
+                    <button
+                      class="icon-btn"
+                      (click)="moveRule(rule, -1)"
+                      [disabled]="i === 0"
+                      title="Move up"
+                    >
+                      <svg lucideChevronUp [size]="14"></svg>
+                    </button>
+                    <button
+                      class="icon-btn"
+                      (click)="moveRule(rule, 1)"
+                      [disabled]="last"
+                      title="Move down"
+                    >
+                      <svg lucideChevronDown [size]="14"></svg>
+                    </button>
+                    <button class="btn btn-text sm-text" (click)="toggleRule(rule)">
+                      {{ rule.is_active ? 'Pause' : 'Resume' }}
+                    </button>
+                    <button class="icon-btn danger" (click)="deleteRule(rule)" title="Delete rule">
+                      <svg lucideTrash2 [size]="14"></svg>
+                    </button>
+                  </span>
+                </li>
+              }
+            </ol>
+          } @else {
+            <div class="empty small">
+              <p>No rules yet</p>
+              <span class="empty-sub">Add rules and deposits will fill envelopes automatically</span>
+            </div>
+          }
+        </section>
       </div>
     </div>
-  </div>
+  }
 </div>

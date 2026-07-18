@@ -1,459 +1,62 @@
-/* transaction-form.component.scss */
-
 // ============================================
-// VARIABLES - Dark Fintech Theme
+// Transaction dialog — warm editorial ledger.
+// The dialog's layout, inputs, selects, and buttons are styled by the global
+// "TRANSACTION FORM DIALOG OVERRIDES" section in src/styles.scss (Material
+// renders the dialog outside this component's encapsulation scope, so the
+// shared skin must live globally). This file holds ONLY the datepicker field,
+// which needs ::ng-deep to reach Material's form-field internals.
+//
+// The old component-scoped "Dark Fintech" theme that used to live here was
+// overriding the global redesign — do not reintroduce scoped .modal-* /
+// .form-* / .btn-* rules in this file.
 // ============================================
-$bg-primary: #0f1219;
-$bg-secondary: #1a1f2e;
-$bg-card: #232a3b;
-$bg-input: #1e2433;
 
-$accent-orange: #f97316;
-$accent-orange-hover: #fb923c;
-$accent-purple: #a855f7;
-$accent-coral: #ff6b6b;
-$accent-green: #22c55e;
-
-$text-primary: #ffffff;
-$text-secondary: #94a3b8;
-$text-muted: #64748b;
-
-$border-color: rgba(148, 163, 184, 0.1);
-$border-color-hover: rgba(148, 163, 184, 0.2);
-
-$gradient-primary: linear-gradient(135deg, $accent-orange 0%, $accent-purple 100%);
-$gradient-green: linear-gradient(135deg, #22c55e 0%, #10b981 100%);
-$gradient-bg: linear-gradient(180deg, $bg-primary 0%, $bg-secondary 100%);
-
-$shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
-$shadow-md: 0 4px 20px rgba(0, 0, 0, 0.3);
-$shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.4);
-$shadow-glow: 0 0 40px rgba(249, 115, 22, 0.15);
-$shadow-glow-green: 0 0 30px rgba(34, 197, 94, 0.15);
-
-$radius-sm: 8px;
-$radius-md: 12px;
-$radius-lg: 16px;
-$radius-pill: 50px;
-
-$font-primary: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-
-$transition-fast: 0.15s ease;
-$transition-base: 0.25s ease;
-
-// ============================================
-// DIALOG CONTAINER OVERRIDE
-// ============================================
-mat-dialog-container {
-  background: $gradient-bg !important;
-  border: 1px solid $border-color !important;
-  box-shadow: $shadow-lg, $shadow-glow !important;
-  border-radius: 20px !important;
-  padding: 0 !important;
-
-  ::ng-deep .mdc-dialog__surface {
-    background: transparent !important;
-    box-shadow: none !important;
-  }
-}
-
-// ============================================
-// MODAL LAYOUT
-// ============================================
-.modal-container {
-  display: flex;
-  flex-direction: column;
-  min-width: 450px;
-  max-height: 90vh;
-  overflow: hidden;
-  font-family: $font-primary;
-}
-
-.modal-header {
-  padding: 28px 28px 20px 28px;
-  border-bottom: 1px solid $border-color;
-}
-
-.modal-title {
-  font-size: 24px;
-  font-weight: 700;
-  color: $text-primary;
-  margin: 0;
-  letter-spacing: -0.02em;
-}
-
-.modal-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 24px 28px;
-  background: transparent;
-
-  &::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 3px;
-
-    &:hover {
-      background: rgba(255, 255, 255, 0.2);
-    }
-  }
-}
-
-.modal-actions {
-  padding: 20px 28px 28px 28px;
-  border-top: 1px solid $border-color;
-  display: flex;
-  gap: 12px;
-  justify-content: flex-end;
-}
-
-// ============================================
-// FORM STYLES
-// ============================================
-.transaction-form {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.form-label {
-  font-size: 13px;
-  font-weight: 600;
-  color: $text-secondary;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-// ============================================
-// INPUT FIELD STYLES
-// ============================================
-.form-input,
-.form-textarea {
-  width: 100%;
-  padding: 14px 16px;
-  background: $bg-input;
-  border: 1px solid $border-color;
-  border-radius: $radius-md;
-  font-family: $font-primary;
-  font-size: 15px;
-  color: $text-primary;
-  outline: none;
-  transition: $transition-base;
-  box-sizing: border-box;
-
-  &::placeholder {
-    color: $text-muted;
-  }
-
-  &:hover {
-    border-color: $border-color-hover;
-  }
-
-  &:focus {
-    border-color: $accent-orange;
-    box-shadow: 0 0 0 3px rgba($accent-orange, 0.1);
-  }
-}
-
-.form-textarea {
-  resize: vertical;
-  line-height: 1.5;
-  font-size: 14px;
-
-  &::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 3px;
-
-    &:hover {
-      background: rgba(255, 255, 255, 0.2);
-    }
-  }
-}
-
-// ============================================
-// AMOUNT INPUT WITH CURRENCY PREFIX
-// ============================================
-.input-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.currency-prefix {
-  position: absolute;
-  left: 16px;
-  font-size: 15px;
-  font-weight: 600;
-  color: $text-muted;
-  pointer-events: none;
-  transition: $transition-fast;
-}
-
-.input-wrapper .form-input {
-  padding-left: 36px;
-
-  &:focus ~ .currency-prefix,
-  &:not(:placeholder-shown) ~ .currency-prefix {
-    color: $accent-orange;
-  }
-}
-
-// ============================================
-// CUSTOM SELECT DROPDOWN
-// ============================================
-.custom-select {
-  position: relative;
-}
-
-.select-trigger {
-  width: 100%;
-  padding: 14px 16px;
-  background: $bg-input;
-  border: 1px solid $border-color;
-  border-radius: $radius-md;
-  font-family: $font-primary;
-  font-size: 15px;
-  color: $text-primary;
-  cursor: pointer;
-  transition: $transition-base;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  outline: none;
-
-  &:hover {
-    border-color: $border-color-hover;
-  }
-
-  &:focus {
-    border-color: $accent-orange;
-    box-shadow: 0 0 0 3px rgba($accent-orange, 0.1);
-  }
-
-  svg {
-    width: 20px;
-    height: 20px;
-    color: $text-muted;
-    flex-shrink: 0;
-    transition: transform $transition-base;
-
-    &.rotated {
-      transform: rotate(180deg);
-    }
-  }
-}
-
-.select-value {
-  flex: 1;
-  text-align: left;
-  color: $text-primary;
-
-  &:empty::before {
-    content: attr(data-placeholder);
-    color: $text-muted;
-  }
-}
-
-.select-dropdown {
-  position: absolute;
-  top: calc(100% + 8px);
-  left: 0;
-  right: 0;
-  background: $bg-card;
-  border: 1px solid $border-color;
-  border-radius: $radius-md;
-  box-shadow: $shadow-md;
-  z-index: 1000;
-  overflow: hidden;
-  animation: slideDown 0.15s ease;
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.select-option {
-  padding: 12px 16px;
-  color: $text-secondary;
-  cursor: pointer;
-  transition: $transition-fast;
-  font-size: 15px;
-
-  &:hover {
-    background: $bg-input;
-    color: $text-primary;
-  }
-
-  &.selected {
-    background: rgba($accent-orange, 0.1);
-    color: $accent-orange;
-    font-weight: 600;
-  }
-}
-
-// ============================================
-// BUTTON STYLES
-// ============================================
-.btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 12px 24px;
-  border: none;
-  border-radius: $radius-pill;
-  font-family: $font-primary;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: $transition-base;
-  outline: none;
-  white-space: nowrap;
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  &:active:not(:disabled) {
-    transform: translateY(0);
-  }
-}
-
-.btn-cancel {
-  background: transparent;
-  border: 1px solid $border-color;
-  color: $text-secondary;
-
-  &:hover:not(:disabled) {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: $border-color-hover;
-    color: $text-primary;
-  }
-}
-
-.btn-save {
-  background: $gradient-green;
-  color: $text-primary;
-  box-shadow: $shadow-glow-green;
-
-  &:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: $shadow-glow-green, $shadow-md;
-  }
-}
-
-// ============================================
-// DARK DATEPICKER STYLES
-// ============================================
 .datepicker-wrapper {
-  .dark-datepicker {
+  ::ng-deep .dark-datepicker {
     width: 100%;
 
-    .mat-mdc-form-field-flex,
-    .mat-form-field-flex {
-      background: $bg-input;
-      border-radius: $radius-pill;
-      padding: 0 16px;
+    // Field shell: same recipe as .form-input (surface fill, hairline border,
+    // 2px corners, fern focus ring)
+    .mat-mdc-text-field-wrapper {
+      background: var(--mm-surface);
+      border: 1px solid var(--mm-hairline-2);
+      border-radius: var(--mm-radius-xs);
+      padding: 0 2px 0 12px;
+      transition:
+        border-color var(--mm-dur-fast, 140ms) ease,
+        box-shadow var(--mm-dur-fast, 140ms) ease;
     }
 
-    .mat-mdc-text-field-wrapper,
-    .mat-form-field-wrapper {
-      padding: 0;
+    &.mat-focused .mat-mdc-text-field-wrapper {
+      border-color: var(--mm-brand);
+      box-shadow: 0 0 0 3px var(--mm-brand-dim);
     }
 
+    .mat-mdc-form-field-focus-overlay,
     .mdc-notched-outline,
-    .mat-form-field-outline {
+    .mat-mdc-form-field-subscript-wrapper {
       display: none;
     }
 
-    .mat-mdc-input-element,
-    .mat-input-element {
-      color: $text-primary !important;
-      caret-color: $text-primary;
+    .mat-mdc-form-field-infix {
+      min-height: unset;
+      padding: 10px 0;
     }
 
     input {
-      color: $text-primary !important;
-      font-family: $font-primary;
+      color: var(--mm-text-1);
+      caret-color: var(--mm-text-1);
+      font-family: var(--mm-font-ui);
+      font-size: 14px;
 
       &::placeholder {
-        color: $text-muted !important;
+        color: var(--mm-text-3);
         opacity: 1;
       }
     }
 
-    .mat-mdc-form-field-placeholder,
-    .mat-form-field-placeholder {
-      color: $text-muted !important;
-    }
-
     .mat-datepicker-toggle {
-      color: $text-muted;
-    }
-
-    .mat-mdc-form-field-subscript-wrapper {
-      display: none;
-    }
-  }
-}
-
-// ============================================
-// RESPONSIVE DESIGN
-// ============================================
-@media (max-width: 600px) {
-  .modal-container {
-    min-width: 90vw;
-    max-width: 90vw;
-  }
-
-  .modal-header {
-    padding: 20px 20px 16px 20px;
-  }
-
-  .modal-title {
-    font-size: 20px;
-  }
-
-  .modal-content {
-    padding: 20px;
-  }
-
-  .modal-actions {
-    padding: 16px 20px 20px 20px;
-    flex-direction: column-reverse;
-
-    .btn {
-      width: 100%;
+      color: var(--mm-text-3);
     }
   }
 }

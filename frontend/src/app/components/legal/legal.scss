@@ -1,0 +1,479 @@
+// ============================================
+// MoneyMind Legal — Terms of Service & Privacy Policy
+// Warm editorial ledger: long-form legal text set for actual reading.
+// Topbar / buttons / footer mirror the landing page recipes.
+// ============================================
+
+.legal {
+  min-height: 100vh;
+  background: var(--mm-bg);
+  color: var(--mm-text-1);
+  font-family: var(--mm-font-ui);
+
+  a {
+    text-decoration: none;
+  }
+}
+
+// ============================================
+// TOP BAR (landing recipe)
+// ============================================
+.topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px clamp(20px, 4vw, 48px);
+  background: color-mix(in srgb, var(--mm-bg) 78%, transparent);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--mm-hairline);
+}
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.link-quiet {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--mm-text-3);
+  transition: color var(--mm-dur-fast) ease;
+
+  &:hover {
+    color: var(--mm-text-1);
+  }
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: var(--mm-radius-xs);
+  font-family: var(--mm-font-ui);
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+
+  &.sm {
+    padding: 7px 11px;
+    font-size: 12.5px;
+  }
+}
+
+.btn-solid {
+  background: var(--mm-brand);
+  color: var(--mm-brand-ink);
+  box-shadow: 0 6px 22px -6px var(--mm-brand-glow);
+  transition: background var(--mm-dur-fast) ease, box-shadow var(--mm-dur-fast) ease;
+
+  &:hover {
+    background: var(--mm-brand-strong);
+    box-shadow: 0 8px 28px -6px var(--mm-brand-glow);
+  }
+}
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--mm-hairline-2);
+  color: var(--mm-text-2);
+  transition: background var(--mm-dur-fast) ease, color var(--mm-dur-fast) ease;
+
+  &:hover {
+    background: var(--mm-surface-2);
+    color: var(--mm-text-1);
+  }
+}
+
+// ============================================
+// PAGE SHELL
+// ============================================
+.legal-main {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 130px clamp(20px, 5vw, 64px) 80px;
+}
+
+.legal-head {
+  margin-bottom: 48px;
+
+  h1 {
+    margin: 0 0 14px;
+    font-family: var(--mm-font-serif);
+    font-size: clamp(34px, 4.5vw, 48px);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.05;
+  }
+}
+
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 18px;
+  font-family: var(--mm-font-num);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--mm-text-3);
+
+  svg {
+    color: var(--mm-brand);
+  }
+}
+
+.legal-intro {
+  max-width: 58ch;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--mm-text-2);
+}
+
+.legal-jump {
+  display: none;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+// ============================================
+// BODY — sticky contents rail + documents
+// ============================================
+.legal-body {
+  display: grid;
+  grid-template-columns: 216px minmax(0, 1fr);
+  gap: 48px;
+  align-items: start;
+}
+
+.toc {
+  position: sticky;
+  top: 96px;
+
+  .toc-title {
+    margin: 0 0 10px;
+    font-family: var(--mm-font-num);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--mm-text-3);
+
+    & + ol {
+      margin-bottom: 26px;
+    }
+  }
+
+  ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-left: 1px solid var(--mm-hairline);
+  }
+
+  li a {
+    display: block;
+    padding: 4px 0 4px 14px;
+    margin-left: -1px;
+    border-left: 1px solid transparent;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--mm-text-3);
+    transition: color var(--mm-dur-fast) ease, border-color var(--mm-dur-fast) ease;
+
+    &:hover {
+      color: var(--mm-brand-strong);
+      border-left-color: var(--mm-brand);
+    }
+  }
+}
+
+// ============================================
+// DOCUMENTS — long-form reading measure
+// ============================================
+.docs {
+  max-width: 660px;
+}
+
+.doc {
+  & + .doc {
+    margin-top: 72px;
+    padding-top: 56px;
+    border-top: 1px solid var(--mm-hairline-2);
+  }
+}
+
+.doc-head {
+  margin-bottom: 36px;
+
+  .doc-eyebrow {
+    margin: 0 0 8px;
+    font-family: var(--mm-font-num);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--mm-brand-strong);
+  }
+
+  h2 {
+    margin: 0 0 10px;
+    font-family: var(--mm-font-serif);
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 1.15;
+  }
+
+  .doc-date {
+    margin: 0;
+    font-family: var(--mm-font-num);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--mm-text-3);
+  }
+}
+
+// Anchor targets clear the fixed topbar on direct #hash loads
+// (in-app navigation is offset via ViewportScroller).
+.doc,
+.doc-sec {
+  scroll-margin-top: 96px;
+}
+
+.doc-sec {
+  & + .doc-sec {
+    margin-top: 34px;
+  }
+
+  h3 {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin: 0 0 12px;
+    font-family: var(--mm-font-serif);
+    font-size: 16.5px;
+    font-weight: 600;
+    color: var(--mm-text-1);
+  }
+
+  .sec-num {
+    font-family: var(--mm-font-num);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    color: var(--mm-text-3);
+  }
+
+  p,
+  li {
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--mm-text-2);
+  }
+
+  p {
+    margin: 0 0 12px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  ul {
+    margin: 0;
+    padding-left: 20px;
+
+    li + li {
+      margin-top: 8px;
+    }
+
+    li::marker {
+      color: var(--mm-text-3);
+    }
+  }
+
+  a {
+    color: var(--mm-brand-strong);
+    font-weight: 500;
+    transition: color var(--mm-dur-fast) ease;
+
+    &:hover {
+      color: var(--mm-brand);
+    }
+  }
+
+  strong {
+    font-weight: 600;
+    color: var(--mm-text-1);
+  }
+
+  // The all-caps liability block — loosened slightly so it stays legible
+  .caps {
+    font-size: 12.5px;
+    letter-spacing: 0.015em;
+    line-height: 1.75;
+  }
+}
+
+// Definition-style lists (What we collect / Third parties): no bullets,
+// bold lead-ins carry the structure
+.def-list {
+  padding-left: 0;
+  list-style: none;
+
+  li {
+    padding-left: 14px;
+    border-left: 1px solid var(--mm-hairline-2);
+  }
+
+  li + li {
+    margin-top: 12px;
+  }
+}
+
+// AI disclaimer aside — quiet inset panel, ink not alarm color
+.doc-aside {
+  display: flex;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 16px 18px;
+  background: var(--mm-surface);
+  border: 1px solid var(--mm-hairline);
+  border-radius: var(--mm-radius-sm);
+
+  > svg {
+    flex-shrink: 0;
+    margin-top: 3px;
+    color: var(--mm-text-3);
+  }
+
+  ul {
+    padding-left: 16px;
+  }
+}
+
+// "We do not sell" — plain ink + check, being fine is silent
+.no-sell {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 14px;
+  font-weight: 500;
+  color: var(--mm-text-1);
+
+  svg {
+    flex-shrink: 0;
+    align-self: center;
+    color: var(--mm-text-3);
+  }
+}
+
+.contact-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mm-font-num);
+  font-size: 13px;
+
+  svg {
+    color: var(--mm-text-3);
+  }
+}
+
+// ============================================
+// FOOTER (landing recipe)
+// ============================================
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 30px clamp(20px, 5vw, 64px) 40px;
+  border-top: 1px solid var(--mm-hairline);
+
+  .foot-line {
+    font-family: var(--mm-font-serif);
+    font-size: 13.5px;
+    font-style: italic;
+    color: var(--mm-text-3);
+  }
+
+  .foot-links {
+    display: flex;
+    gap: 20px;
+
+    a {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--mm-text-3);
+      transition: color var(--mm-dur-fast) ease;
+
+      &:hover {
+        color: var(--mm-brand-strong);
+      }
+    }
+  }
+}
+
+// ============================================
+// ENTRANCE — one quiet rise, then still
+// ============================================
+@media (prefers-reduced-motion: no-preference) {
+  .legal-head {
+    animation: legal-rise 0.5s var(--mm-ease-out) both;
+  }
+
+  .legal-body {
+    animation: legal-rise 0.5s var(--mm-ease-out) 0.08s both;
+  }
+}
+
+@keyframes legal-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// ============================================
+// RESPONSIVE
+// ============================================
+@media (max-width: 1020px) {
+  .legal-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .toc {
+    display: none;
+  }
+
+  .legal-jump {
+    display: flex;
+  }
+}
+
+@media (max-width: 640px) {
+  .legal-main {
+    padding: 110px 16px 56px;
+  }
+}

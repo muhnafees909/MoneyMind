@@ -1,551 +1,542 @@
-<div class="dashboard-container">
-  <!-- Loading State -->
-  <div class="loading-state" *ngIf="loading">
-    <div class="loading-spinner">
-      <div class="spinner"></div>
-      <p>Loading analytics...</p>
-    </div>
-  </div>
-
-  <!-- Dashboard Content -->
-  <div class="dashboard-content" *ngIf="!loading">
-    <!-- Page Header -->
-    <div class="page-header">
-      <div class="header-left">
-        <h1>Dashboard</h1>
-        <p class="subtitle">Your financial overview at a glance</p>
+<div class="mm-dash" [class.pre-anim]="preAnim">
+  <!-- ============ SKELETON (first load only) ============ -->
+  @if (initialLoading) {
+    <div class="skeleton-page" aria-hidden="true">
+      <div class="sk sk-head"></div>
+      <div class="sk sk-hero"></div>
+      <div class="sk-grid">
+        <div class="sk-col">
+          <div class="sk sk-card tall"></div>
+          <div class="sk sk-card taller"></div>
+        </div>
+        <div class="sk-col side">
+          <div class="sk sk-card tall"></div>
+          <div class="sk sk-card"></div>
+          <div class="sk sk-card"></div>
+        </div>
       </div>
-      <div class="header-right">
-        <button class="add-transaction-btn" (click)="addTransaction()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="12" y1="5" x2="12" y2="19"/>
-            <line x1="5" y1="12" x2="19" y2="12"/>
-          </svg>
-          <span>Add Transaction</span>
+    </div>
+  } @else {
+    <!-- ============ HEADER ============ -->
+    <header class="dash-head" data-animate>
+      <div class="head-title">
+        <h1>Overview</h1>
+        <p class="head-date">{{ today | date: 'EEEE, MMMM d' }}</p>
+      </div>
+      <div class="head-actions">
+        <button class="btn btn-ghost" (click)="connectBank()">
+          <svg lucideLandmark [size]="16"></svg>
+          <span>Link bank</span>
         </button>
-        <button class="connect-bank-btn" (click)="connectBank()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
-          </svg>
-          <span>Link Bank Account</span>
+        <button class="btn btn-solid" (click)="addTransaction()">
+          <svg lucidePlus [size]="16"></svg>
+          <span>Add transaction</span>
         </button>
-        <div class="date-display">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-            <line x1="16" y1="2" x2="16" y2="6"/>
-            <line x1="8" y1="2" x2="8" y2="6"/>
-            <line x1="3" y1="10" x2="21" y2="10"/>
-          </svg>
-          <span>{{ today | date:'mediumDate' }}</span>
-        </div>
       </div>
-    </div>
+    </header>
 
-    <!-- Summary Cards -->
-    <div class="summary-section">
-      <div class="summary-card expenses">
-        <div class="card-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="12" y1="5" x2="12" y2="19"/>
-            <polyline points="19 12 12 19 5 12"/>
-          </svg>
-        </div>
-        <div class="card-content">
-          <span class="card-label">Total Expenses</span>
-          <h2 class="card-value expense">${{ summary.total_expenses || 0 | number:'1.2-2' }}</h2>
-          <div class="card-monthly">
-            <span class="monthly-amount">${{ monthlySummary.month_expenses || 0 | number:'1.2-2' }}</span>
-            <span class="monthly-label">this month</span>
-          </div>
-        </div>
-        <div class="card-trend negative">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/>
-            <polyline points="17 18 23 18 23 12"/>
-          </svg>
+    <!-- ============ HERO: the number ============ -->
+    <section class="hero" data-animate>
+      <div class="hero-main">
+        <span class="eyebrow">Net balance</span>
+        <div
+          class="hero-figure"
+          [class.negative]="(summary.net || 0) < 0"
+          [mmCountUp]="summary.net || 0"
+          [mmDur]="1.1"
+          aria-live="polite"
+        ></div>
+        <div class="delta-line">
+          @if ((monthlySummary.month_net || 0) >= 0) {
+            <svg lucideArrowUpRight [size]="14"></svg>
+          } @else {
+            <svg lucideArrowDownRight [size]="14"></svg>
+          }
+          <span [mmCountUp]="monthlySummary.month_net || 0" [mmSigned]="true"></span>
+          <span class="delta-when">this month</span>
         </div>
       </div>
 
-      <div class="summary-card income">
-        <div class="card-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="12" y1="19" x2="12" y2="5"/>
-            <polyline points="5 12 12 5 19 12"/>
-          </svg>
+      <div class="hero-stats">
+        <div class="stat">
+          <span class="stat-label">Income · {{ getCurrentMonthName() }}</span>
+          <span class="stat-value" [mmCountUp]="monthlySummary.month_income || 0"></span>
+          <span class="stat-sub">{{ monthlySummary.month_count || 0 }} transactions</span>
         </div>
-        <div class="card-content">
-          <span class="card-label">Total Income</span>
-          <h2 class="card-value income">${{ summary.total_income || 0 | number:'1.2-2' }}</h2>
-          <div class="card-monthly">
-            <span class="monthly-amount">${{ monthlySummary.month_income || 0 | number:'1.2-2' }}</span>
-            <span class="monthly-label">this month</span>
-          </div>
-        </div>
-        <div class="card-trend positive">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
-            <polyline points="17 6 23 6 23 12"/>
-          </svg>
-        </div>
-      </div>
-
-      <div class="summary-card net">
-        <div class="card-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="12" y1="1" x2="12" y2="23"/>
-            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-          </svg>
-        </div>
-        <div class="card-content">
-          <span class="card-label">Net Balance</span>
-          <h2 class="card-value" [class.income]="summary.net >= 0" [class.expense]="summary.net < 0">
-            ${{ summary.net || 0 | number:'1.2-2' }}
-          </h2>
-          <div class="card-monthly">
-            <span class="monthly-amount"
-                  [class.income]="monthlySummary.month_net >= 0"
-                  [class.expense]="monthlySummary.month_net < 0">
-              ${{ monthlySummary.month_net || 0 | number:'1.2-2' }}
-            </span>
-            <span class="monthly-label">this month</span>
-          </div>
-        </div>
-        <div class="card-trend" [class.positive]="summary.net >= 0" [class.negative]="summary.net < 0">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" *ngIf="summary.net >= 0">
-            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
-            <polyline points="17 6 23 6 23 12"/>
-          </svg>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" *ngIf="summary.net < 0">
-            <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/>
-            <polyline points="17 18 23 18 23 12"/>
-          </svg>
-        </div>
-      </div>
-
-      <div class="summary-card transactions">
-        <div class="card-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-            <polyline points="14 2 14 8 20 8"/>
-            <line x1="16" y1="13" x2="8" y2="13"/>
-            <line x1="16" y1="17" x2="8" y2="17"/>
-            <polyline points="10 9 9 9 8 9"/>
-          </svg>
-        </div>
-        <div class="card-content">
-          <span class="card-label">Transactions</span>
-          <h2 class="card-value neutral">{{ summary.transaction_count || 0 }}</h2>
-          <div class="card-monthly">
-            <span class="monthly-amount">{{ monthlySummary.month_count || 0 }}</span>
-            <span class="monthly-label">this month</span>
-          </div>
-        </div>
-        <div class="card-trend neutral">
-          <span class="trend-text">Total</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Main Grid -->
-    <div class="main-grid">
-      <!-- Transactions Table -->
-      <div class="section-card transactions-section">
-        <div class="section-header">
-          <div class="section-title">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
-              <line x1="1" y1="10" x2="23" y2="10"/>
+        <div class="stat">
+          <span class="stat-label">Spent · {{ getCurrentMonthName() }}</span>
+          <span class="stat-value" [mmCountUp]="monthlySummary.month_expenses || 0"></span>
+          @if (sparkPath) {
+            <svg class="spark" viewBox="0 0 120 30" aria-hidden="true">
+              <path [attr.d]="sparkPath" class="spark-line" />
+              @if (sparkDot) {
+                <circle [attr.cx]="sparkDot.x" [attr.cy]="sparkDot.y" r="3" class="spark-dot" />
+              }
             </svg>
-            <h3>Recent Transactions</h3>
-          </div>
-          <div class="section-actions">
-            <button class="btn-clear-external" (click)="clearFilters()" *ngIf="hasActiveFilters()">
-              Clear Filters
-            </button>
-            <button class="action-btn" (click)="toggleFilters()">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
-              </svg>
-              <span>{{ showFilters ? 'Hide Filters' : 'Filter' }}</span>
-            </button>
-          </div>
+          } @else {
+            <span class="stat-sub">spending trend appears here</span>
+          }
         </div>
+        <div class="stat">
+          <span class="stat-label">Budget left</span>
+          @if (budgetTotal > 0) {
+            <span class="stat-value" [class.overrun]="budgetLeft < 0" [mmCountUp]="budgetLeft"></span>
+            <span class="stat-sub">of {{ budgetTotal | currency }} budgeted</span>
+          } @else {
+            <span class="stat-value muted">—</span>
+            <span class="stat-sub"><a routerLink="/budgets" class="inline-link">Set up budgets</a></span>
+          }
+        </div>
+      </div>
+    </section>
 
-        <!-- Filter Container -->
-        <div class="filter-container" *ngIf="showFilters">
-          <div class="filter-form">
-            <div class="filter-grid">
+    <!-- ============ RECURRING SUGGESTION (proactive review queue) ============ -->
+    @if (reviewCandidates.length > 0) {
+      <section class="suggest-banner" data-animate>
+        <span class="suggest-ico"><svg lucideRepeat [size]="15"></svg></span>
+        <div class="suggest-text">
+          <strong>
+            Looks like “{{ reviewCandidates[0].merchant_name }}” repeats
+            {{ reviewCandidates[0].cadence }}.
+          </strong>
+          <span>
+            {{ reviewCandidates[0].occurrence_count }} charges of about
+            {{ reviewCandidates[0].expected_amount | currency }} — track it as a recurring
+            expense?
+            @if (reviewCandidates.length > 1) {
+              ({{ reviewCandidates.length - 1 }} more suggestion{{
+                reviewCandidates.length > 2 ? 's' : ''
+              }} waiting)
+            }
+          </span>
+        </div>
+        <div class="suggest-actions">
+          <button
+            class="btn btn-solid sm"
+            (click)="confirmSuggestion(reviewCandidates[0])"
+            [disabled]="suggestionBusy"
+          >
+            Track it
+          </button>
+          <button
+            class="btn btn-ghost sm"
+            (click)="dismissSuggestion(reviewCandidates[0])"
+            [disabled]="suggestionBusy"
+          >
+            Not recurring
+          </button>
+          @if (reviewCandidates.length > 1) {
+            <a routerLink="/recurring" class="card-link">Review all</a>
+          }
+        </div>
+      </section>
+    }
 
-              <!-- Category Filter -->
-              <div class="filter-field">
-                <label class="filter-label">Category</label>
-                <select class="filter-select" [(ngModel)]="filters.category" (change)="applyFilters()">
-                  <option value="">All Categories</option>
-                  <option *ngFor="let cat of categoryService.getAllCategories()" [value]="cat.value">
-                    {{ cat.displayName }}
-                  </option>
+    <!-- ============ MAIN GRID ============ -->
+    <div class="dash-grid">
+      <div class="col-main">
+        <!-- Budgets -->
+        <section class="card" data-animate>
+          <header class="card-head">
+            <h2>
+              <span class="head-ico"><svg lucideWallet [size]="13"></svg></span>
+              Budgets · {{ getCurrentMonthName() }}
+            </h2>
+            <a routerLink="/budgets" class="card-link">Manage</a>
+          </header>
+          @if (budgetRows.length > 0) {
+            <ul class="budget-list">
+              @for (row of budgetRows; track row.budget_id; let i = $index) {
+                <li class="budget-row">
+                  <div class="budget-top">
+                    <span class="cat-dot" [style.background]="categoryColor(row.category)"></span>
+                    <span class="budget-name">
+                      {{ categoryService.getCategoryDisplayName(row.category) }}
+                    </span>
+                    <span class="state-line" [class]="'state-line ' + row.state">
+                      @switch (row.state) {
+                        @case ('ok') {
+                          <svg lucideCircleCheck [size]="13"></svg>
+                        }
+                        @case ('warn') {
+                          <svg lucideTriangleAlert [size]="13"></svg>
+                        }
+                        @case ('over') {
+                          <svg lucideOctagonAlert [size]="13"></svg>
+                        }
+                      }
+                      {{ budgetStateLabel(row) }}
+                    </span>
+                    <span class="budget-amounts">
+                      <span class="spent">{{ row.spent | currency }}</span>
+                      <span class="of">/ {{ row.budgeted | currency }}</span>
+                    </span>
+                  </div>
+                  <div class="meter" [class.over]="row.state === 'over'">
+                    <div
+                      class="meter-fill"
+                      [class]="'meter-fill ' + row.state"
+                      [style.width.%]="revealed ? Math.min(row.percentage, 100) : 0"
+                      [style.transition-delay.ms]="i * 70"
+                    ></div>
+                  </div>
+                </li>
+              }
+            </ul>
+          } @else {
+            <div class="empty">
+              <svg lucideWallet [size]="22"></svg>
+              <p>No budgets yet</p>
+              <a routerLink="/budgets" class="inline-link">Create your first budget</a>
+            </div>
+          }
+        </section>
+
+        <!-- Transactions -->
+        <section class="card" data-animate>
+          <header class="card-head">
+            <h2>
+              <span class="head-ico"><svg lucideReceiptText [size]="13"></svg></span>
+              Transactions
+            </h2>
+            <div class="card-head-actions">
+              @if (hasActiveFilters()) {
+                <button class="btn btn-text" (click)="clearFilters()">
+                  <svg lucideX [size]="14"></svg>
+                  <span>Clear</span>
+                </button>
+              }
+              <button class="btn btn-ghost sm" [class.on]="showFilters" (click)="toggleFilters()">
+                <svg lucideSlidersHorizontal [size]="14"></svg>
+                <span>Filter</span>
+              </button>
+            </div>
+          </header>
+
+          @if (showFilters) {
+            <div class="filter-panel">
+              <label class="f-field">
+                <span>Category</span>
+                <select [(ngModel)]="filters.category" (change)="applyFilters()">
+                  <option value="">All</option>
+                  @for (cat of categoryService.getAllCategories(); track cat.value) {
+                    <option [value]="cat.value">{{ cat.displayName }}</option>
+                  }
                 </select>
-              </div>
-
-              <!-- Type Filter -->
-              <div class="filter-field">
-                <label class="filter-label">Type</label>
-                <select class="filter-select" [(ngModel)]="filters.type" (change)="applyFilters()">
-                  <option value="">All Types</option>
+              </label>
+              <label class="f-field">
+                <span>Type</span>
+                <select [(ngModel)]="filters.type" (change)="applyFilters()">
+                  <option value="">All</option>
                   <option value="expense">Expense</option>
                   <option value="income">Income</option>
                 </select>
-              </div>
-
-              <!-- Source Filter -->
-              <div class="filter-field">
-                <label class="filter-label">Source</label>
-                <select class="filter-select" [(ngModel)]="filters.source" (change)="applyFilters()">
-                  <option value="">All Sources</option>
+              </label>
+              <label class="f-field">
+                <span>Source</span>
+                <select [(ngModel)]="filters.source" (change)="applyFilters()">
+                  <option value="">All</option>
                   <option value="manual">Manual</option>
-                  <option value="plaid">Plaid</option>
+                  <option value="plaid">Bank</option>
                 </select>
-              </div>
-
-              <!-- Month Filter -->
-              <div class="filter-field">
-                <label class="filter-label">Month</label>
-                <select class="filter-select" [(ngModel)]="filters.month" (change)="applyFilters()">
-                  <option value="">All Months</option>
-                  <option *ngFor="let month of availableMonths" [value]="month.value">
-                    {{ month.display }}
-                  </option>
+              </label>
+              <label class="f-field">
+                <span>Month</span>
+                <select [(ngModel)]="filters.month" (change)="applyFilters()">
+                  <option value="">All</option>
+                  @for (month of availableMonths; track month.value) {
+                    <option [value]="month.value">{{ month.display }}</option>
+                  }
                 </select>
-              </div>
-
-              <!-- Description Filter -->
-              <div class="filter-field">
-                <label class="filter-label">Description</label>
+              </label>
+              <label class="f-field grow">
+                <span>Description</span>
                 <input
                   type="text"
-                  class="filter-input"
                   [(ngModel)]="filters.description"
                   (input)="applyFilters()"
-                  placeholder="Search description..."
+                  placeholder="Search…"
                 />
-              </div>
-
-              <!-- Amount Filter -->
-              <div class="filter-field amount-range">
-                <label class="filter-label">Amount Range</label>
-                <div class="range-inputs">
+              </label>
+              <label class="f-field">
+                <span>Amount</span>
+                <div class="f-range">
                   <input
                     type="number"
-                    class="filter-input range-input"
                     [(ngModel)]="filters.amountFrom"
                     (input)="applyFilters()"
                     placeholder="From"
                     step="0.01"
                   />
-                  <span class="range-separator">-</span>
                   <input
                     type="number"
-                    class="filter-input range-input"
                     [(ngModel)]="filters.amountTo"
                     (input)="applyFilters()"
                     placeholder="To"
                     step="0.01"
                   />
                 </div>
-              </div>
-
+              </label>
             </div>
-          </div>
-        </div>
+          }
 
-        <!-- Filter Info and Pagination Controls -->
-        <div class="filter-controls-row">
-          <div class="filter-info">
-            <span class="info-count">
-              {{ getDisplayTransactions().length }} transaction{{ getDisplayTransactions().length !== 1 ? 's' : '' }} found
-            </span>
-          </div>
+          @if (getDisplayTransactions().length > 0) {
+            <div class="table-wrap">
+              <table class="tx-table">
+                <thead>
+                  <tr>
+                    <th class="th-date">Date</th>
+                    <th>Description</th>
+                    <th>Category</th>
+                    <th class="th-amount">Amount</th>
+                    <th class="th-actions"><span class="visually-hidden">Actions</span></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (txn of getPaginatedTransactions(); track txn.id) {
+                    <tr>
+                      <td class="td-date">{{ txn.transaction_date | date: 'MMM d' }}</td>
+                      <td class="td-desc">
+                        <span class="desc-text">{{ txn.description }}</span>
+                        @if (txn.source === 'plaid') {
+                          <span class="src-tag" title="Synced from your bank">
+                            <svg lucideLandmark [size]="11"></svg>
+                          </span>
+                        }
+                      </td>
+                      <td class="td-cat">
+                        <span class="cat-dot" [style.background]="categoryColor(txn.category)"></span>
+                        {{ categoryService.getCategoryDisplayName(txn.category) }}
+                      </td>
+                      <td
+                        class="td-amount"
+                        [class.inc]="txn.transaction_type === 'income'"
+                      >
+                        {{ txn.transaction_type === 'expense' ? '−' : '+' }}{{ txn.amount | currency }}
+                      </td>
+                      <td class="td-actions">
+                        @if (txn.source === 'manual') {
+                          <button class="icon-btn" (click)="editTransaction(txn)" title="Edit">
+                            <svg lucidePencil [size]="14"></svg>
+                          </button>
+                          <button
+                            class="icon-btn danger"
+                            (click)="deleteTransaction(txn.id)"
+                            title="Delete"
+                          >
+                            <svg lucideTrash2 [size]="14"></svg>
+                          </button>
+                        } @else {
+                          <span class="locked" title="Synced from bank — read only">
+                            <svg lucideLock [size]="13"></svg>
+                          </span>
+                        }
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
 
-          <div class="pagination-controls">
-            <label class="rows-label">Show:</label>
-            <div class="custom-select rows-select">
-              <button
-                type="button"
-                class="select-trigger"
-                (click)="toggleRowsDropdown()"
-              >
-                <span class="select-value">{{ showAll ? 'All' : rowsPerPage }}</span>
-                <svg
-                  [class.rotated]="showRowsDropdown"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 20 20"
-                  fill="none"
-                  stroke="currentColor"
-                >
-                  <path d="M7 7.5L10 10.5L13 7.5" stroke-width="1.5" stroke-linecap="round" />
-                </svg>
-              </button>
-              <div class="select-dropdown" *ngIf="showRowsDropdown">
-                <div
-                  class="select-option"
-                  (click)="selectRowsPerPage(20)"
-                  [class.selected]="rowsPerPage === 20 && !showAll"
-                >
-                  20
-                </div>
-                <div
-                  class="select-option"
-                  (click)="selectRowsPerPage(50)"
-                  [class.selected]="rowsPerPage === 50 && !showAll"
-                >
-                  50
-                </div>
-                <div
-                  class="select-option"
-                  (click)="selectRowsPerPage(100)"
-                  [class.selected]="rowsPerPage === 100 && !showAll"
-                >
-                  100
-                </div>
-                <div
-                  class="select-option"
-                  (click)="selectRowsPerPage('all')"
-                  [class.selected]="showAll"
-                >
-                  All
+            <footer class="table-foot">
+              <span class="foot-info">{{ getDisplayRangeText() }}</span>
+              <div class="foot-controls">
+                @if (hasMoreTransactions()) {
+                  <button class="btn btn-text" (click)="showMoreTransactions()">
+                    Show {{ Math.min(rowsPerPage, getRemainingCount()) }} more
+                    <svg lucideChevronDown [size]="14"></svg>
+                  </button>
+                }
+                <div class="rows-select">
+                  <button type="button" class="btn btn-text" (click)="toggleRowsDropdown()">
+                    {{ showAll ? 'All' : rowsPerPage }} rows
+                    <svg lucideChevronDown [size]="13" [class.rotated]="showRowsDropdown"></svg>
+                  </button>
+                  @if (showRowsDropdown) {
+                    <div class="rows-menu">
+                      @for (opt of [20, 50, 100]; track opt) {
+                        <button
+                          class="rows-opt"
+                          [class.selected]="rowsPerPage === opt && !showAll"
+                          (click)="selectRowsPerPage(opt)"
+                        >
+                          {{ opt }}
+                        </button>
+                      }
+                      <button class="rows-opt" [class.selected]="showAll" (click)="selectRowsPerPage('all')">
+                        All
+                      </button>
+                    </div>
+                  }
                 </div>
               </div>
+            </footer>
+          } @else {
+            <div class="empty">
+              <svg lucideInbox [size]="22"></svg>
+              <p>{{ hasActiveFilters() ? 'No matching transactions' : 'No transactions yet' }}</p>
+              @if (hasActiveFilters()) {
+                <button class="btn btn-text" (click)="clearFilters()">Clear filters</button>
+              } @else {
+                <button class="inline-link as-btn" (click)="addTransaction()">
+                  Add your first transaction
+                </button>
+              }
             </div>
-          </div>
-        </div>
-
-        <div class="table-container">
-          <table mat-table [dataSource]="getPaginatedTransactions()" class="transactions-table">
-            
-            <!-- Date Column -->
-            <ng-container matColumnDef="date">
-              <th mat-header-cell *matHeaderCellDef>Date</th>
-              <td mat-cell *matCellDef="let transaction">
-                <span class="date-cell">{{ transaction.transaction_date | date:'shortDate' }}</span>
-              </td>
-            </ng-container>
-
-            <!-- Description Column -->
-            <ng-container matColumnDef="description">
-              <th mat-header-cell *matHeaderCellDef>Description</th>
-              <td mat-cell *matCellDef="let transaction">
-                <span class="description-cell">{{ transaction.description }}</span>
-              </td>
-            </ng-container>
-
-            <!-- Category Column -->
-            <ng-container matColumnDef="category">
-              <th mat-header-cell *matHeaderCellDef>Category</th>
-              <td mat-cell *matCellDef="let transaction">
-                <span class="category-badge">
-                  {{ categoryService.getCategoryDisplayName(transaction.category) }}
-                </span>
-              </td>
-            </ng-container>
-
-            <!-- Amount Column -->
-            <ng-container matColumnDef="amount">
-              <th mat-header-cell *matHeaderCellDef>Amount</th>
-              <td mat-cell *matCellDef="let transaction">
-                <span class="amount-cell" 
-                      [class.expense]="transaction.transaction_type === 'expense'" 
-                      [class.income]="transaction.transaction_type === 'income'">
-                  <span class="amount-sign">{{ transaction.transaction_type === 'expense' ? '-' : '+' }}</span>
-                  ${{ transaction.amount | number:'1.2-2' }}
-                </span>
-              </td>
-            </ng-container>
-
-            <!-- Type Column -->
-            <ng-container matColumnDef="type">
-              <th mat-header-cell *matHeaderCellDef>Type</th>
-              <td mat-cell *matCellDef="let transaction">
-                <span class="type-badge" 
-                      [class.expense-badge]="transaction.transaction_type === 'expense'"
-                      [class.income-badge]="transaction.transaction_type === 'income'">
-                  <span class="badge-dot"></span>
-                  {{ transaction.transaction_type }}
-                </span>
-              </td>
-            </ng-container>
-
-            <!-- Source Column -->
-            <ng-container matColumnDef="source">
-              <th mat-header-cell *matHeaderCellDef>Source</th>
-              <td mat-cell *matCellDef="let transaction">
-                <span class="source-badge" [class.plaid]="transaction.source === 'plaid'">
-                  <svg *ngIf="transaction.source === 'plaid'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
-                  </svg>
-                  <svg *ngIf="transaction.source === 'manual'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                  </svg>
-                  {{ transaction.source }}
-                </span>
-              </td>
-            </ng-container>
-
-            <!-- Actions Column -->
-            <ng-container matColumnDef="actions">
-              <th mat-header-cell *matHeaderCellDef>Actions</th>
-              <td mat-cell *matCellDef="let transaction">
-                <div class="action-buttons">
-                  <button class="icon-btn edit" (click)="editTransaction(transaction)" 
-                          *ngIf="transaction.source === 'manual'" title="Edit">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                    </svg>
-                  </button>
-                  <button class="icon-btn delete" (click)="deleteTransaction(transaction.id)"
-                          *ngIf="transaction.source === 'manual'" title="Delete">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <polyline points="3 6 5 6 21 6"/>
-                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                      <line x1="10" y1="11" x2="10" y2="17"/>
-                      <line x1="14" y1="11" x2="14" y2="17"/>
-                    </svg>
-                  </button>
-                  <span *ngIf="transaction.source === 'plaid'" class="locked-badge" title="Synced from Plaid">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                    </svg>
-                  </span>
-                </div>
-              </td>
-            </ng-container>
-
-            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-          </table>
-        </div>
-
-        <!-- Show More Button -->
-        <div class="show-more-container" *ngIf="hasMoreTransactions()">
-          <button class="btn-show-more" (click)="showMoreTransactions()">
-            <span>Show Next {{ Math.min(rowsPerPage, getRemainingCount()) }}</span>
-            <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor">
-              <path d="M7 7.5L10 10.5L13 7.5" stroke-width="1.5" stroke-linecap="round" />
-            </svg>
-          </button>
-          <div class="pagination-info">
-            {{ getDisplayRangeText() }}
-          </div>
-        </div>
-
-        <div *ngIf="getDisplayTransactions().length === 0" class="empty-state">
-          <div class="empty-icon">📊</div>
-          <p>{{ showFilters ? 'No matching transactions' : 'No transactions yet' }}</p>
-          <span>{{ showFilters ? 'Try adjusting your filters' : 'Add your first transaction to get started!' }}</span>
-        </div>
+          }
+        </section>
       </div>
 
-      <!-- Side Panel -->
-      <div class="side-panel">
-        <!-- Spending by Category -->
-        <div class="section-card category-section">
-          <div class="section-header">
-            <div class="section-title">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21.21 15.89A10 10 0 1 1 8 2.83"/>
-                <path d="M22 12A10 10 0 0 0 12 2v10z"/>
-              </svg>
-              <h3>Spending by Category ({{ getCurrentMonthName() }})</h3>
-            </div>
-          </div>
-
-          <div class="pie-chart-container" *ngIf="monthlySpendingByCategory.length > 0">
-            <div class="pie-chart-wrapper">
-              <svg class="pie-chart" viewBox="0 0 200 200">
-                <!-- Background circle for visibility -->
-                <circle cx="100" cy="100" r="92" fill="none" stroke="#1a1f2e" stroke-width="1"/>
-                <g transform="translate(100, 100)">
-                  <ng-container *ngFor="let slice of getCategoryPieSlices()">
-                    <path
-                      [attr.d]="slice.path"
-                      [attr.fill]="slice.color"
-                      [attr.stroke]="'#232a3b'"
-                      [attr.stroke-width]="1.5"
-                      class="pie-slice"
-                    >
-                      <title>{{ slice.label }}: ${{ slice.value | number:'1.2-2' }}</title>
-                    </path>
-                  </ng-container>
-                </g>
-              </svg>
-            </div>
-            <div class="pie-legend">
-              <div *ngFor="let category of monthlySpendingByCategory" class="legend-item">
-                <span class="legend-dot" [style.background]="getCategoryColorSolid(category.category)"></span>
-                <span class="legend-label">{{ category.display_name }}</span>
-                <span class="legend-value">${{ category.total | number:'1.2-2' }}</span>
+      <!-- ============ SIDE COLUMN ============ -->
+      <aside class="col-side">
+        <!-- Ledger band — the interactive moment -->
+        <section class="card" data-animate>
+          <header class="card-head">
+            <h2>
+              <span class="head-ico"><svg lucideChartPie [size]="13"></svg></span>
+              Where {{ getCurrentMonthName() }} went
+            </h2>
+            @if (donutSegments.length > 0) {
+              <div class="band-figure">
+                <span class="band-label" [class.locked]="lockedKey !== null">
+                  {{ activeSegment()?.label || 'Total' }}
+                </span>
+                <span
+                  class="band-value"
+                  [mmCountUp]="activeSegment()?.value ?? donutTotal"
+                  [mmDur]="0.5"
+                ></span>
               </div>
+            }
+          </header>
+          @if (donutSegments.length > 0) {
+            <div class="band" role="img" aria-label="Share of this month's spending by category">
+              @for (seg of donutSegments; track seg.key) {
+                <div
+                  class="band-seg"
+                  [style.width.%]="revealed ? seg.share : 0"
+                  [style.background]="seg.color"
+                  [class.dim]="isDimmed(seg)"
+                  [class.active]="isActive(seg)"
+                  (mouseenter)="setFocus(seg.key)"
+                  (mouseleave)="setFocus(null)"
+                  (click)="toggleLock(seg.key)"
+                ></div>
+              }
             </div>
-          </div>
-
-          <div *ngIf="monthlySpendingByCategory.length === 0" class="empty-state small">
-            <p>No spending data for this month</p>
-          </div>
-        </div>
-
-        <!-- Monthly Spending -->
-        <div class="section-card monthly-section">
-          <div class="section-header">
-            <div class="section-title">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                <line x1="16" y1="2" x2="16" y2="6"/>
-                <line x1="8" y1="2" x2="8" y2="6"/>
-                <line x1="3" y1="10" x2="21" y2="10"/>
-              </svg>
-              <h3>Monthly Spending ({{ today.getFullYear() }})</h3>
+            <ul class="breakdown">
+              @for (seg of donutSegments; track seg.key) {
+                <li>
+                  <button
+                    type="button"
+                    class="breakdown-row"
+                    [class.active]="isActive(seg)"
+                    [class.dim]="isDimmed(seg)"
+                    (mouseenter)="setFocus(seg.key)"
+                    (mouseleave)="setFocus(null)"
+                    (focus)="setFocus(seg.key)"
+                    (blur)="setFocus(null)"
+                    (click)="toggleLock(seg.key)"
+                    [attr.aria-pressed]="lockedKey === seg.key"
+                  >
+                    <span class="swatch" [style.background]="seg.color"></span>
+                    <span class="leg-label">{{ seg.label }}</span>
+                    <span class="leg-share">{{ seg.share | number: '1.0-0' }}%</span>
+                    <span class="leg-value">{{ seg.value | currency }}</span>
+                  </button>
+                </li>
+              }
+            </ul>
+          } @else {
+            <div class="empty">
+              <svg lucideChartPie [size]="22"></svg>
+              <p>No spending recorded this month</p>
             </div>
-          </div>
+          }
+        </section>
 
-          <div class="pie-chart-container" *ngIf="monthlySpending.length > 0">
-            <div class="pie-chart-wrapper">
-              <svg class="pie-chart" viewBox="0 0 200 200">
-                <!-- Background circle for visibility -->
-                <circle cx="100" cy="100" r="92" fill="none" stroke="#1a1f2e" stroke-width="1"/>
-                <g transform="translate(100, 100)">
-                  <ng-container *ngFor="let slice of getPieSlices()">
-                    <path
-                      [attr.d]="slice.path"
-                      [attr.fill]="slice.color"
-                      [attr.stroke]="'#232a3b'"
-                      [attr.stroke-width]="1.5"
-                      class="pie-slice"
-                    >
-                      <title>{{ slice.label }}: ${{ slice.value | number:'1.2-2' }}</title>
-                    </path>
-                  </ng-container>
-                </g>
-              </svg>
+        <!-- Goals -->
+        <section class="card" data-animate>
+          <header class="card-head">
+            <h2>
+              <span class="head-ico"><svg lucideTarget [size]="13"></svg></span>
+              Goals
+            </h2>
+            <a routerLink="/goals" class="card-link">View all</a>
+          </header>
+          @if (goalRings.length > 0) {
+            <ul class="goal-list">
+              @for (goal of goalRings; track goal.id) {
+                <li class="goal-ring" [class.complete]="goal.complete">
+                  <svg class="ring-svg" viewBox="0 0 72 72" width="64" height="64" aria-hidden="true">
+                    <circle class="ring-track" cx="36" cy="36" r="30"></circle>
+                    <circle
+                      class="ring-fill"
+                      cx="36"
+                      cy="36"
+                      r="30"
+                      [attr.stroke-dasharray]="goalRingCircumference()"
+                      [style.stroke-dashoffset]="revealed ? goal.dashOffset : goalRingCircumference()"
+                    ></circle>
+                    @if (!goal.complete) {
+                      <text x="36" y="40" class="ring-pct">{{ goal.pct | number: '1.0-0' }}%</text>
+                    }
+                  </svg>
+                  @if (goal.complete) {
+                    <span class="ring-check"><svg lucideCheck [size]="18"></svg></span>
+                  }
+                  <div class="goal-info">
+                    <span class="goal-name">{{ goal.name }}</span>
+                    <span class="goal-amounts">
+                      {{ goal.current | currency }}
+                      <span class="of">of {{ goal.target | currency }}</span>
+                    </span>
+                  </div>
+                </li>
+              }
+            </ul>
+          } @else {
+            <div class="empty">
+              <svg lucideTarget [size]="22"></svg>
+              <p>No goals yet</p>
+              <a routerLink="/goals" class="inline-link">Set a savings goal</a>
             </div>
-            <div class="pie-legend">
-              <div *ngFor="let month of monthlySpending" class="legend-item">
-                <span class="legend-dot" [style.background]="getMonthColorSolid(month.month)"></span>
-                <span class="legend-label">{{ month.month_name }}</span>
-                <span class="legend-value">${{ month.total | number:'1.2-2' }}</span>
-              </div>
-            </div>
-          </div>
+          }
+        </section>
 
-          <div *ngIf="monthlySpending.length === 0" class="empty-state small">
-            <p>No monthly data available</p>
-          </div>
-        </div>
-      </div>
+        <!-- Monthly trend -->
+        <section class="card" data-animate>
+          <header class="card-head">
+            <h2>
+              <span class="head-ico"><svg lucideChartColumn [size]="13"></svg></span>
+              Spending by month
+            </h2>
+            <span class="card-note">{{ today.getFullYear() }}</span>
+          </header>
+          @if (monthlySpending.length > 0) {
+            <div class="cols" role="img" aria-label="Monthly spending, current year">
+              @for (m of monthColumns; track m.month; let i = $index) {
+                <div class="col" [class.current]="m.isCurrent" [class.zero]="m.total === 0">
+                  <div class="col-tip">{{ m.name }} · {{ m.total | currency }}</div>
+                  <div class="col-bar-wrap">
+                    <div
+                      class="col-bar"
+                      [style.height.%]="revealed ? Math.max(m.hPct, m.total > 0 ? 4 : 0) : 0"
+                      [style.transition-delay.ms]="i * 35"
+                    ></div>
+                  </div>
+                  <span class="col-label">{{ m.label }}</span>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="empty">
+              <svg lucideChartPie [size]="22"></svg>
+              <p>No monthly data yet</p>
+            </div>
+          }
+        </section>
+      </aside>
     </div>
-  </div>
+  }
 </div>

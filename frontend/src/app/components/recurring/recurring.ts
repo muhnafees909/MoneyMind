@@ -1,17 +1,44 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, ElementRef, NgZone, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { animate, stagger } from 'motion';
+import {
+  LucideBan,
+  LucideCheck,
+  LucideChevronDown,
+  LucidePlus,
+  LucideRefreshCw,
+  LucideRepeat,
+  LucideSearch,
+  LucideTriangleAlert,
+  LucideX
+} from '@lucide/angular';
 import { RecurringService, RecurringExpense } from '../../services/recurring.service';
 import { CategoryService, CategoryInfo } from '../../services/category.service';
 import { ModalService } from '../../services/modal.service';
 import { TransactionService } from '../../services/transactionService';
+import { CountUpDirective } from '../../shared/count-up.directive';
+import { CATEGORY_COLORS, OTHER_COLOR } from '../../shared/category-colors';
 
 type Cadence = 'weekly' | 'biweekly' | 'monthly' | 'annual';
 
 @Component({
   selector: 'app-recurring',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    CountUpDirective,
+    LucideBan,
+    LucideCheck,
+    LucideChevronDown,
+    LucidePlus,
+    LucideRefreshCw,
+    LucideRepeat,
+    LucideSearch,
+    LucideTriangleAlert,
+    LucideX
+  ],
   templateUrl: './recurring.html',
   styleUrl: './recurring.scss'
 })
@@ -21,6 +48,17 @@ export class RecurringComponent implements OnInit {
   loading = true;
   detecting = false;
   totalMonthly = 0;
+
+  initialLoading = true;
+  revealed = false;
+  preAnim = true;
+  private entranceDone = false;
+  private readonly reducedMotion =
+    typeof window !== 'undefined' &&
+    !!window.matchMedia &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  Math = Math;
 
   categories: CategoryInfo[] = [];
   // per-series category override while confirming
@@ -58,9 +96,14 @@ export class RecurringComponent implements OnInit {
     private recurringService: RecurringService,
     public categoryService: CategoryService,
     private modalService: ModalService,
-    private transactionService: TransactionService
+    private transactionService: TransactionService,
+    private zone: NgZone,
+    private host: ElementRef<HTMLElement>
   ) {
     this.categories = this.categoryService.getAllCategories();
+    if (this.reducedMotion) {
+      this.preAnim = false;
+    }
   }
 
   ngOnInit() {
@@ -97,12 +140,66 @@ export class RecurringComponent implements OnInit {
         this.confirmed = data;
         this.totalMonthly = data.reduce((sum, s) => sum + s.monthly_equivalent, 0);
         this.loading = false;
+        this.finishFirstLoad();
       },
       error: (error) => {
         console.error('Error loading recurring expenses:', error);
         this.loading = false;
+        this.finishFirstLoad();
       }
     });
+  }
+
+  private finishFirstLoad() {
+    if (!this.initialLoading) {
+      return;
+    }
+    this.initialLoading = false;
+    setTimeout(() => {
+      this.revealed = true;
+      this.runEntrance();
+    }, 40);
+  }
+
+  private runEntrance() {
+    if (this.entranceDone) {
+      return;
+    }
+    this.entranceDone = true;
+    if (this.reducedMotion) {
+      this.preAnim = false;
+      return;
+    }
+    setTimeout(() => {
+      const els = this.host.nativeElement.querySelectorAll('[data-animate]');
+      this.preAnim = false;
+      if (els.length === 0) {
+        return;
+      }
+      this.zone.runOutsideAngular(() => {
+        animate(
+          els,
+          { opacity: [0, 1], transform: ['translateY(10px)', 'translateY(0px)'] },
+          { duration: 0.5, delay: stagger(0.06), ease: [0.22, 1, 0.36, 1] }
+        );
+        const rows = Array.from(this.host.nativeElement.querySelectorAll('.tx-table tbody tr'));
+        if (rows.length > 0) {
+          animate(
+            rows,
+            { opacity: [0, 1], transform: ['translateY(8px)', 'translateY(0px)'] },
+            { duration: 0.4, delay: stagger(0.035, { startDelay: 0.35 }), ease: 'easeOut' }
+          );
+        }
+      });
+    });
+  }
+
+  categoryColor(category: string | null): string {
+    return CATEGORY_COLORS[(category || '').toUpperCase()] || OTHER_COLOR;
+  }
+
+  yearlyTotal(): number {
+    return this.totalMonthly * 12;
   }
 
   confirm(series: RecurringExpense) {

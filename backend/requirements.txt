@@ -22,3 +22,4 @@ gunicorn>=21.2.0
 
 # Testing
 pytest>=8.0.0
+bcrypt==5.0.0

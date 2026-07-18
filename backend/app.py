@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, jsonify
 from dotenv import load_dotenv
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
@@ -8,9 +8,7 @@ import os
 # Load environment variables
 load_dotenv()
 
-print("JWT_SECRET_KEY :", os.getenv('JWT_SECRET_KEY'))
-print("DATABASE_URL:", os.getenv('DATABASE_URL'))
-print("Current directory:", os.getcwd())
+# Never print secrets (JWT key, DB URL with password) — they end up in logs.
 
 app = Flask(__name__)
 
@@ -24,16 +22,31 @@ allowed_origins = [
 CORS(app,
      origins=allowed_origins,
      methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-     allow_headers=["Content-Type", "Authorization"],
+     allow_headers=["Content-Type", "Authorization", "X-CSRF-TOKEN"],
      supports_credentials=True,
      expose_headers=["Content-Type", "Authorization"]
 )
 
-# Configure SQLAlchemy
+# ============================================
+# Auth configuration
+# Browser sessions live in secure httpOnly cookies (localStorage is
+# readable by any injected script — unacceptable for bank data).
+# Header tokens remain accepted for API clients and tests; CSRF
+# double-submit protection applies to the cookie path.
+# ============================================
+_is_prod = bool(os.getenv('RENDER') or os.getenv('FLASK_ENV') == 'production')
+
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=3) 
+
+app.config['JWT_TOKEN_LOCATION'] = ['cookies', 'headers']
+app.config['JWT_COOKIE_SECURE'] = _is_prod          # HTTPS-only cookies in prod
+app.config['JWT_COOKIE_SAMESITE'] = 'None' if _is_prod else 'Lax'
+app.config['JWT_COOKIE_CSRF_PROTECT'] = True        # double-submit CSRF for cookie auth
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=30)
+app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(hours=12)   # idle window; rotated on use
+app.config['JWT_REFRESH_COOKIE_PATH'] = '/api/auth/refresh'
 
 from models.user import db
 db.init_app(app)
@@ -45,10 +58,29 @@ from models.plaid_account import PlaidAccount
 from models.envelope import EnvelopeAllocation, AllocationRule
 from models.income_event import IncomeEvent
 from models.recurring import RecurringExpense, RecurringExpenseOccurrence
+from models.user_profile import UserProfile
+from models.advisor_usage import AdvisorUsage, AdvisorAbuseFlag
 
 migrate = Migrate(app, db)
 
 jwt = JWTManager(app)
+
+
+# Clean, machine-readable 401s so the frontend can tell "expired" from
+# "missing/invalid" and react (refresh vs. redirect to login).
+@jwt.expired_token_loader
+def _expired_token(jwt_header, jwt_payload):
+    return jsonify({'error': 'Session expired', 'code': 'token_expired'}), 401
+
+
+@jwt.invalid_token_loader
+def _invalid_token(reason):
+    return jsonify({'error': 'Invalid session', 'code': 'token_invalid'}), 401
+
+
+@jwt.unauthorized_loader
+def _missing_token(reason):
+    return jsonify({'error': 'Authentication required', 'code': 'token_missing'}), 401
 
 from routes.auth import auth_bp
 app.register_blueprint(auth_bp, url_prefix='/api/auth')
@@ -76,6 +108,9 @@ app.register_blueprint(envelopes_bp, url_prefix='/api/envelopes')
 
 from routes.recurring import recurring_bp
 app.register_blueprint(recurring_bp, url_prefix='/api/recurring')
+
+from routes.profile import profile_bp
+app.register_blueprint(profile_bp, url_prefix='/api/profile')
 
 @app.route('/')
 def moneyMindWorks(): 

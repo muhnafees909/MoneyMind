@@ -1,129 +1,122 @@
-// Use same theme variables as transaction-form
-$bg-primary: #0f1219;
-$bg-secondary: #1a1f2e;
-$bg-card: #232a3b;
-$bg-input: #1e2433;
+// ============================================
+// MoneyMind Alert Dialog — warm editorial ledger
+// Container chrome (surface, border, radius, shadow) comes from the global
+// .mat-mdc-dialog-container overrides in styles.scss; this styles the body.
+// ============================================
 
-$accent-orange: #f97316;
-$accent-green: #22c55e;
-$accent-red: #ef4444;
-
-$text-primary: #ffffff;
-$text-secondary: #94a3b8;
-
-$border-color: rgba(148, 163, 184, 0.1);
-
-$radius-md: 12px;
-$radius-lg: 16px;
-$radius-pill: 50px;
-
-$shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.4);
-$shadow-glow: 0 0 40px rgba(249, 115, 22, 0.15);
-
-$font-primary: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-$transition-base: 0.25s ease;
-
-// Modal container override
-::ng-deep .custom-modal .mat-mdc-dialog-container {
-  background: linear-gradient(180deg, $bg-primary 0%, $bg-secondary 100%) !important;
-  border: 1px solid $border-color !important;
-  box-shadow: $shadow-lg, $shadow-glow !important;
-  border-radius: 20px !important;
-  padding: 0 !important;
+.mm-dialog {
+  font-family: var(--mm-font-ui);
+  color: var(--mm-text-1);
+  padding: 20px 22px;
+  min-width: 340px;
+  max-width: 420px;
 }
 
-.modal-container {
-  display: flex;
-  flex-direction: column;
-  min-width: 350px;
-  font-family: $font-primary;
-}
-
-.modal-header {
-  padding: 24px 28px 20px 28px;
-  border-bottom: 1px solid $border-color;
+.mm-dialog-head {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
+  margin-bottom: 12px;
+}
 
-  &.error .modal-icon {
-    color: $accent-red;
+// Status icon chip — the established semantic colors, never color-alone
+.dialog-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--mm-radius-sm);
+  flex-shrink: 0;
+
+  &.error {
+    background: var(--mm-neg-dim);
+    color: var(--mm-neg);
   }
 
-  &.success .modal-icon {
-    color: $accent-green;
+  &.success {
+    background: var(--mm-pos-dim);
+    color: var(--mm-pos);
   }
 
-  &.info .modal-icon {
-    color: $accent-orange;
+  &.info {
+    background: var(--mm-brand-dim);
+    color: var(--mm-brand);
   }
 }
 
-.modal-icon {
-  font-size: 32px;
-  line-height: 1;
-}
-
-.modal-title {
-  font-size: 22px;
-  font-weight: 700;
-  color: $text-primary;
+.mm-dialog-title {
+  flex: 1;
   margin: 0;
-  letter-spacing: -0.02em;
+  font-family: var(--mm-font-serif);
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: 0;
 }
 
-.modal-content {
-  padding: 24px 28px;
+.dialog-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: var(--mm-radius-sm);
   background: transparent;
+  color: var(--mm-text-3);
+  cursor: pointer;
+  transition:
+    background var(--mm-dur-fast) ease,
+    color var(--mm-dur-fast) ease;
+
+  &:hover {
+    background: var(--mm-surface-3);
+    color: var(--mm-text-1);
+  }
 }
 
-.modal-message {
-  font-size: 15px;
+.mm-dialog-message {
+  margin: 0 0 20px;
+  font-size: 13.5px;
   line-height: 1.6;
-  color: $text-secondary;
-  margin: 0;
+  color: var(--mm-text-2);
 }
 
-.modal-actions {
-  padding: 20px 28px 28px 28px;
-  border-top: 1px solid $border-color;
+.mm-dialog-actions {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
+  gap: 8px;
 }
 
 .btn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 12px 32px;
+  gap: 8px;
+  padding: 9px 16px;
   border: none;
-  border-radius: $radius-pill;
-  font-family: $font-primary;
-  font-size: 15px;
+  border-radius: var(--mm-radius-xs);
+  font-family: var(--mm-font-ui);
+  font-size: 13.5px;
   font-weight: 600;
+  letter-spacing: -0.01em;
   cursor: pointer;
-  transition: $transition-base;
-  outline: none;
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, $accent-orange 0%, darken($accent-orange, 5%) 100%);
-  color: $text-primary;
-  box-shadow: 0 0 30px rgba($accent-orange, 0.15);
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 0 30px rgba($accent-orange, 0.25), 0 4px 20px rgba(0, 0, 0, 0.3);
-  }
+  transition:
+    background var(--mm-dur-fast) ease,
+    color var(--mm-dur-fast) ease,
+    transform var(--mm-dur-fast) ease;
 
   &:active {
-    transform: translateY(0);
+    transform: scale(0.97);
   }
 }
 
-@media (max-width: 600px) {
-  .modal-container {
-    min-width: 90vw;
+.btn-solid {
+  background: var(--mm-brand);
+  color: var(--mm-brand-ink);
+  box-shadow: 0 4px 16px -4px var(--mm-brand-glow);
+
+  &:hover {
+    background: var(--mm-brand-strong);
   }
 }

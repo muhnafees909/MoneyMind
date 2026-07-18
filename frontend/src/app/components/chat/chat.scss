@@ -1,486 +1,236 @@
-/* chat.component.scss */
-
 // ============================================
-// VARIABLES - Dark Fintech Theme
+// MoneyMind Advisor — warm editorial ledger
+// A printed-interview transcript, not a chat widget: no bubbles, no
+// avatars. Q&A blocks, mono data chips, grounded-in strips.
+// Follows .claude/skills/moneymind-design-system/SKILL.md.
 // ============================================
-$bg-primary: #0f1219;
-$bg-secondary: #1a1f2e;
-$bg-card: #232a3b;
-$bg-input: #1e2433;
-$bg-hover: #2a3347;
 
-$accent-orange: #f97316;
-$accent-purple: #a855f7;
-$accent-coral: #ff6b6b;
-$accent-green: #22c55e;
-$accent-blue: #3b82f6;
-
-$text-primary: #ffffff;
-$text-secondary: #94a3b8;
-$text-muted: #64748b;
-
-$border-color: rgba(148, 163, 184, 0.1);
-$border-color-hover: rgba(148, 163, 184, 0.2);
-
-$gradient-primary: linear-gradient(135deg, $accent-orange 0%, $accent-purple 100%);
-$gradient-user: linear-gradient(135deg, $accent-orange 0%, $accent-coral 100%);
-
-$shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
-$shadow-md: 0 4px 20px rgba(0, 0, 0, 0.3);
-
-$radius-sm: 8px;
-$radius-md: 12px;
-$radius-lg: 16px;
-$radius-xl: 24px;
-$radius-pill: 50px;
-
-$font-primary: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-
-$transition-fast: 0.15s ease;
-$transition-base: 0.25s ease;
-
-// ============================================
-// CHAT CONTAINER
-// ============================================
-.chat-container {
+.mm-dash.advisor {
+  height: calc(100vh - 64px);
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  background: $bg-primary;
-  font-family: $font-primary;
+  background: var(--mm-bg);
+  color: var(--mm-text-1);
+  font-family: var(--mm-font-ui);
+  font-size: 14px;
+  padding: 28px 32px 0;
+
+  * {
+    box-sizing: border-box;
+  }
+
+  ::selection {
+    background: var(--mm-brand-dim);
+  }
+
+  button {
+    font-family: inherit;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--mm-brand);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+.mm-dash.pre-anim [data-animate] {
+  opacity: 0;
+}
+
+.dash-head,
+.transcript,
+.composer {
+  width: 100%;
+  max-width: 780px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 // ============================================
 // HEADER
 // ============================================
-.chat-header {
+.dash-head {
   display: flex;
+  align-items: flex-end;
   justify-content: space-between;
-  align-items: center;
-  padding: 20px 24px;
-  background: $bg-secondary;
-  border-bottom: 1px solid $border-color;
+  gap: 16px;
+  margin-bottom: 20px;
   flex-shrink: 0;
-}
 
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.header-icon {
-  width: 48px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: $gradient-primary;
-  border-radius: $radius-md;
-
-  svg {
-    width: 24px;
-    height: 24px;
-    color: $text-primary;
-  }
-}
-
-.header-info {
-  h2 {
-    font-size: 20px;
-    font-weight: 700;
-    color: $text-primary;
-    margin: 0 0 4px 0;
+  h1 {
+    margin: 0;
+    font-family: var(--mm-font-serif);
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: 0;
   }
 
-  .header-subtitle {
+  .head-date {
+    margin: 4px 0 0;
     font-size: 13px;
-    color: $text-muted;
+    color: var(--mm-text-3);
   }
 }
 
-.clear-btn {
-  display: flex;
+// ============================================
+// BUTTONS (system recipes)
+// ============================================
+.btn {
+  display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 18px;
-  background: $bg-hover;
-  border: 1px solid $border-color;
-  border-radius: $radius-pill;
-  color: $text-secondary;
-  font-family: $font-primary;
-  font-size: 14px;
-  font-weight: 500;
+  padding: 9px 14px;
+  border: none;
+  border-radius: var(--mm-radius-xs);
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
   cursor: pointer;
-  transition: $transition-base;
+  background: transparent;
+  color: var(--mm-text-2);
+  transition:
+    background var(--mm-dur-fast) ease,
+    color var(--mm-dur-fast) ease,
+    border-color var(--mm-dur-fast) ease,
+    transform var(--mm-dur-fast) ease;
 
   svg {
-    width: 16px;
-    height: 16px;
-  }
-
-  &:hover {
-    background: $bg-card;
-    border-color: $border-color-hover;
-    color: $text-primary;
-  }
-}
-
-// ============================================
-// ERROR BANNER
-// ============================================
-.error-banner {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px 20px;
-  background: rgba($accent-coral, 0.1);
-  border-bottom: 1px solid rgba($accent-coral, 0.3);
-  color: $accent-coral;
-  font-size: 14px;
-
-  svg {
-    width: 20px;
-    height: 20px;
     flex-shrink: 0;
   }
 
-  span {
-    flex: 1;
+  &:active:not(:disabled) {
+    transform: scale(0.97);
   }
 
-  .dismiss-btn {
-    width: 28px;
-    height: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: transparent;
-    border: none;
-    border-radius: $radius-sm;
-    color: $accent-coral;
-    cursor: pointer;
-    transition: $transition-fast;
+  &:disabled {
+    opacity: 0.55;
+    cursor: default;
+  }
+}
 
-    svg {
-      width: 16px;
-      height: 16px;
-    }
+.btn-solid {
+  background: var(--mm-brand);
+  color: var(--mm-brand-ink);
+  box-shadow: 0 4px 16px -4px var(--mm-brand-glow);
 
-    &:hover {
-      background: rgba($accent-coral, 0.2);
-    }
+  &:hover:not(:disabled) {
+    background: var(--mm-brand-strong);
+  }
+}
+
+.btn-ghost {
+  border: 1px solid var(--mm-hairline-2);
+
+  &:hover:not(:disabled) {
+    background: var(--mm-surface-2);
+    color: var(--mm-text-1);
   }
 }
 
 // ============================================
-// MESSAGES CONTAINER
+// TRANSCRIPT
 // ============================================
-.messages-container {
+.transcript {
   flex: 1;
   overflow-y: auto;
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+  padding: 4px 2px 24px;
 
-  // Custom scrollbar
   &::-webkit-scrollbar {
     width: 6px;
   }
 
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
   &::-webkit-scrollbar-thumb {
-    background: $bg-hover;
+    background: var(--mm-surface-3);
     border-radius: 3px;
-
-    &:hover {
-      background: $border-color-hover;
-    }
   }
 }
 
-// ============================================
-// WELCOME STATE
-// ============================================
-.welcome-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+// Empty state: the screen's hero moment
+.empty-consult {
+  padding: 48px 0 24px;
   text-align: center;
-  padding: 60px 20px;
-  margin: auto;
 
-  .welcome-icon {
-    font-size: 64px;
-    margin-bottom: 20px;
+  .consult-headline {
+    margin: 0 0 12px;
+    font-family: var(--mm-font-serif);
+    font-size: clamp(28px, 3.4vw, 40px);
+    font-weight: 600;
+    letter-spacing: 0;
+    text-shadow: 0 0 56px var(--mm-brand-glow);
   }
 
-  h3 {
-    font-size: 24px;
-    font-weight: 700;
-    color: $text-primary;
-    margin: 0 0 12px 0;
-  }
-
-  p {
-    font-size: 15px;
-    color: $text-muted;
-    margin: 0 0 32px 0;
-    max-width: 400px;
-    line-height: 1.6;
+  .consult-sub {
+    margin: 0 auto 28px;
+    max-width: 440px;
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: var(--mm-text-3);
   }
 }
 
-.suggestion-chips {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 12px;
+.starter-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  max-width: 560px;
+  margin: 0 auto;
 }
 
-.suggestion-chip {
+.starter {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 20px;
-  background: $bg-card;
-  border: 1px solid $border-color;
-  border-radius: $radius-pill;
-  color: $text-secondary;
-  font-family: $font-primary;
-  font-size: 14px;
+  gap: 10px;
+  padding: 13px 16px;
+  background: var(--mm-surface-raised);
+  border: 1px solid rgba(244, 241, 236, 0.07);
+  border-radius: var(--mm-radius);
+  box-shadow: var(--mm-shadow-1);
+  color: var(--mm-text-2);
+  font-size: 13px;
   font-weight: 500;
+  text-align: left;
   cursor: pointer;
-  transition: $transition-base;
+  transition:
+    border-color var(--mm-dur-fast) ease,
+    color var(--mm-dur-fast) ease,
+    background var(--mm-dur-fast) ease,
+    transform var(--mm-dur-fast) ease;
 
-  span {
-    font-size: 16px;
+  svg {
+    color: var(--mm-brand);
+    flex-shrink: 0;
   }
 
   &:hover {
-    background: $bg-hover;
-    border-color: $accent-orange;
-    color: $text-primary;
-    transform: translateY(-2px);
+    border-color: rgba(124, 169, 130, 0.35);
+    color: var(--mm-text-1);
+    background: var(--mm-surface-2);
+  }
+
+  &:active {
+    transform: scale(0.98);
   }
 }
 
 // ============================================
-// MESSAGES
+// TURNS — a printed interview, one column, no bubbles
 // ============================================
-.message {
+.exchange-list {
   display: flex;
-  align-items: flex-end;
-  gap: 12px;
-  max-width: 85%;
-  animation: fadeInUp 0.3s ease-out;
-
-  &.user {
-    align-self: flex-end;
-    flex-direction: row-reverse;
-  }
-
-  &.assistant {
-    align-self: flex-start;
-  }
+  flex-direction: column;
+  gap: 26px;
+  padding-top: 8px;
 }
 
-.message-avatar {
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: $bg-card;
-  border: 1px solid $border-color;
-  border-radius: 50%;
-  font-size: 18px;
-  flex-shrink: 0;
+.turn {
+  animation: mm-turn-in 0.35s var(--mm-ease-out) backwards;
 }
 
-.message-bubble {
-  padding: 14px 18px;
-  border-radius: $radius-lg;
-  position: relative;
-
-  &.user {
-    background: $gradient-user;
-    border-bottom-right-radius: 4px;
-
-    .message-content {
-      color: $text-primary;
-    }
-
-    .message-timestamp {
-      color: rgba(255, 255, 255, 0.7);
-    }
-  }
-
-  &.assistant {
-    background: $bg-card;
-    border: 1px solid $border-color;
-    border-bottom-left-radius: 4px;
-
-    .message-content {
-      color: $text-primary;
-    }
-
-    .message-timestamp {
-      color: $text-muted;
-    }
-  }
-
-  &.loading {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 16px 20px;
-  }
-}
-
-.message-content {
-  font-size: 15px;
-  line-height: 1.6;
-  margin: 0 0 8px 0;
-  word-wrap: break-word;
-}
-
-.message-timestamp {
-  font-size: 11px;
-  display: block;
-}
-
-// ============================================
-// LOADING INDICATOR
-// ============================================
-.typing-indicator {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-
-  span {
-    width: 8px;
-    height: 8px;
-    background: $text-muted;
-    border-radius: 50%;
-    animation: bounce 1.4s ease-in-out infinite;
-
-    &:nth-child(1) { animation-delay: 0s; }
-    &:nth-child(2) { animation-delay: 0.2s; }
-    &:nth-child(3) { animation-delay: 0.4s; }
-  }
-}
-
-@keyframes bounce {
-  0%, 60%, 100% {
-    transform: translateY(0);
-  }
-  30% {
-    transform: translateY(-8px);
-  }
-}
-
-.loading-text {
-  font-size: 13px;
-  color: $text-muted;
-  font-style: italic;
-}
-
-// ============================================
-// INPUT AREA
-// ============================================
-.input-area {
-  padding: 20px 24px;
-  background: $bg-secondary;
-  border-top: 1px solid $border-color;
-  flex-shrink: 0;
-}
-
-.input-wrapper {
-  display: flex;
-  align-items: stretch;
-  background: $bg-input;
-  border: 1px solid $border-color;
-  border-radius: $radius-pill;
-  overflow: hidden;
-  transition: $transition-base;
-
-  &:focus-within {
-    border-color: $accent-orange;
-    box-shadow: 0 0 0 3px rgba($accent-orange, 0.1);
-  }
-
-  input {
-    flex: 1;
-    padding: 16px 20px;
-    background: transparent;
-    border: none;
-    font-family: $font-primary;
-    font-size: 15px;
-    color: $text-primary;
-    outline: none;
-
-    &::placeholder {
-      color: $text-muted;
-    }
-
-    &:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-  }
-
-  .send-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 56px;
-    background: $accent-orange;
-    border: none;
-    cursor: pointer;
-    transition: $transition-base;
-
-    svg {
-      width: 20px;
-      height: 20px;
-      color: $text-primary;
-    }
-
-    &:hover:not(.disabled) {
-      background: $accent-purple;
-    }
-
-    &.disabled {
-      background: $bg-hover;
-      cursor: not-allowed;
-
-      svg {
-        color: $text-muted;
-      }
-    }
-  }
-}
-
-.input-hint {
-  display: block;
-  text-align: center;
-  font-size: 12px;
-  color: $text-muted;
-  margin-top: 10px;
-}
-
-// ============================================
-// ANIMATIONS
-// ============================================
-@keyframes fadeInUp {
+@keyframes mm-turn-in {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
@@ -488,253 +238,309 @@ $transition-base: 0.25s ease;
   }
 }
 
-// ============================================
-// RESPONSIVE DESIGN
-// ============================================
-@media (max-width: 768px) {
-  .chat-header {
-    padding: 16px 20px;
+.turn-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 7px;
+
+  .who {
+    font-family: var(--mm-font-num);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--mm-text-3);
   }
 
-  .header-icon {
-    width: 40px;
-    height: 40px;
+  .when {
+    font-family: var(--mm-font-num);
+    font-size: 10px;
+    color: var(--mm-text-3);
+    opacity: 0.7;
+  }
+
+  .advisor-mark {
+    width: 8px;
+    height: 8px;
+    border-radius: 1px;
+    background: var(--mm-brand);
+    flex-shrink: 0;
+  }
+}
+
+.turn-advisor .turn-label .who {
+  color: var(--mm-brand);
+}
+
+// The user's question reads as a pull-quote
+.turn-user .question {
+  margin: 0;
+  font-family: var(--mm-font-serif);
+  font-size: 16.5px;
+  font-style: italic;
+  font-weight: 500;
+  line-height: 1.45;
+  color: var(--mm-text-1);
+  max-width: 56ch;
+}
+
+// The advisor's answer sits against a fern rule
+.turn-advisor {
+  border-left: 2px solid rgba(124, 169, 130, 0.4);
+  padding-left: 16px;
+  margin-left: 3px;
+}
+
+.answer {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--mm-text-2);
+  max-width: 62ch;
+
+  ::ng-deep {
+    p {
+      margin: 0 0 10px;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+
+    strong {
+      color: var(--mm-text-1);
+      font-weight: 600;
+    }
+
+    ul,
+    ol {
+      margin: 0 0 10px;
+      padding-left: 20px;
+    }
+
+    li {
+      margin-bottom: 4px;
+    }
+
+    h1,
+    h2,
+    h3 {
+      font-family: var(--mm-font-serif);
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--mm-text-1);
+      margin: 14px 0 6px;
+    }
+
+    // Cited figures become mono data chips — same tabular voice as the app
+    code {
+      font-family: var(--mm-font-num);
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--mm-text-1);
+      background: var(--mm-surface-3);
+      border-radius: var(--mm-radius-xs);
+      padding: 1px 6px;
+      white-space: nowrap;
+    }
+
+    a {
+      color: var(--mm-brand-strong);
+    }
+  }
+}
+
+// "Grounded in" strip: the real context the answer was computed from
+.grounding {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--mm-hairline);
+
+  .grounding-title {
+    font-family: var(--mm-font-num);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--mm-text-3);
+  }
+
+  .ground-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--mm-font-num);
+    font-size: 11px;
+    color: var(--mm-text-3);
 
     svg {
-      width: 20px;
-      height: 20px;
+      color: var(--mm-brand);
+      opacity: 0.8;
     }
   }
+}
 
-  .header-info h2 {
-    font-size: 18px;
+// ============================================
+// THINKING — a fern rule sweeping, not bouncing dots
+// ============================================
+.thinking .thinking-text {
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: var(--mm-text-3);
+  font-style: italic;
+}
+
+.thinking-rule {
+  width: 180px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--mm-surface-3);
+  overflow: hidden;
+
+  span {
+    display: block;
+    width: 40%;
+    height: 100%;
+    border-radius: 1px;
+    background: linear-gradient(90deg, transparent, var(--mm-brand), transparent);
+    animation: mm-think 1.3s var(--mm-ease-out) infinite;
   }
+}
 
-  .clear-btn span {
-    display: none;
+@keyframes mm-think {
+  from {
+    transform: translateX(-100%);
   }
-
-  .clear-btn {
-    padding: 10px;
+  to {
+    transform: translateX(450%);
   }
+}
 
-  .messages-container {
-    padding: 16px;
-    gap: 16px;
+.state-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--mm-font-num);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+
+  &.over {
+    color: var(--mm-neg);
   }
+}
 
-  .message {
-    max-width: 90%;
-  }
+// ============================================
+// COMPOSER
+// ============================================
+.composer {
+  flex-shrink: 0;
+  padding: 14px 0 22px;
+  border-top: 1px solid var(--mm-hairline);
+  background: var(--mm-bg);
+}
 
-  .welcome-state {
-    padding: 40px 16px;
+.composer-box {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
 
-    .welcome-icon {
-      font-size: 48px;
+  textarea {
+    flex: 1;
+    resize: none;
+    min-height: 42px;
+    max-height: 130px;
+    padding: 11px 12px;
+    background: var(--mm-surface);
+    border: 1px solid var(--mm-hairline-2);
+    border-radius: var(--mm-radius-xs);
+    color: var(--mm-text-1);
+    font-family: var(--mm-font-ui);
+    font-size: 13.5px;
+    line-height: 1.4;
+    outline: none;
+    transition:
+      border-color var(--mm-dur-fast) ease,
+      box-shadow var(--mm-dur-fast) ease;
+
+    &::placeholder {
+      color: var(--mm-text-3);
     }
 
-    h3 {
-      font-size: 20px;
+    &:focus {
+      border-color: var(--mm-brand);
+      box-shadow: 0 0 0 3px var(--mm-brand-dim);
+    }
+
+    &:disabled {
+      opacity: 0.6;
     }
   }
+}
 
-  .suggestion-chips {
+.composer-hint {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 8px 0 0;
+  font-size: 11px;
+  color: var(--mm-text-3);
+  font-family: var(--mm-font-num);
+}
+
+// Advisor quota indicator — quiet ink while fine; color only when attention
+// is due (warn when running low, neg when exhausted), icon always paired
+.usage-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 600;
+  font-size: 10.5px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+
+  &.warn {
+    color: var(--mm-warn);
+  }
+
+  &.over {
+    color: var(--mm-neg);
+  }
+}
+
+// ============================================
+// RESPONSIVE
+// ============================================
+@media (max-width: 680px) {
+  .mm-dash.advisor {
+    padding: 20px 16px 0;
+  }
+
+  .starter-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dash-head {
     flex-direction: column;
-    width: 100%;
-  }
-
-  .suggestion-chip {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .input-area {
-    padding: 16px 20px;
-  }
-
-  .input-wrapper input {
-    padding: 14px 16px;
-    font-size: 16px; // Prevents zoom on iOS
-  }
-
-  .input-hint {
-    display: none;
-  }
-}
-
-@media (max-width: 480px) {
-  .message-avatar {
-    width: 32px;
-    height: 32px;
-    font-size: 16px;
-  }
-
-  .message-bubble {
-    padding: 12px 14px;
-  }
-
-  .message-content {
-    font-size: 14px;
+    align-items: flex-start;
   }
 }
 
 // ============================================
-// MARKDOWN CONTENT STYLES
+// REDUCED MOTION
 // ============================================
-.markdown-content {
-  font-family: $font-primary;
-  line-height: 1.6;
-  color: $text-primary;
-
-  // Reset default margins
-  > *:first-child {
-    margin-top: 0;
-  }
-
-  > *:last-child {
-    margin-bottom: 0;
-  }
-
-  // Paragraphs
-  p {
-    margin: 0 0 12px 0;
-
-    &:last-child {
-      margin-bottom: 0;
-    }
-  }
-
-  // Headings
-  h1, h2, h3, h4, h5, h6 {
-    color: $accent-orange;
-    font-weight: 700;
-    margin: 16px 0 12px 0;
-    line-height: 1.3;
-
-    &:first-child {
-      margin-top: 0;
-    }
-  }
-
-  h1 { font-size: 22px; }
-  h2 { font-size: 20px; }
-  h3 { font-size: 18px; }
-  h4 { font-size: 16px; }
-  h5 { font-size: 15px; }
-  h6 { font-size: 14px; }
-
-  // Bold text
-  strong, b {
-    font-weight: 700;
-    color: $text-primary;
-  }
-
-  // Italic text
-  em, i {
-    font-style: italic;
-    color: $text-secondary;
-  }
-
-  // Lists
-  ul, ol {
-    margin: 8px 0 12px 0;
-    padding-left: 24px;
-
-    &:last-child {
-      margin-bottom: 0;
-    }
-  }
-
-  li {
-    margin: 6px 0;
-    color: $text-primary;
-
-    &::marker {
-      color: $accent-orange;
-    }
-  }
-
-  // Nested lists
-  ul ul, ul ol, ol ul, ol ol {
-    margin: 4px 0;
-  }
-
-  // Code blocks
-  code {
-    background: rgba($bg-input, 0.6);
-    border: 1px solid $border-color;
-    border-radius: 4px;
-    padding: 2px 6px;
-    font-family: 'Courier New', monospace;
-    font-size: 13px;
-    color: $accent-orange;
-  }
-
-  pre {
-    background: rgba($bg-input, 0.6);
-    border: 1px solid $border-color;
-    border-radius: $radius-md;
-    padding: 12px;
-    margin: 12px 0;
-    overflow-x: auto;
-
-    code {
-      background: transparent;
-      border: none;
-      padding: 0;
-      color: $text-primary;
-    }
-  }
-
-  // Links
-  a {
-    color: $accent-orange;
-    text-decoration: none;
-    transition: $transition-fast;
-
-    &:hover {
-      color: lighten($accent-orange, 10%);
-      text-decoration: underline;
-    }
-  }
-
-  // Blockquotes
-  blockquote {
-    border-left: 3px solid $accent-orange;
-    padding-left: 16px;
-    margin: 12px 0;
-    color: $text-secondary;
-    font-style: italic;
-  }
-
-  // Horizontal rules
-  hr {
-    border: none;
-    border-top: 1px solid $border-color;
-    margin: 16px 0;
-  }
-
-  // Tables (if OpenAI returns them)
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 12px 0;
-
-    th, td {
-      border: 1px solid $border-color;
-      padding: 8px 12px;
-      text-align: left;
-    }
-
-    th {
-      background: rgba($bg-input, 0.6);
-      font-weight: 700;
-      color: $accent-orange;
-    }
-
-    tr:nth-child(even) {
-      background: rgba($bg-input, 0.3);
-    }
+@media (prefers-reduced-motion: reduce) {
+  .mm-dash.advisor *,
+  .mm-dash.advisor *::before,
+  .mm-dash.advisor *::after {
+    transition-duration: 0.01ms !important;
+    animation: none !important;
   }
 }

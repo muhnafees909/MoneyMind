@@ -1,6 +1,9 @@
 <div class="modal-container">
   <div class="modal-header">
     <h2 class="modal-title">{{ data?.transaction ? 'Edit' : 'Add' }} Transaction</h2>
+    <button type="button" class="modal-close" (click)="onCancel()" aria-label="Close">
+      <svg lucideX [size]="16"></svg>
+    </button>
   </div>
 
   <div class="modal-content">

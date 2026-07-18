@@ -1,115 +1,161 @@
-<div class="chat-container">
-  <!-- Header -->
-  <div class="chat-header">
-    <div class="header-left">
-      <div class="header-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-        </svg>
-      </div>
-      <div class="header-info">
-        <h2>Financial Advisor</h2>
-        <span class="header-subtitle">AI-powered financial guidance</span>
-      </div>
+<div class="mm-dash advisor" [class.pre-anim]="preAnim">
+  <!-- ============ HEADER ============ -->
+  <header class="dash-head" data-animate>
+    <div>
+      <h1>Advisor</h1>
+      <p class="head-date">Answers grounded in your own ledger — budgets, goals, and transactions</p>
     </div>
-    <button class="clear-btn" (click)="clearChat()" title="Clear chat history">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <polyline points="23 4 23 10 17 10"/>
-        <polyline points="1 20 1 14 7 14"/>
-        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-      </svg>
-      <span>Clear</span>
-    </button>
-  </div>
-
-  <!-- Error Message -->
-  <div *ngIf="hasError" class="error-banner">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <circle cx="12" cy="12" r="10"/>
-      <line x1="12" y1="8" x2="12" y2="12"/>
-      <line x1="12" y1="16" x2="12.01" y2="16"/>
-    </svg>
-    <span>{{ error }}</span>
-    <button class="dismiss-btn" (click)="hasError">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="18" y1="6" x2="6" y2="18"/>
-        <line x1="6" y1="6" x2="18" y2="18"/>
-      </svg>
-    </button>
-  </div>
-
-  <!-- Messages Container -->
-  <div class="messages-container" #messagesContainer>
-    <!-- Welcome Message (shown when no messages) -->
-    <div *ngIf="messages.length === 0 && !loading" class="welcome-state">
-      <div class="welcome-icon">🤖</div>
-      <h3>How can I help you today?</h3>
-      <p>Ask me anything about your finances, budgets, spending habits, or savings goals.</p>
-      <div class="suggestion-chips">
-        <button class="suggestion-chip" (click)="userInput = 'How am I doing on my budget this month?'; sendMessage()">
-          <span>📊</span> Budget analysis
+    <div class="head-actions">
+      @if (!isEmpty) {
+        <button class="btn btn-ghost" (click)="clearChat()">
+          <svg lucideEraser [size]="16"></svg>
+          <span>New conversation</span>
         </button>
-        <button class="suggestion-chip" (click)="userInput = 'Where can I cut expenses?'; sendMessage()">
-          <span>✂️</span> Cut expenses
-        </button>
-        <button class="suggestion-chip" (click)="userInput = 'How can I save more money?'; sendMessage()">
-          <span>💰</span> Saving tips
-        </button>
-      </div>
+      }
     </div>
+  </header>
 
-    <!-- Messages -->
-    <div *ngFor="let message of messages" class="message" [ngClass]="message.role">
-      <div class="message-avatar" *ngIf="message.role === 'assistant'">
-        <span>🤖</span>
-      </div>
-      
-      <div class="message-bubble" [ngClass]="message.role">
-        <div class="message-content markdown-content" markdown [data]="message.content"></div>
-        <span class="message-timestamp">{{ message.timestamp | date: 'shortTime' }}</span>
-      </div>
-
-      <div class="message-avatar" *ngIf="message.role === 'user'">
-        <span>👤</span>
-      </div>
-    </div>
-
-    <!-- Loading Indicator -->
-    <div *ngIf="loading" class="message assistant">
-      <div class="message-avatar">
-        <span>🤖</span>
-      </div>
-      <div class="message-bubble assistant loading">
-        <div class="typing-indicator">
-          <span></span>
-          <span></span>
-          <span></span>
+  <!-- ============ TRANSCRIPT ============ -->
+  <div class="transcript" #messagesContainer>
+    @if (isEmpty) {
+      <div class="empty-consult" data-animate>
+        <h2 class="consult-headline">Ask about your money.</h2>
+        <p class="consult-sub">
+          The advisor reads your budgets, goals, and transactions before it answers —
+          nothing generic, no advice about money you don't have.
+        </p>
+        <div class="starter-grid">
+          @for (prompt of starterPrompts; track prompt.label) {
+            <button type="button" class="starter" (click)="askStarter(prompt)">
+              @switch (prompt.icon) {
+                @case ('chart') {
+                  <svg lucideChartPie [size]="16"></svg>
+                }
+                @case ('target') {
+                  <svg lucideTarget [size]="16"></svg>
+                }
+                @case ('trim') {
+                  <svg lucideTrendingDown [size]="16"></svg>
+                }
+                @case ('save') {
+                  <svg lucidePiggyBank [size]="16"></svg>
+                }
+              }
+              <span>{{ prompt.label }}</span>
+            </button>
+          }
         </div>
-        <span class="loading-text">AI is thinking...</span>
       </div>
-    </div>
+    } @else {
+      <div class="exchange-list">
+        @for (message of messages; track $index) {
+          @if (message.role === 'user') {
+            <div class="turn turn-user">
+              <div class="turn-label">
+                <span class="who">You</span>
+                <span class="when">{{ message.timestamp | date: 'shortTime' }}</span>
+              </div>
+              <p class="question">{{ message.content }}</p>
+            </div>
+          } @else {
+            <div class="turn turn-advisor">
+              <div class="turn-label">
+                <span class="advisor-mark"></span>
+                <span class="who">Advisor</span>
+                <span class="when">{{ message.timestamp | date: 'shortTime' }}</span>
+              </div>
+              <div class="answer">
+                <markdown [data]="message.content"></markdown>
+              </div>
+              @if (message.context) {
+                <div class="grounding">
+                  <span class="grounding-title">Grounded in</span>
+                  <span class="ground-chip">
+                    <svg lucideWallet [size]="11"></svg>
+                    {{ message.context.budgets_count }} budgets
+                  </span>
+                  <span class="ground-chip">
+                    <svg lucideTarget [size]="11"></svg>
+                    {{ message.context.active_goals }} goals
+                  </span>
+                  <span class="ground-chip">
+                    <svg lucideReceiptText [size]="11"></svg>
+                    {{ message.context.recent_transactions_analyzed }} transactions
+                  </span>
+                  <span class="ground-chip">
+                    <svg lucideChartPie [size]="11"></svg>
+                    {{ message.context.monthly_spending | currency }} this month
+                  </span>
+                </div>
+              }
+            </div>
+          }
+        }
+
+        @if (loading) {
+          <div class="turn turn-advisor thinking">
+            <div class="turn-label">
+              <span class="advisor-mark"></span>
+              <span class="who">Advisor</span>
+            </div>
+            <p class="thinking-text">Reading your ledger…</p>
+            <div class="thinking-rule"><span></span></div>
+          </div>
+        }
+
+        @if (error) {
+          <div class="turn">
+            <span class="state-line over">
+              <svg lucideOctagonAlert [size]="13"></svg>
+              {{ error }}
+            </span>
+          </div>
+        }
+      </div>
+    }
   </div>
 
-  <!-- Input Area -->
-  <div class="input-area">
-    <div class="input-wrapper">
-      <input
-        type="text"
+  <!-- ============ COMPOSER ============ -->
+  <footer class="composer" data-animate>
+    <div class="composer-box">
+      <textarea
         [(ngModel)]="userInput"
-        (keyup.enter)="sendMessage()"
-        [disabled]="loading"
-        placeholder="Ask a financial question...">
+        (keydown)="onComposerKeydown($event)"
+        [placeholder]="
+          dailyExhausted
+            ? 'Daily advisor limit reached — back tomorrow.'
+            : 'Ask about your budgets, spending, or goals…'
+        "
+        rows="1"
+        [disabled]="loading || dailyExhausted"
+        aria-label="Ask the advisor"
+      ></textarea>
       <button
-        class="send-btn"
+        class="btn btn-solid"
         (click)="sendMessage()"
-        [disabled]="isInputDisabled"
-        [class.disabled]="isInputDisabled">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="22" y1="2" x2="11" y2="13"/>
-          <polygon points="22 2 15 22 11 13 2 9 22 2"/>
-        </svg>
+        [disabled]="loading || dailyExhausted || !userInput.trim()"
+      >
+        <span>Ask</span>
+        <svg lucideCornerDownLeft [size]="15"></svg>
       </button>
     </div>
-    <span class="input-hint">Press Enter to send</span>
-  </div>
+    <p class="composer-hint">
+      <span>Enter to send · Shift+Enter for a new line · Finance questions only</span>
+      @if (usage) {
+        @if (dailyExhausted) {
+          <span class="usage-line over">
+            <svg lucideOctagonAlert [size]="11"></svg>
+            Daily limit reached · resets in {{ dailyResetLabel }}
+          </span>
+        } @else {
+          <span class="usage-line" [class.warn]="usageWarn">
+            @if (usageWarn) {
+              <svg lucideTriangleAlert [size]="11"></svg>
+            }
+            {{ usage.daily.remaining }}/{{ usage.daily.limit }} messages left today
+          </span>
+        }
+      }
+    </p>
+  </footer>
 </div>

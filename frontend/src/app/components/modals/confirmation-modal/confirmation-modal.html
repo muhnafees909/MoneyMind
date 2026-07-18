@@ -1,18 +1,26 @@
-<div class="modal-container">
-  <div class="modal-header">
-    <div class="modal-icon">⚠️</div>
-    <h2 class="modal-title">{{ data.title }}</h2>
+<div class="mm-dialog">
+  <div class="mm-dialog-head">
+    <span class="dialog-icon warn">
+      <svg lucideTriangleAlert [size]="17"></svg>
+    </span>
+    <h2 class="mm-dialog-title">{{ data.title }}</h2>
+    <button class="dialog-close" (click)="onCancel()" aria-label="Close">
+      <svg lucideX [size]="15"></svg>
+    </button>
   </div>
 
-  <div class="modal-content">
-    <p class="modal-message">{{ data.message }}</p>
-  </div>
+  <p class="mm-dialog-message">{{ data.message }}</p>
 
-  <div class="modal-actions">
-    <button class="btn btn-cancel" (click)="onCancel()">
+  <div class="mm-dialog-actions">
+    <button class="btn btn-ghost" (click)="onCancel()">
       {{ data.cancelText || 'Cancel' }}
     </button>
-    <button class="btn btn-confirm" (click)="onConfirm()">
+    <button
+      class="btn"
+      [class.btn-danger]="isDestructive()"
+      [class.btn-solid]="!isDestructive()"
+      (click)="onConfirm()"
+    >
       {{ data.confirmText || 'Confirm' }}
     </button>
   </div>

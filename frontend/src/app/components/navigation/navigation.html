@@ -1,153 +1,120 @@
-<nav class="navbar" *ngIf="isLoggedIn() && !isAuthPage()">
-    <div class="nav-content">
-      <!-- Logo -->
-      <div class="nav-logo" routerLink="/dashboard">
-        <img
-            src="logo8.png"
-            alt="MoneyMind logo"
-            class="logo-icon"
-          />
-        <span class="logo-text">MoneyMind</span>
-      </div>
-  
-      <!-- Navigation Links -->
-      <div class="nav-links">
-        <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="3" y="3" width="7" height="7"/>
-            <rect x="14" y="3" width="7" height="7"/>
-            <rect x="14" y="14" width="7" height="7"/>
-            <rect x="3" y="14" width="7" height="7"/>
-          </svg>
-          <span>Dashboard</span>
-        </a>
+<nav class="mm-nav" *ngIf="isLoggedIn() && !isAuthPage()">
+  <div class="nav-inner">
+    <!-- The Currency Glyph wordmark: the name is the logo; links home -->
+    <a class="wordmark" routerLink="/" title="MoneyMind home">
+      <mm-wordmark [size]="17"></mm-wordmark>
+    </a>
 
-        <a routerLink="/budgets" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="12" y1="1" x2="12" y2="23"/>
-            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-          </svg>
-          <span>Budgets</span>
+    <!-- Primary navigation -->
+    <div class="nav-links" #linksRail>
+      @for (item of navItems; track item.path) {
+        <a
+          [routerLink]="item.path"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          class="nav-link"
+        >
+          @switch (item.icon) {
+            @case ('dashboard') {
+              <svg lucideLayoutDashboard [size]="15"></svg>
+            }
+            @case ('receipt') {
+              <svg lucideReceiptText [size]="15"></svg>
+            }
+            @case ('wallet') {
+              <svg lucideWallet [size]="15"></svg>
+            }
+            @case ('mail') {
+              <svg lucideMail [size]="15"></svg>
+            }
+            @case ('repeat') {
+              <svg lucideRepeat [size]="15"></svg>
+            }
+            @case ('chat') {
+              <svg lucideMessageSquareText [size]="15"></svg>
+            }
+          }
+          <span>{{ item.label }}</span>
         </a>
+      }
+      <!-- The active-state rule: slides between items, docks into the bar's baseline -->
+      <span
+        class="indicator"
+        [class.ready]="indicatorReady"
+        [style.left.px]="indicatorLeft"
+        [style.width.px]="indicatorWidth"
+        aria-hidden="true"
+      ></span>
+    </div>
 
-        <a routerLink="/goals" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"/>
-            <circle cx="12" cy="12" r="6"/>
-            <circle cx="12" cy="12" r="2"/>
-          </svg>
-          <span>Goals</span>
-        </a>
-
-        <a routerLink="/envelopes" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="2" y="4" width="20" height="16" rx="2"/>
-            <path d="M22 7l-10 6L2 7"/>
-          </svg>
-          <span>Envelopes</span>
-        </a>
-
-        <a routerLink="/recurring" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="17 1 21 5 17 9"/>
-            <path d="M3 11V9a4 4 0 0 1 4-4h14"/>
-            <polyline points="7 23 3 19 7 15"/>
-            <path d="M21 13v2a4 4 0 0 1-4 4H3"/>
-          </svg>
-          <span>Recurring</span>
-        </a>
-
-        <a routerLink="/chat" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link ai-advisor">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-          </svg>
-          <span>AI Advisor</span>
-        </a>
-      </div>
-  
-      <!-- Right Section -->
-      <div class="nav-right">
-        <button class="logout-btn" (click)="logout()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-            <polyline points="16 17 21 12 16 7"/>
-            <line x1="21" y1="12" x2="9" y2="12"/>
-          </svg>
-          <span>Logout</span>
-        </button>
-      </div>
-  
-      <!-- Mobile Menu Toggle -->
-      <button class="mobile-toggle" (click)="toggleMobileMenu()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="3" y1="12" x2="21" y2="12"/>
-          <line x1="3" y1="6" x2="21" y2="6"/>
-          <line x1="3" y1="18" x2="21" y2="18"/>
-        </svg>
+    <!-- Secondary: separated by a hairline, quieter -->
+    <div class="nav-secondary">
+      <a routerLink="/profile" routerLinkActive="active" class="secondary-link" title="Profile">
+        <svg lucideUserRound [size]="15"></svg>
+        <span>Profile</span>
+      </a>
+      <button class="signout" (click)="logout()">
+        <svg lucideLogOut [size]="15"></svg>
+        <span>Sign out</span>
       </button>
     </div>
-  
-    <!-- Mobile Menu -->
-    <div class="mobile-menu" [class.open]="mobileMenuOpen">
-      <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="mobile-link" (click)="closeMobileMenu()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="3" y="3" width="7" height="7"/>
-          <rect x="14" y="3" width="7" height="7"/>
-          <rect x="14" y="14" width="7" height="7"/>
-          <rect x="3" y="14" width="7" height="7"/>
-        </svg>
-        <span>Dashboard</span>
-      </a>
-  
-      <a routerLink="/budgets" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="mobile-link" (click)="closeMobileMenu()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="12" y1="1" x2="12" y2="23"/>
-          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-        </svg>
-        <span>Budgets</span>
-      </a>
-  
-      <a routerLink="/goals" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="mobile-link" (click)="closeMobileMenu()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10"/>
-          <circle cx="12" cy="12" r="6"/>
-          <circle cx="12" cy="12" r="2"/>
-        </svg>
-        <span>Goals</span>
-      </a>
-  
-      <a routerLink="/envelopes" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="mobile-link" (click)="closeMobileMenu()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="2" y="4" width="20" height="16" rx="2"/>
-          <path d="M22 7l-10 6L2 7"/>
-        </svg>
-        <span>Envelopes</span>
-      </a>
 
-      <a routerLink="/recurring" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="mobile-link" (click)="closeMobileMenu()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="17 1 21 5 17 9"/>
-          <path d="M3 11V9a4 4 0 0 1 4-4h14"/>
-          <polyline points="7 23 3 19 7 15"/>
-          <path d="M21 13v2a4 4 0 0 1-4 4H3"/>
-        </svg>
-        <span>Recurring</span>
-      </a>
+    <!-- Mobile toggle -->
+    <button
+      class="mobile-toggle"
+      (click)="toggleMobileMenu()"
+      [attr.aria-expanded]="mobileMenuOpen"
+      aria-label="Menu"
+    >
+      @if (mobileMenuOpen) {
+        <svg lucideX [size]="18"></svg>
+      } @else {
+        <svg lucideMenu [size]="18"></svg>
+      }
+    </button>
+  </div>
 
-      <a routerLink="/chat" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="mobile-link" (click)="closeMobileMenu()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-        </svg>
-        <span>AI Advisor</span>
+  <!-- Mobile menu -->
+  <div class="mobile-menu" [class.open]="mobileMenuOpen">
+    @for (item of navItems; track item.path) {
+      <a
+        [routerLink]="item.path"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        class="mobile-link"
+        (click)="closeMobileMenu()"
+      >
+        @switch (item.icon) {
+          @case ('dashboard') {
+            <svg lucideLayoutDashboard [size]="16"></svg>
+          }
+          @case ('receipt') {
+            <svg lucideReceiptText [size]="16"></svg>
+          }
+          @case ('wallet') {
+            <svg lucideWallet [size]="16"></svg>
+          }
+          @case ('mail') {
+            <svg lucideMail [size]="16"></svg>
+          }
+          @case ('repeat') {
+            <svg lucideRepeat [size]="16"></svg>
+          }
+          @case ('chat') {
+            <svg lucideMessageSquareText [size]="16"></svg>
+          }
+        }
+        <span>{{ item.label }}</span>
       </a>
-  
-      <button class="mobile-link logout" (click)="logout()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-          <polyline points="16 17 21 12 16 7"/>
-          <line x1="21" y1="12" x2="9" y2="12"/>
-        </svg>
-        <span>Logout</span>
-      </button>
-    </div>
-  </nav>
+    }
+    <div class="mobile-divider"></div>
+    <a routerLink="/profile" routerLinkActive="active" class="mobile-link" (click)="closeMobileMenu()">
+      <svg lucideUserRound [size]="16"></svg>
+      <span>Profile</span>
+    </a>
+    <button class="mobile-link signout-mobile" (click)="logout()">
+      <svg lucideLogOut [size]="16"></svg>
+      <span>Sign out</span>
+    </button>
+  </div>
+</nav>

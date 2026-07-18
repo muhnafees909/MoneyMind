@@ -117,8 +117,11 @@ def perform_transaction_sync(user_id: int, access_token: str, plaid_item: PlaidI
         if existing:
             existing.amount = abs(txn['amount'])
             existing.description = txn['name']
-            existing.category = txn['personal_finance_category']['primary'] \
-                if txn.get('personal_finance_category') else existing.category
+            # A category the user set by hand survives re-sync — Plaid's
+            # auto-category only applies while the row is still 'auto'
+            if existing.category_source != 'manual':
+                existing.category = txn['personal_finance_category']['primary'] \
+                    if txn.get('personal_finance_category') else existing.category
             existing.transaction_date = txn['date']
             existing.transaction_type = 'expense' if txn['amount'] > 0 else 'income'
             existing.merchant_name = txn.get('merchant_name')
@@ -366,8 +369,14 @@ def sync_transactions():
 def plaid_webhook():
     """
     Plaid webhook endpoint for automatic transaction updates.
-    No authentication required - Plaid calls this directly.
+    Plaid calls this directly (no user session), so it's verified with a
+    shared secret in the URL: set PLAID_WEBHOOK_SECRET and register the
+    webhook as .../api/plaid/webhook?secret=<value> in the Plaid dashboard.
     """
+    expected_secret = os.getenv('PLAID_WEBHOOK_SECRET')
+    if expected_secret and request.args.get('secret') != expected_secret:
+        return jsonify({'error': 'Unauthorized'}), 401
+
     try:
         webhook_data = request.get_json()
 

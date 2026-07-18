@@ -12,6 +12,7 @@ from models.budget import Budget
 from models.goal import FinancialGoal
 from models.plaid_account import PlaidAccount
 from models.recurring import RecurringExpense
+from utils.categories import get_category_display_name
 import calendar
 
 
@@ -441,6 +442,16 @@ def get_recurring_context(user_id):
     }
 
 
+def get_profile_context(user_id):
+    """
+    Optional self-reported advisor profile (employment, income, household).
+    Sensitive: goes into the LLM context only — never log these values.
+    """
+    from models.user_profile import UserProfile
+    profile = UserProfile.query.filter_by(user_id=user_id).first()
+    return profile.to_dict() if profile else None
+
+
 def format_context_for_llm(user_id):
     """
     Gather all financial context and format it into a structured
@@ -519,7 +530,15 @@ def format_context_for_llm(user_id):
         print(f"Error getting recurring context: {e}")
         recurring = {'series': [], 'total_monthly': 0.0, 'pending_review_count': 0}
 
+    try:
+        profile = get_profile_context(user_id)
+    except Exception:
+        # Generic on purpose — never let profile values reach logs
+        print("Error getting profile context")
+        profile = None
+
     return {
+        'profile': profile,
         'budgets': budgets,
         'goals': goals,
         'spending_summary': spending_summary,
@@ -556,6 +575,37 @@ def build_context_string(context):
     lines.append(f"USER FINANCIAL SNAPSHOT (as of {current_date.strftime('%B %d, %Y')})")
     lines.append("=" * 60)
 
+    # 0. ABOUT THE USER (optional self-reported profile — personalize with it,
+    #    but don't recite it back verbatim unless asked)
+    profile = context.get('profile') or {}
+    profile_lines = []
+    employment_labels = {
+        'employed': 'Employed',
+        'self_employed': 'Self-employed (income may be irregular)',
+        'student': 'Student',
+        'unemployed': 'Currently unemployed'
+    }
+    if profile.get('employment_status'):
+        profile_lines.append(f"  Employment: {employment_labels.get(profile['employment_status'], profile['employment_status'])}")
+    if profile.get('annual_income') is not None:
+        profile_lines.append(
+            f"  Stated annual income: ${profile['annual_income']:,.0f} "
+            "(self-reported — may differ from observed deposits, e.g. irregular income)"
+        )
+    if profile.get('marital_status'):
+        profile_lines.append(f"  Filing status: {profile['marital_status']}")
+    if profile.get('dependents') is not None:
+        profile_lines.append(f"  Dependents: {profile['dependents']}")
+    if profile.get('housing_status'):
+        housing_labels = {'rent': 'Rents their home', 'own': 'Owns their home', 'family': 'Lives with family'}
+        profile_lines.append(f"  Housing: {housing_labels.get(profile['housing_status'], profile['housing_status'])}")
+    if profile.get('birth_year'):
+        approx_age = current_date.year - profile['birth_year']
+        profile_lines.append(f"  Approximate age: {approx_age} (relevant for retirement horizon)")
+    if profile_lines:
+        lines.append("\nABOUT THE USER (self-reported, all optional)")
+        lines.extend(profile_lines)
+
     # 1. MONTHLY SUMMARY SECTION
     lines.append(f"\n📊 MONTHLY SUMMARY ({month_name}, month-to-date — month is not finished)")
     lines.append(f"  Income: ${summary.get('month_income', 0):,.2f}")
@@ -573,7 +623,7 @@ def build_context_string(context):
             by_cat = m.get('by_category', {})
             if by_cat:
                 cat_parts = ", ".join(
-                    f"{cat}: ${amt:,.2f}"
+                    f"{get_category_display_name(cat)}: ${amt:,.2f}"
                     for cat, amt in sorted(by_cat.items(), key=lambda kv: kv[1], reverse=True)
                 )
                 lines.append(f"    by category — {cat_parts}")
@@ -587,19 +637,19 @@ def build_context_string(context):
         lines.append("\n⚠️ IMMEDIATE ALERTS")
         for alert in alerts:
             over_by = alert['spent_this_month'] - alert['budget_amount']
-            lines.append(f"  🔴 {alert['category'].title()}: OVER BUDGET by ${over_by:,.2f}")
+            lines.append(f"  🔴 {get_category_display_name(alert['category'])}: OVER BUDGET by ${over_by:,.2f}")
         lines.append(f"  📈 Projected month-end: ${trends.get('projected_month_total', 0):,.2f}")
 
     # 3. SPENDING BREAKDOWN SECTION
     if categories:
         lines.append("\n💰 SPENDING BREAKDOWN (This Month)")
         for cat in sorted(categories, key=lambda x: x['amount'], reverse=True):
-            lines.append(f"  {cat['category'].title()}: ${cat['amount']:,.2f} ({cat['transaction_count']} tx)")
+            lines.append(f"  {get_category_display_name(cat['category'])}: ${cat['amount']:,.2f} ({cat['transaction_count']} tx)")
 
         highest_cat = trends.get('highest_category')
         if highest_cat:
             growth = trends.get('month_growth_percent', 0)
-            lines.append(f"\n  Top category: {highest_cat.title()} at ${trends.get('highest_amount', 0):,.2f}")
+            lines.append(f"\n  Top category: {get_category_display_name(highest_cat)} at ${trends.get('highest_amount', 0):,.2f}")
             lines.append(f"  Spending trend: {growth:+.1f}% vs last month")
 
     # 4. BUDGET STATUS SECTION
@@ -610,7 +660,7 @@ def build_context_string(context):
             remaining = budget['budget_amount'] - budget['spent_this_month']
             status_text = f"${remaining:,.2f} left" if remaining >= 0 else f"${abs(remaining):,.2f} over"
             lines.append(
-                f"  {status_emoji} {budget['category'].title()}: "
+                f"  {status_emoji} {get_category_display_name(budget['category'])}: "
                 f"${budget['spent_this_month']:,.2f}/${budget['budget_amount']:,.2f} ({status_text})"
             )
     else:
@@ -671,7 +721,7 @@ def build_context_string(context):
         for tx in transactions[:10]:
             tx_emoji = "💸" if tx['type'] == 'expense' else "💰"
             tx_date = tx['date'][:10] if 'T' in tx['date'] else tx['date']  # Extract date part if ISO format
-            lines.append(f"  {tx_emoji} {tx_date}: {tx['description']} - ${tx['amount']:,.2f} ({tx['category'].title()})")
+            lines.append(f"  {tx_emoji} {tx_date}: {tx['description']} - ${tx['amount']:,.2f} ({get_category_display_name(tx['category'])})")
 
     lines.append("\n" + "=" * 60)
 

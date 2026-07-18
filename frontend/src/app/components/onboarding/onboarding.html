@@ -1,0 +1,149 @@
+<div class="onboarding">
+  <div class="shell">
+    <!-- Wordmark, quiet -->
+    <div class="ob-brand">
+      <mm-wordmark [size]="17"></mm-wordmark>
+    </div>
+
+    @if (step <= totalSteps) {
+      <!-- Progress: the app's meter treatment, filled with brand fern -->
+      <div class="ob-progress">
+        <span class="ob-progress-label">Step {{ step }} of {{ totalSteps }}</span>
+        <div class="meter">
+          <div class="meter-fill" [style.width.%]="progressPct()"></div>
+        </div>
+      </div>
+    }
+
+    <!-- ============ STEP 1 — EMPLOYMENT & INCOME ============ -->
+    @if (step === 1) {
+      <section class="ob-step" [class.from-back]="direction === 'back'">
+        <span class="step-icon"><svg lucideBriefcase [size]="17"></svg></span>
+        <h1 class="step-title">How does money come in?</h1>
+        <p class="step-why">
+          Income shape changes the advice — irregular income means bigger buffers,
+          steady paychecks mean tighter envelope rules.
+        </p>
+        <div class="step-fields">
+          <label class="f-field">
+            <span>Employment status</span>
+            <select [(ngModel)]="form.employment_status">
+              <option value="">Prefer not to say</option>
+              <option value="employed">Employed</option>
+              <option value="self_employed">Self-employed</option>
+              <option value="student">Student</option>
+              <option value="unemployed">Not currently working</option>
+            </select>
+          </label>
+          <label class="f-field">
+            <span>Annual income</span>
+            <input type="number" [(ngModel)]="form.annual_income" placeholder="0" min="0" step="1000" />
+            <em class="field-note">Rough is fine — and it can differ from what your deposits suggest.</em>
+          </label>
+        </div>
+      </section>
+    }
+
+    <!-- ============ STEP 2 — HOUSEHOLD ============ -->
+    @if (step === 2) {
+      <section class="ob-step" [class.from-back]="direction === 'back'">
+        <span class="step-icon"><svg lucideUsers [size]="17"></svg></span>
+        <h1 class="step-title">Who does your money support?</h1>
+        <p class="step-why">
+          Dependents and filing status size things like your emergency fund — three
+          months of cover for one person isn't three months for four.
+        </p>
+        <div class="step-fields">
+          <label class="f-field">
+            <span>Filing status</span>
+            <select [(ngModel)]="form.marital_status">
+              <option value="">Prefer not to say</option>
+              <option value="single">Single</option>
+              <option value="married">Married</option>
+            </select>
+          </label>
+          <label class="f-field">
+            <span>Dependents</span>
+            <input type="number" [(ngModel)]="form.dependents" placeholder="0" min="0" max="20" step="1" />
+          </label>
+        </div>
+      </section>
+    }
+
+    <!-- ============ STEP 3 — HOUSING & HORIZON ============ -->
+    @if (step === 3) {
+      <section class="ob-step" [class.from-back]="direction === 'back'">
+        <span class="step-icon"><svg lucideHouse [size]="17"></svg></span>
+        <h1 class="step-title">Where are you headed?</h1>
+        <p class="step-why">
+          Renting or owning changes your fixed-cost advice, and your age sets the
+          retirement horizon behind long-term suggestions.
+        </p>
+        <div class="step-fields">
+          <label class="f-field">
+            <span>Housing</span>
+            <select [(ngModel)]="form.housing_status">
+              <option value="">Prefer not to say</option>
+              <option value="rent">Rent</option>
+              <option value="own">Own</option>
+              <option value="family">Live with family</option>
+            </select>
+          </label>
+          <label class="f-field">
+            <span>Birth year</span>
+            <input
+              type="number"
+              [(ngModel)]="form.birth_year"
+              placeholder="1998"
+              min="1900"
+              [max]="maxBirthYear"
+              step="1"
+            />
+          </label>
+        </div>
+      </section>
+    }
+
+    <!-- ============ COMPLETION — low-key, then in ============ -->
+    @if (step === 4) {
+      <section class="ob-step done" [class.from-back]="false">
+        <span class="step-icon done-icon"><svg lucideCircleCheck [size]="18"></svg></span>
+        <h1 class="step-title">You're set.</h1>
+        <p class="step-why">
+          @if (answeredCount() > 0) {
+            Your advisor will quietly use what you shared. Change or clear any of it
+            anytime from Profile.
+          } @else {
+            No details shared — that's fine. You can add context anytime from Profile.
+          }
+        </p>
+        <div class="ob-actions">
+          <button class="btn btn-solid lg" (click)="finish()">
+            <span>Open your dashboard</span>
+            <svg lucideArrowRight [size]="16"></svg>
+          </button>
+        </div>
+      </section>
+    }
+
+    <!-- ============ ACTIONS (steps 1–3) ============ -->
+    @if (step <= totalSteps) {
+      <footer class="ob-actions">
+        @if (step > 1) {
+          <button class="btn btn-text back" (click)="back()">
+            <svg lucideArrowLeft [size]="14"></svg>
+            <span>Back</span>
+          </button>
+        }
+        <div class="ob-actions-main">
+          <button class="btn btn-ghost" (click)="skip()" [disabled]="saving">Skip for now</button>
+          <button class="btn btn-solid" (click)="next()" [disabled]="saving">
+            <span>{{ saving ? 'Saving…' : step === totalSteps ? 'Finish' : 'Continue' }}</span>
+            <svg lucideArrowRight [size]="15"></svg>
+          </button>
+        </div>
+      </footer>
+      <p class="ob-footnote">Everything here is optional — skipping never limits the app.</p>
+    }
+  </div>
+</div>

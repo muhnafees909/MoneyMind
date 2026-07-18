@@ -1,0 +1,1165 @@
+// ============================================
+// MoneyMind Landing — "The ledger, opened"
+// The warm editorial ledger performed at display scale.
+// Tokens from src/styles.scss; motion choreography in landing.ts.
+// ============================================
+
+.landing {
+  background: var(--mm-bg);
+  color: var(--mm-text-1);
+  font-family: var(--mm-font-ui);
+  overflow-x: hidden;
+
+  * {
+    box-sizing: border-box;
+  }
+
+  ::selection {
+    background: var(--mm-brand-dim);
+  }
+
+  a {
+    text-decoration: none;
+    color: inherit;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--mm-brand);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+// Pre-hidden states for the choreography (skipped entirely under reduced motion)
+.landing:not(.no-anim) {
+  .topbar,
+  .hero-eyebrow,
+  .hero-sub,
+  .hero-ctas,
+  .hero-trust,
+  .hero-card,
+  .scroll-hint,
+  [data-reveal],
+  [data-word] {
+    opacity: 0;
+  }
+
+  .line-inner {
+    display: inline-block;
+    transform: translateY(115%);
+  }
+}
+
+// ============================================
+// SHARED PIECES
+// ============================================
+// Wordmark now provided by the shared <mm-wordmark> component
+// (the Currency Glyph: the name's own M carries the double strike).
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: var(--mm-radius-xs);
+  font-family: var(--mm-font-ui);
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  will-change: transform;
+
+  svg {
+    flex-shrink: 0;
+  }
+
+  &.lg {
+    padding: 13px 22px;
+    font-size: 14.5px;
+  }
+
+  &.xl {
+    padding: 16px 28px;
+    font-size: 15.5px;
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: default;
+  }
+}
+
+.btn-solid {
+  background: var(--mm-brand);
+  color: var(--mm-brand-ink);
+  box-shadow: 0 6px 22px -6px var(--mm-brand-glow);
+  transition: background var(--mm-dur-fast) ease, box-shadow var(--mm-dur-fast) ease;
+
+  &:hover {
+    background: var(--mm-brand-strong);
+    box-shadow: 0 8px 28px -6px var(--mm-brand-glow);
+  }
+}
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--mm-hairline-2);
+  color: var(--mm-text-2);
+  transition: background var(--mm-dur-fast) ease, color var(--mm-dur-fast) ease;
+
+  &:hover:not(:disabled) {
+    background: var(--mm-surface-2);
+    color: var(--mm-text-1);
+  }
+}
+
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 18px;
+  font-family: var(--mm-font-num);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--mm-text-3);
+
+  svg {
+    color: var(--mm-brand);
+  }
+}
+
+.band {
+  display: flex;
+  gap: 2px;
+  height: 10px;
+  margin: 18px 0 16px;
+
+  &.tall {
+    height: 13px;
+  }
+
+  .band-seg {
+    min-width: 3px;
+    border-radius: 1px;
+    transition: width 0.9s var(--mm-ease-out);
+
+    &:first-child {
+      border-radius: 2px 1px 1px 2px;
+    }
+
+    &:last-child {
+      border-radius: 1px 2px 2px 1px;
+    }
+  }
+}
+
+.swatch {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 1px;
+  flex-shrink: 0;
+
+  &.free {
+    background: #4a453f;
+  }
+}
+
+.val {
+  margin-left: auto;
+  font-family: var(--mm-font-num);
+  font-weight: 600;
+  color: var(--mm-text-1);
+  white-space: nowrap;
+
+  .of {
+    font-weight: 400;
+    color: var(--mm-text-3);
+  }
+}
+
+.spin {
+  animation: mm-spin 1s linear infinite;
+}
+
+@keyframes mm-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// ============================================
+// TOP BAR
+// ============================================
+.topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px clamp(20px, 4vw, 48px);
+  background: color-mix(in srgb, var(--mm-bg) 78%, transparent);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--mm-hairline);
+}
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.link-quiet {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--mm-text-3);
+  transition: color var(--mm-dur-fast) ease;
+
+  &:hover {
+    color: var(--mm-text-1);
+  }
+}
+
+// ============================================
+// HERO
+// ============================================
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 130px clamp(20px, 5vw, 64px) 60px;
+  overflow: hidden;
+
+  // 1 — Ambient light source: a fixed fern glow behind the card side of the
+  // hero, as if the balance is what lights the page. Independent of the
+  // cursor-trailing bloom.
+  &::before {
+    content: '';
+    position: absolute;
+    right: -12%;
+    top: 4%;
+    width: 58%;
+    height: 92%;
+    background: radial-gradient(closest-side, rgba(124, 169, 130, 0.13), transparent 70%);
+    filter: blur(64px);
+    pointer-events: none;
+  }
+
+  // 3 — The ledger motif: faint horizontal rules like a ledger page, plus a
+  // single fern "margin rule" down the left — both barely-there, fading out
+  // toward the bottom of the hero.
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      linear-gradient(
+        90deg,
+        transparent calc(7% - 1px),
+        rgba(124, 169, 130, 0.07) calc(7% - 1px),
+        rgba(124, 169, 130, 0.07) 7%,
+        transparent 7%
+      ),
+      repeating-linear-gradient(
+        180deg,
+        transparent 0px,
+        transparent 35px,
+        rgba(244, 241, 236, 0.027) 35px,
+        rgba(244, 241, 236, 0.027) 36px
+      );
+    -webkit-mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.4) 62%, transparent 96%);
+    mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.4) 62%, transparent 96%);
+  }
+}
+
+// The fern light that trails the cursor
+.hero-bloom {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 640px;
+  height: 640px;
+  background: radial-gradient(closest-side, var(--mm-brand-glow), transparent 70%);
+  filter: blur(56px);
+  opacity: 0.55;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.hero-inner {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1.25fr 1fr;
+  gap: clamp(32px, 5vw, 80px);
+  align-items: center;
+  max-width: 1240px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.hero-eyebrow {
+  display: inline-block;
+  margin: 0 0 22px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--mm-brand);
+  font-family: var(--mm-font-num);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--mm-text-2);
+}
+
+.headline {
+  margin: 0 0 26px;
+  font-family: var(--mm-font-serif);
+  font-size: clamp(44px, 6.4vw, 88px);
+  font-weight: 600;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+
+  .line {
+    display: block;
+    // Each line is its own reveal mask; the padding extends the mask window
+    // below the baseline so Besley's descenders (y, g) aren't clipped, and
+    // the negative margin gives that space back so line rhythm is unchanged.
+    overflow: hidden;
+    padding-bottom: 0.18em;
+    margin-bottom: -0.18em;
+  }
+
+  .line-inner {
+    display: inline-block;
+  }
+
+  .line:last-child .line-inner {
+    color: var(--mm-brand-strong);
+    text-shadow: 0 0 70px var(--mm-brand-glow);
+  }
+}
+
+.hero-sub {
+  margin: 0 0 30px;
+  max-width: 46ch;
+  font-size: clamp(14.5px, 1.3vw, 16.5px);
+  line-height: 1.65;
+  color: var(--mm-text-2);
+}
+
+.hero-ctas {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.hero-trust {
+  margin: 22px 0 0;
+  font-family: var(--mm-font-num);
+  font-size: 11.5px;
+  color: var(--mm-text-3);
+}
+
+// The signature motif: the elevated number.
+// 2 — Real elevation: lighter tone at the top fading to base, a warm top
+// hairline catching the light, and deep diffuse shadows lifting it off the page.
+.hero-card {
+  position: relative;
+  padding: 30px 32px 26px;
+  background:
+    radial-gradient(120% 140% at 10% 0%, rgba(124, 169, 130, 0.12) 0%, transparent 55%),
+    linear-gradient(180deg, #211d18 0%, #191613 46%, #161411 100%);
+  border: 1px solid rgba(244, 241, 236, 0.1);
+  border-radius: var(--mm-radius-lg);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 250, 240, 0.09),
+    0 2px 6px rgba(0, 0, 0, 0.45),
+    0 24px 60px -12px rgba(0, 0, 0, 0.65),
+    0 64px 130px -40px rgba(0, 0, 0, 0.55),
+    0 0 110px -30px var(--mm-brand-glow);
+
+  // 4 — The one expressive accent moment: a soft fern glow emanating from
+  // behind the balance figure itself.
+  &::before {
+    content: '';
+    position: absolute;
+    top: -36px;
+    left: -28px;
+    width: 330px;
+    height: 230px;
+    background: radial-gradient(closest-side, rgba(124, 169, 130, 0.3), transparent 72%);
+    filter: blur(44px);
+    pointer-events: none;
+  }
+
+  > * {
+    position: relative;
+  }
+
+  .card-eyebrow {
+    display: block;
+    margin-bottom: 12px;
+    font-family: var(--mm-font-num);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--mm-text-3);
+  }
+
+  .hero-figure {
+    font-family: var(--mm-font-serif);
+    font-size: clamp(40px, 3.6vw, 54px);
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+    text-shadow:
+      0 0 30px rgba(124, 169, 130, 0.32),
+      0 0 90px var(--mm-brand-glow);
+  }
+
+  .hero-delta {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 14px 0 0;
+    font-family: var(--mm-font-num);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--mm-brand-strong);
+
+    svg {
+      color: var(--mm-brand);
+    }
+  }
+}
+
+.hero-envelopes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12.5px;
+    color: var(--mm-text-2);
+  }
+
+  .val {
+    font-size: 12px;
+  }
+}
+
+.scroll-hint {
+  position: absolute;
+  bottom: 26px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  font-family: var(--mm-font-num);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--mm-text-3);
+
+  svg {
+    animation: mm-hint 2.2s var(--mm-ease-out) infinite;
+  }
+}
+
+@keyframes mm-hint {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(4px);
+  }
+}
+
+// ============================================
+// PRINCIPLES — editorial rows, huge serif
+// ============================================
+.principles {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: clamp(90px, 12vw, 160px) clamp(20px, 5vw, 64px) 40px;
+
+  .rule {
+    display: grid;
+    grid-template-columns: 72px 1fr;
+    grid-template-rows: auto auto;
+    column-gap: 24px;
+    padding: 44px 0;
+    border-top: 1px solid var(--mm-hairline);
+
+    &:last-child {
+      border-bottom: 1px solid var(--mm-hairline);
+    }
+  }
+
+  .rule-rank {
+    grid-row: 1 / 3;
+    font-family: var(--mm-font-num);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--mm-brand);
+    padding-top: 12px;
+  }
+
+  .rule-title {
+    margin: 0 0 12px;
+    font-family: var(--mm-font-serif);
+    font-size: clamp(28px, 3.6vw, 46px);
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    line-height: 1.08; // display serif — matches .feature-title/.headline tightness
+  }
+
+  .rule-copy {
+    margin: 0;
+    max-width: 58ch;
+    font-size: 14.5px;
+    line-height: 1.65;
+    color: var(--mm-text-2);
+  }
+}
+
+// ============================================
+// FEATURES — copy beside a live demo card
+// ============================================
+.feature {
+  display: grid;
+  grid-template-columns: 1fr 1.1fr;
+  gap: clamp(36px, 6vw, 90px);
+  align-items: center;
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: clamp(70px, 9vw, 130px) clamp(20px, 5vw, 64px);
+
+  &.flip {
+    .feature-copy {
+      order: 2;
+    }
+
+    .feature-demo {
+      order: 1;
+    }
+  }
+}
+
+.feature-title {
+  margin: 0 0 18px;
+  font-family: var(--mm-font-serif);
+  font-size: clamp(34px, 4.2vw, 56px);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.015em;
+}
+
+.feature-sub {
+  margin: 0 0 24px;
+  max-width: 46ch;
+  font-size: 14.5px;
+  line-height: 1.65;
+  color: var(--mm-text-2);
+}
+
+.replay {
+  font-size: 12.5px;
+  padding: 8px 13px;
+}
+
+.demo-card {
+  padding: 22px 24px;
+  background: var(--mm-surface-raised);
+  border: 1px solid rgba(244, 241, 236, 0.08);
+  border-radius: var(--mm-radius-lg);
+  box-shadow: var(--mm-shadow-2), 0 0 90px -34px var(--mm-brand-glow);
+}
+
+// --- Demo A: payday waterfall ---
+.demo-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+
+  .demo-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--mm-text-1);
+
+    svg {
+      color: var(--mm-text-3);
+    }
+
+    .mask {
+      font-family: var(--mm-font-num);
+      font-size: 11.5px;
+      font-weight: 500;
+      color: var(--mm-text-3);
+    }
+  }
+
+  .demo-balance {
+    font-family: var(--mm-font-num);
+    font-size: 19px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.deposit-chip {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 5px 10px;
+  border-radius: var(--mm-radius-xs);
+  background: var(--mm-brand-dim);
+  border: 1px solid rgba(124, 169, 130, 0.3);
+  font-family: var(--mm-font-num);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--mm-brand-strong);
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.4s var(--mm-ease-out), transform 0.4s var(--mm-ease-out);
+
+  &.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.demo-envelopes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--mm-text-2);
+  }
+
+  .env-name {
+    font-weight: 500;
+    color: var(--mm-text-1);
+  }
+
+  .rule-tag {
+    font-family: var(--mm-font-num);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--mm-text-3);
+  }
+
+  .val {
+    font-size: 12.5px;
+  }
+}
+
+// --- Demo B: recurring detection ---
+.detect-list {
+  list-style: none;
+  margin: 0 0 16px;
+  padding: 0 0 0 14px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  // The bracket that "stitches" the rows into a series
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 6px;
+    bottom: 6px;
+    width: 2px;
+    border-radius: 1px;
+    background: var(--mm-brand);
+    transform: scaleY(0);
+    transform-origin: top;
+    transition: transform 0.6s var(--mm-ease-out);
+  }
+
+  &.linked::before {
+    transform: scaleY(1);
+  }
+}
+
+.detect-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 12px;
+  background: var(--mm-surface);
+  border: 1px solid var(--mm-hairline);
+  border-radius: var(--mm-radius-xs);
+  font-size: 12.5px;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.45s var(--mm-ease-out), transform 0.45s var(--mm-ease-out);
+
+  &.in {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .d-date {
+    font-family: var(--mm-font-num);
+    font-size: 11.5px;
+    color: var(--mm-text-3);
+    min-width: 44px;
+  }
+
+  .d-name {
+    font-weight: 500;
+    color: var(--mm-text-1);
+    letter-spacing: 0.02em;
+  }
+
+  .val {
+    font-size: 12px;
+  }
+}
+
+.detect-result {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--mm-brand-dim);
+  border: 1px solid rgba(124, 169, 130, 0.3);
+  border-radius: var(--mm-radius-sm);
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.5s var(--mm-ease-out), transform 0.5s var(--mm-ease-out);
+
+  &.in {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .series {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-family: var(--mm-font-num);
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--mm-text-1);
+
+    svg {
+      color: var(--mm-brand);
+    }
+  }
+}
+
+.state-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--mm-font-num);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+
+  &.warn {
+    color: var(--mm-warn);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+
+    &.in {
+      opacity: 1;
+    }
+  }
+}
+
+// --- Demo C: advisor transcript ---
+.demo-card.transcript {
+  min-height: 300px;
+
+  .turn-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 7px;
+
+    &.adv {
+      margin-top: 22px;
+    }
+
+    .who {
+      font-family: var(--mm-font-num);
+      font-size: 10.5px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--mm-brand);
+
+      &.you {
+        color: var(--mm-text-3);
+      }
+    }
+
+    .advisor-mark {
+      width: 8px;
+      height: 8px;
+      border-radius: 1px;
+      background: var(--mm-brand);
+    }
+  }
+
+  .question {
+    margin: 0;
+    min-height: 1.5em;
+    font-family: var(--mm-font-serif);
+    font-size: 17px;
+    font-style: italic;
+    font-weight: 500;
+    color: var(--mm-text-1);
+  }
+
+  .caret {
+    display: none;
+    width: 2px;
+    height: 1.05em;
+    margin-left: 2px;
+    vertical-align: -0.15em;
+    background: var(--mm-brand);
+
+    &.on {
+      display: inline-block;
+      animation: mm-caret 0.9s steps(1) infinite;
+    }
+  }
+
+  .thinking-text {
+    margin: 0 0 8px;
+    font-size: 13px;
+    font-style: italic;
+    color: var(--mm-text-3);
+  }
+
+  .thinking-rule {
+    width: 170px;
+    height: 2px;
+    border-radius: 1px;
+    background: var(--mm-surface-3);
+    overflow: hidden;
+
+    span {
+      display: block;
+      width: 40%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, var(--mm-brand), transparent);
+      animation: mm-think 1.3s var(--mm-ease-out) infinite;
+    }
+  }
+
+  .answer {
+    animation: mm-answer-in 0.5s var(--mm-ease-out) backwards;
+
+    p {
+      margin: 0;
+      font-size: 13.5px;
+      line-height: 1.65;
+      color: var(--mm-text-2);
+    }
+
+    code {
+      font-family: var(--mm-font-num);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--mm-text-1);
+      background: var(--mm-surface-3);
+      border-radius: var(--mm-radius-xs);
+      padding: 1px 6px;
+      white-space: nowrap;
+    }
+  }
+
+  .grounding {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    margin-top: 14px;
+    padding-top: 10px;
+    border-top: 1px solid var(--mm-hairline);
+
+    .grounding-title {
+      font-family: var(--mm-font-num);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--mm-text-3);
+    }
+
+    .ground-chip {
+      font-family: var(--mm-font-num);
+      font-size: 11px;
+      color: var(--mm-text-3);
+    }
+  }
+}
+
+@keyframes mm-caret {
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes mm-think {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(450%);
+  }
+}
+
+@keyframes mm-answer-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// ============================================
+// STATEMENT — type as the design element
+// ============================================
+.statement {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: clamp(90px, 13vw, 180px) clamp(20px, 5vw, 64px);
+  text-align: center;
+
+  .statement-line {
+    margin: 0 0 22px;
+    font-family: var(--mm-font-serif);
+    font-size: clamp(48px, 8.5vw, 116px);
+    font-weight: 600;
+    line-height: 1.02;
+    letter-spacing: -0.02em;
+
+    [data-word] {
+      display: inline-block;
+    }
+
+    .fern {
+      color: var(--mm-brand-strong);
+      text-shadow: 0 0 80px var(--mm-brand-glow);
+    }
+  }
+
+  .statement-sub {
+    margin: 0 auto;
+    max-width: 52ch;
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--mm-text-2);
+  }
+}
+
+// ============================================
+// CLOSING CTA
+// ============================================
+.closing {
+  position: relative;
+  text-align: center;
+  padding: clamp(80px, 10vw, 150px) clamp(20px, 5vw, 64px);
+  overflow: hidden;
+
+  .closing-bloom {
+    position: absolute;
+    left: 50%;
+    bottom: -40%;
+    width: 900px;
+    height: 620px;
+    transform: translateX(-50%);
+    background: radial-gradient(closest-side, var(--mm-brand-glow), transparent 70%);
+    filter: blur(60px);
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  .kicker,
+  .closing-title,
+  .closing-ctas,
+  .closing-trust {
+    position: relative;
+    z-index: 1;
+  }
+
+  .closing-title {
+    margin: 0 0 34px;
+    font-family: var(--mm-font-serif);
+    font-size: clamp(44px, 6.5vw, 92px);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.02;
+  }
+
+  .closing-ctas {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .closing-trust {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin: 28px 0 0;
+    font-family: var(--mm-font-num);
+    font-size: 11.5px;
+    color: var(--mm-text-3);
+
+    svg {
+      color: var(--mm-brand);
+    }
+  }
+}
+
+// ============================================
+// FOOTER
+// ============================================
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 30px clamp(20px, 5vw, 64px) 40px;
+  border-top: 1px solid var(--mm-hairline);
+
+  .foot-line {
+    font-family: var(--mm-font-serif);
+    font-size: 13.5px;
+    font-style: italic;
+    color: var(--mm-text-3);
+  }
+
+  .foot-links {
+    display: flex;
+    gap: 20px;
+
+    a {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--mm-text-3);
+      transition: color var(--mm-dur-fast) ease;
+
+      &:hover {
+        color: var(--mm-brand-strong);
+      }
+    }
+  }
+}
+
+// ============================================
+// RESPONSIVE
+// ============================================
+@media (max-width: 980px) {
+  .hero-inner {
+    grid-template-columns: 1fr;
+  }
+
+  .hero {
+    min-height: auto;
+    padding-top: 110px;
+  }
+
+  .scroll-hint {
+    display: none;
+  }
+
+  .feature,
+  .feature.flip {
+    grid-template-columns: 1fr;
+
+    .feature-copy {
+      order: 1;
+    }
+
+    .feature-demo {
+      order: 2;
+    }
+  }
+
+  .principles .rule {
+    grid-template-columns: 44px 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .topbar .link-quiet {
+    display: none;
+  }
+
+  .hero-ctas .btn.lg {
+    width: 100%;
+  }
+
+  .closing-ctas .btn.xl {
+    width: 100%;
+  }
+}
+
+// ============================================
+// REDUCED MOTION — everything lands, nothing moves
+// ============================================
+@media (prefers-reduced-motion: reduce) {
+  .landing *,
+  .landing *::before,
+  .landing *::after {
+    transition-duration: 0.01ms !important;
+    animation: none !important;
+  }
+}

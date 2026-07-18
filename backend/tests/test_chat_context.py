@@ -46,6 +46,24 @@ class TestChatContext:
         assert 'TOTAL SPENDING BY MONTH' not in text
 
 
+class TestCategoryDisplayNames:
+    def test_context_uses_display_names_not_raw_enums(self, client, auth_headers, user):
+        # Budget + transaction in a snake_case category; over budget so the
+        # alerts section renders too (it also injects the category name)
+        client.post('/api/budgets', headers=auth_headers,
+                    json={'category': 'RENT_AND_UTILITIES', 'amount': 1000})
+        client.post('/api/transactions/', headers=auth_headers, json={
+            'amount': 1500, 'description': 'Rent — Maple St',
+            'category': 'RENT_AND_UTILITIES',
+            'transaction_date': date.today().isoformat()})
+
+        text = build_context_string(format_context_for_llm(user.id))
+        assert 'Rent & Utilities' in text
+        # The raw enum (or .title()'d enum) must never reach the prompt
+        assert 'RENT_AND_UTILITIES' not in text
+        assert 'Rent_And_Utilities' not in text
+
+
 def _prior_month(months_back):
     """First day of the month `months_back` full months before the current one."""
     d = date.today().replace(day=1)

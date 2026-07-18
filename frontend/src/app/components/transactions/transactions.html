@@ -1,0 +1,279 @@
+<div class="mm-dash" [class.pre-anim]="preAnim">
+  @if (initialLoading) {
+    <div class="skeleton-page" aria-hidden="true">
+      <div class="sk sk-head"></div>
+      <div class="sk sk-hero"></div>
+      <div class="sk sk-card"></div>
+    </div>
+  } @else {
+    <!-- ============ HEADER ============ -->
+    <header class="dash-head" data-animate>
+      <div>
+        <h1>Transactions</h1>
+        <p class="head-date">Every dollar in and out, in one ledger</p>
+      </div>
+      <div class="head-actions">
+        <button class="btn btn-ghost" (click)="syncBank()" [disabled]="syncing">
+          <svg lucideRefreshCw [size]="16" [class.spin]="syncing"></svg>
+          <span>{{ syncing ? 'Syncing…' : 'Sync bank' }}</span>
+        </button>
+        <button class="btn btn-solid" (click)="addTransaction()">
+          <svg lucidePlus [size]="16"></svg>
+          <span>Add transaction</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ============ HERO: the working figure ============ -->
+    <section class="hero" data-animate>
+      <div class="hero-main">
+        <span class="eyebrow">Net flow · {{ scopeLabel() }}</span>
+        <div
+          class="hero-figure"
+          [class.negative]="stats.net < 0"
+          [mmCountUp]="stats.net"
+          [mmDur]="0.9"
+          aria-live="polite"
+        ></div>
+        <p class="hero-hint">This figure follows your filters and search</p>
+      </div>
+      <div class="hero-stats">
+        <div class="stat">
+          <span class="stat-label">In</span>
+          <span class="stat-value in" [mmCountUp]="stats.income" [mmSigned]="true"></span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Out</span>
+          <span class="stat-value">−<span [mmCountUp]="stats.expenses"></span></span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Entries</span>
+          <span class="stat-value" [mmCountUp]="stats.count" [mmCurrency]="false"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ LEDGER ============ -->
+    <section class="card" data-animate>
+      <header class="card-head">
+        <h2>History</h2>
+        <span class="card-note">{{ getDisplayTransactions().length }} of {{ transactions.length }}</span>
+      </header>
+
+      <div class="tx-toolbar">
+        <label class="search-field">
+          <svg lucideSearch [size]="14"></svg>
+          <input
+            type="text"
+            [(ngModel)]="filters.description"
+            (input)="applyFilters()"
+            placeholder="Search descriptions…"
+            aria-label="Search transactions"
+          />
+        </label>
+        @if (hasActiveFilters()) {
+          <button class="btn btn-text" (click)="clearFilters()">
+            <svg lucideX [size]="14"></svg>
+            <span>Clear</span>
+          </button>
+        }
+        <button class="btn btn-ghost sm" [class.on]="showFilters" (click)="toggleFilters()">
+          <svg lucideSlidersHorizontal [size]="14"></svg>
+          <span>Filter</span>
+        </button>
+      </div>
+
+      @if (showFilters) {
+        <div class="filter-panel">
+          <label class="f-field">
+            <span>Category</span>
+            <select [(ngModel)]="filters.category" (change)="applyFilters()">
+              <option value="">All</option>
+              @for (cat of categoryService.getAllCategories(); track cat.value) {
+                <option [value]="cat.value">{{ cat.displayName }}</option>
+              }
+            </select>
+          </label>
+          <label class="f-field">
+            <span>Type</span>
+            <select [(ngModel)]="filters.type" (change)="applyFilters()">
+              <option value="">All</option>
+              <option value="expense">Expense</option>
+              <option value="income">Income</option>
+            </select>
+          </label>
+          <label class="f-field">
+            <span>Source</span>
+            <select [(ngModel)]="filters.source" (change)="applyFilters()">
+              <option value="">All</option>
+              <option value="manual">Manual</option>
+              <option value="plaid">Bank</option>
+            </select>
+          </label>
+          <label class="f-field">
+            <span>Month</span>
+            <select [(ngModel)]="filters.month" (change)="applyFilters()">
+              <option value="">All</option>
+              @for (month of availableMonths; track month.value) {
+                <option [value]="month.value">{{ month.display }}</option>
+              }
+            </select>
+          </label>
+          <label class="f-field">
+            <span>Amount</span>
+            <div class="f-range">
+              <input
+                type="number"
+                [(ngModel)]="filters.amountFrom"
+                (input)="applyFilters()"
+                placeholder="From"
+                step="0.01"
+              />
+              <input
+                type="number"
+                [(ngModel)]="filters.amountTo"
+                (input)="applyFilters()"
+                placeholder="To"
+                step="0.01"
+              />
+            </div>
+          </label>
+        </div>
+      }
+
+      @if (getDisplayTransactions().length > 0) {
+        <div class="table-wrap">
+          <table class="tx-table">
+            <thead>
+              <tr>
+                <th class="th-date">Date</th>
+                <th>Description</th>
+                <th>Category</th>
+                <th class="th-amount">Amount</th>
+                <th class="th-actions"><span class="visually-hidden">Actions</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (txn of getPaginatedTransactions(); track txn.id) {
+                <tr>
+                  <td class="td-date">{{ txn.transaction_date | date: 'MMM d, y' }}</td>
+                  <td class="td-desc">
+                    <span class="desc-text">{{ txn.description }}</span>
+                    @if (txn.source === 'plaid') {
+                      <span class="src-tag" title="Synced from your bank">
+                        <svg lucideLandmark [size]="11"></svg>
+                      </span>
+                    }
+                  </td>
+                  <td class="td-cat">
+                    @if (editingCategoryId === txn.id) {
+                      <select
+                        class="cat-select"
+                        [ngModel]="txn.category"
+                        (ngModelChange)="applyCategoryChange(txn, $event)"
+                        (blur)="cancelCategoryEdit()"
+                        (keydown.escape)="cancelCategoryEdit()"
+                        aria-label="Change category"
+                      >
+                        @for (cat of categoryService.getAllCategories(); track cat.value) {
+                          <option [value]="cat.value">{{ cat.displayName }}</option>
+                        }
+                      </select>
+                    } @else {
+                      <button
+                        type="button"
+                        class="cat-chip"
+                        (click)="startCategoryEdit(txn)"
+                        [disabled]="savingCategoryId === txn.id"
+                        [title]="
+                          txn.category_source === 'manual'
+                            ? 'Category set by you — bank syncs won\'t change it. Click to change.'
+                            : 'Click to change category'
+                        "
+                      >
+                        <span class="cat-dot" [style.background]="categoryColor(txn.category)"></span>
+                        <span>{{ categoryService.getCategoryDisplayName(txn.category) }}</span>
+                        <svg lucideChevronDown [size]="11" class="cat-caret"></svg>
+                      </button>
+                    }
+                  </td>
+                  <td class="td-amount" [class.inc]="txn.transaction_type === 'income'">
+                    {{ txn.transaction_type === 'expense' ? '−' : '+' }}{{ txn.amount | currency }}
+                  </td>
+                  <td class="td-actions">
+                    @if (txn.source === 'manual') {
+                      <button class="icon-btn" (click)="editTransaction(txn)" title="Edit">
+                        <svg lucidePencil [size]="14"></svg>
+                      </button>
+                      <button
+                        class="icon-btn danger"
+                        (click)="deleteTransaction(txn.id)"
+                        title="Delete"
+                      >
+                        <svg lucideTrash2 [size]="14"></svg>
+                      </button>
+                    } @else {
+                      <span class="locked" title="Synced from bank — read only">
+                        <svg lucideLock [size]="13"></svg>
+                      </span>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <footer class="table-foot">
+          <span class="foot-info">{{ getDisplayRangeText() }}</span>
+          <div class="foot-controls">
+            @if (hasMoreTransactions()) {
+              <button class="btn btn-text" (click)="showMoreTransactions()">
+                Show {{ Math.min(rowsPerPage, getRemainingCount()) }} more
+                <svg lucideChevronDown [size]="14"></svg>
+              </button>
+            }
+            <div class="rows-select">
+              <button type="button" class="btn btn-text" (click)="toggleRowsDropdown()">
+                {{ showAll ? 'All' : rowsPerPage }} rows
+                <svg lucideChevronDown [size]="13" [class.rotated]="showRowsDropdown"></svg>
+              </button>
+              @if (showRowsDropdown) {
+                <div class="rows-menu">
+                  @for (opt of [20, 50, 100]; track opt) {
+                    <button
+                      class="rows-opt"
+                      [class.selected]="rowsPerPage === opt && !showAll"
+                      (click)="selectRowsPerPage(opt)"
+                    >
+                      {{ opt }}
+                    </button>
+                  }
+                  <button class="rows-opt" [class.selected]="showAll" (click)="selectRowsPerPage('all')">
+                    All
+                  </button>
+                </div>
+              }
+            </div>
+          </div>
+        </footer>
+      } @else {
+        <div class="empty">
+          @if (hasActiveFilters()) {
+            <svg lucideSearchX [size]="22"></svg>
+            <p>No transactions match this view</p>
+            <span class="empty-sub">Loosen the filters or clear them to see everything</span>
+            <button class="btn btn-text" (click)="clearFilters()">Clear filters</button>
+          } @else {
+            <svg lucideInbox [size]="22"></svg>
+            <p>No transactions yet</p>
+            <span class="empty-sub">Add one by hand or sync your bank to fill the ledger</span>
+            <button class="inline-link as-btn" (click)="addTransaction()">
+              Add your first transaction
+            </button>
+          }
+        </div>
+      }
+    </section>
+  }
+</div>

@@ -1,13 +1,18 @@
 import { Component, Inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatDialogModule, MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { MatButtonModule } from '@angular/material/button';
+import {
+  LucideCircleCheck,
+  LucideInfo,
+  LucideOctagonAlert,
+  LucideX
+} from '@lucide/angular';
 import { AlertData } from '../../../services/modal.service';
 
 @Component({
   selector: 'app-alert-modal',
   standalone: true,
-  imports: [CommonModule, MatDialogModule, MatButtonModule],
+  imports: [CommonModule, MatDialogModule, LucideCircleCheck, LucideInfo, LucideOctagonAlert, LucideX],
   templateUrl: './alert-modal.html',
   styleUrl: './alert-modal.scss'
 })
@@ -19,14 +24,5 @@ export class AlertModalComponent {
 
   close(): void {
     this.dialogRef.close();
-  }
-
-  getIcon(): string {
-    switch (this.data.type) {
-      case 'error': return '❌';
-      case 'success': return '✅';
-      case 'info': return 'ℹ️';
-      default: return 'ℹ️';
-    }
   }
 }

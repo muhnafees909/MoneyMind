@@ -1,0 +1,96 @@
+import {
+  HttpBackend,
+  HttpClient,
+  HttpErrorResponse,
+  HttpHeaders,
+  HttpInterceptorFn,
+  HttpRequest
+} from '@angular/common/http';
+import { inject } from '@angular/core';
+import { Router } from '@angular/router';
+import { Observable, catchError, finalize, shareReplay, switchMap, throwError } from 'rxjs';
+import { environment } from '../../environments/environment';
+import { AuthService } from '../services/auth.service';
+
+// One refresh at a time: parallel 401s all wait on the same attempt
+let refreshInFlight: Observable<unknown> | null = null;
+
+function readCookie(name: string): string | null {
+  const match = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+/**
+ * Prepare an API request for cookie auth:
+ * - send credentials (the httpOnly session cookies)
+ * - strip any legacy Authorization header (cookies are canonical)
+ * - attach the CSRF double-submit header on state-changing methods
+ */
+function prepare(req: HttpRequest<unknown>): HttpRequest<unknown> {
+  if (!req.url.startsWith(environment.apiUrl)) {
+    return req;
+  }
+  let headers = req.headers.delete('Authorization');
+  const mutating = !['GET', 'HEAD', 'OPTIONS'].includes(req.method);
+  if (mutating) {
+    const csrf = readCookie(
+      req.url.includes('/api/auth/refresh') ? 'csrf_refresh_token' : 'csrf_access_token'
+    );
+    if (csrf) {
+      headers = headers.set('X-CSRF-TOKEN', csrf);
+    }
+  }
+  return req.clone({ headers, withCredentials: true });
+}
+
+export const authInterceptor: HttpInterceptorFn = (req, next) => {
+  const router = inject(Router);
+  const auth = inject(AuthService);
+  // Raw client (bypasses interceptors) for the refresh call itself
+  const rawHttp = new HttpClient(inject(HttpBackend));
+
+  const prepared = prepare(req);
+  if (!prepared.withCredentials) {
+    return next(prepared); // non-API traffic (fonts, etc.)
+  }
+
+  const isAuthEndpoint = /\/api\/auth\/(login|register|refresh|logout)/.test(req.url);
+
+  return next(prepared).pipe(
+    catchError((error: HttpErrorResponse) => {
+      if (error.status !== 401 || isAuthEndpoint) {
+        return throwError(() => error);
+      }
+
+      // Access cookie rejected — try one refresh, then retry the request
+      if (!refreshInFlight) {
+        const csrf = readCookie('csrf_refresh_token');
+        refreshInFlight = rawHttp
+          .post(
+            `${environment.apiUrl}/api/auth/refresh`,
+            {},
+            {
+              withCredentials: true,
+              headers: csrf ? new HttpHeaders({ 'X-CSRF-TOKEN': csrf }) : undefined
+            }
+          )
+          .pipe(
+            shareReplay(1),
+            finalize(() => (refreshInFlight = null))
+          );
+      }
+
+      return refreshInFlight.pipe(
+        switchMap(() => next(prepare(req))), // re-prepare: fresh CSRF cookie
+        catchError((refreshError) => {
+          // Refresh failed → the session is genuinely over
+          auth.clearSession();
+          router.navigate(['/login'], {
+            queryParams: { expired: '1', returnUrl: router.url }
+          });
+          return throwError(() => refreshError);
+        })
+      );
+    })
+  );
+};

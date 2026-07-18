@@ -1,0 +1,378 @@
+<div class="legal">
+  <!-- ============ TOP BAR (mirrors landing) ============ -->
+  <header class="topbar">
+    <a routerLink="/" class="brand-home" title="MoneyMind home">
+      <mm-wordmark [size]="17"></mm-wordmark>
+    </a>
+    <nav class="topbar-actions">
+      <a routerLink="/login" class="link-quiet">Sign in</a>
+      <a routerLink="/register" class="btn btn-solid">
+        <span>Open your ledger</span>
+        <svg lucideArrowRight [size]="15"></svg>
+      </a>
+    </nav>
+  </header>
+
+  <main class="legal-main">
+    <!-- ============ PAGE HEAD ============ -->
+    <header class="legal-head">
+      <p class="kicker">
+        <svg lucideShieldCheck [size]="13"></svg>
+        The fine print
+      </p>
+      <h1>Terms &amp; Privacy</h1>
+      <p class="legal-intro">
+        The short version: MoneyMind is your ledger, your data stays yours, and the AI
+        Advisor reads your numbers — it isn't a licensed professional. The full terms
+        and privacy policy follow.
+      </p>
+
+      <!-- Mobile-only jump links; the sidebar TOC covers this on desktop -->
+      <nav class="legal-jump" aria-label="Jump to document">
+        <a routerLink="/legal" fragment="terms" class="btn btn-ghost sm">Terms of Service</a>
+        <a routerLink="/legal" fragment="privacy" class="btn btn-ghost sm">Privacy Policy</a>
+      </nav>
+    </header>
+
+    <div class="legal-body">
+      <!-- ============ CONTENTS RAIL ============ -->
+      <aside class="toc" aria-label="Contents">
+        <p class="toc-title">Terms of Service</p>
+        <ol>
+          <li><a routerLink="/legal" fragment="terms-1">Acceptance of terms</a></li>
+          <li><a routerLink="/legal" fragment="terms-2">Description of service</a></li>
+          <li><a routerLink="/legal" fragment="terms-3">Eligibility</a></li>
+          <li><a routerLink="/legal" fragment="terms-4">Account registration</a></li>
+          <li><a routerLink="/legal" fragment="terms-5">Connecting financial accounts</a></li>
+          <li><a routerLink="/legal" fragment="terms-6">AI advisor disclaimer</a></li>
+          <li><a routerLink="/legal" fragment="terms-7">Acceptable use</a></li>
+          <li><a routerLink="/legal" fragment="terms-8">Data accuracy</a></li>
+          <li><a routerLink="/legal" fragment="terms-9">Limitation of liability</a></li>
+          <li><a routerLink="/legal" fragment="terms-10">Termination</a></li>
+          <li><a routerLink="/legal" fragment="terms-11">Changes to these terms</a></li>
+          <li><a routerLink="/legal" fragment="terms-12">Governing law</a></li>
+          <li><a routerLink="/legal" fragment="terms-13">Contact</a></li>
+        </ol>
+
+        <p class="toc-title">Privacy Policy</p>
+        <ol>
+          <li><a routerLink="/legal" fragment="privacy-1">What we collect</a></li>
+          <li><a routerLink="/legal" fragment="privacy-2">How we use your data</a></li>
+          <li><a routerLink="/legal" fragment="privacy-3">Third parties</a></li>
+          <li><a routerLink="/legal" fragment="privacy-4">Data security</a></li>
+          <li><a routerLink="/legal" fragment="privacy-5">Retention &amp; deletion</a></li>
+          <li><a routerLink="/legal" fragment="privacy-6">Your rights</a></li>
+          <li><a routerLink="/legal" fragment="privacy-7">Children's privacy</a></li>
+          <li><a routerLink="/legal" fragment="privacy-8">Changes to this policy</a></li>
+          <li><a routerLink="/legal" fragment="privacy-9">Contact</a></li>
+        </ol>
+      </aside>
+
+      <div class="docs">
+        <!-- ================================================== -->
+        <!-- TERMS OF SERVICE                                    -->
+        <!-- ================================================== -->
+        <article id="terms" class="doc">
+          <header class="doc-head">
+            <p class="doc-eyebrow">Part one</p>
+            <h2>Terms of Service</h2>
+            <p class="doc-date">Last updated · July 17, 2026</p>
+          </header>
+
+          <section class="doc-sec" id="terms-1">
+            <h3><span class="sec-num">01</span>Acceptance of terms</h3>
+            <p>
+              By creating an account or using MoneyMind ("the Service"), you agree to
+              these Terms of Service. If you don't agree, don't use the Service.
+            </p>
+          </section>
+
+          <section class="doc-sec" id="terms-2">
+            <h3><span class="sec-num">02</span>Description of service</h3>
+            <p>
+              MoneyMind is a personal finance management application that helps you track
+              spending, manage budgets, set financial goals, and receive AI-generated
+              financial insights. MoneyMind connects to your financial institutions via
+              Plaid to sync transaction data.
+            </p>
+          </section>
+
+          <section class="doc-sec" id="terms-3">
+            <h3><span class="sec-num">03</span>Eligibility</h3>
+            <p>
+              You must be at least 18 years old and legally able to enter into these
+              Terms to use MoneyMind.
+            </p>
+          </section>
+
+          <section class="doc-sec" id="terms-4">
+            <h3><span class="sec-num">04</span>Account registration</h3>
+            <p>
+              You're responsible for maintaining the confidentiality of your account
+              credentials and for all activity under your account. Notify us immediately
+              of any unauthorized access.
+            </p>
+          </section>
+
+          <section class="doc-sec" id="terms-5">
+            <h3><span class="sec-num">05</span>Connecting financial accounts</h3>
+            <p>
+              MoneyMind uses Plaid to connect to your bank and financial accounts. By
+              linking an account, you authorize MoneyMind and Plaid to access your account
+              information as described in Plaid's own End User Privacy Policy (available
+              at <a href="https://plaid.com/legal" target="_blank" rel="noopener">plaid.com/legal</a>)
+              and in our <a routerLink="/legal" fragment="privacy">Privacy Policy</a> below.
+              MoneyMind does not store your bank login credentials — these are handled
+              directly by Plaid and your financial institution.
+            </p>
+          </section>
+
+          <section class="doc-sec" id="terms-6">
+            <h3><span class="sec-num">06</span>AI financial advisor — disclaimer</h3>
+            <p>
+              MoneyMind includes an AI-powered chat feature ("AI Advisor") that provides
+              insights and suggestions based on your financial data.
+            </p>
+            <aside class="doc-aside">
+              <svg lucideInfo [size]="14"></svg>
+              <ul>
+                <li>
+                  The AI Advisor is not a licensed financial advisor, and its responses do
+                  not constitute professional financial, tax, legal, or investment advice.
+                  Information provided is for general informational purposes only.
+                </li>
+                <li>
+                  AI-generated responses may be inaccurate or incomplete. You are
+                  responsible for independently verifying any information before acting on
+                  it, and should consult a qualified professional for decisions with real
+                  financial consequences.
+                </li>
+                <li>
+                  Messages you send to the AI Advisor, along with relevant financial
+                  context needed to generate a response, are processed by a third-party AI
+                  provider (OpenAI). See the
+                  <a routerLink="/legal" fragment="privacy">Privacy Policy</a> below for
+                  details on what's shared and how it's used.
+                </li>
+              </ul>
+            </aside>
+          </section>
+
+          <section class="doc-sec" id="terms-7">
+            <h3><span class="sec-num">07</span>Acceptable use</h3>
+            <p>You agree not to:</p>
+            <ul>
+              <li>use the Service for unlawful purposes;</li>
+              <li>
+                attempt to gain unauthorized access to other users' data or the Service's
+                infrastructure;
+              </li>
+              <li>
+                abuse or attempt to overwhelm the AI Advisor or any Service feature
+                (automated or excessive requests, attempts to circumvent rate limits, and
+                the like); or
+              </li>
+              <li>reverse-engineer, scrape, or resell the Service without authorization.</li>
+            </ul>
+          </section>
+
+          <section class="doc-sec" id="terms-8">
+            <h3><span class="sec-num">08</span>Data accuracy</h3>
+            <p>
+              MoneyMind displays financial data synced from your linked accounts via
+              Plaid. We do not guarantee the accuracy, completeness, or timeliness of this
+              data, which depends on your financial institution and Plaid's services.
+            </p>
+          </section>
+
+          <section class="doc-sec" id="terms-9">
+            <h3><span class="sec-num">09</span>Limitation of liability</h3>
+            <p class="caps">
+              THE SERVICE IS PROVIDED "AS IS" AND "AS AVAILABLE," WITHOUT WARRANTIES OF
+              ANY KIND, EXPRESS OR IMPLIED. TO THE MAXIMUM EXTENT PERMITTED BY LAW,
+              MONEYMIND AND ITS OPERATOR SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL,
+              SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING BUT NOT LIMITED TO
+              LOSS OF PROFITS, DATA, OR FINANCIAL LOSS, ARISING FROM YOUR USE OF THE
+              SERVICE OR RELIANCE ON ANY INFORMATION (INCLUDING AI-GENERATED CONTENT)
+              PROVIDED THROUGH IT.
+            </p>
+            <p class="caps">
+              TO THE EXTENT ANY LIABILITY CANNOT BE EXCLUDED UNDER APPLICABLE LAW, TOTAL
+              LIABILITY IS LIMITED TO THE AMOUNT YOU PAID TO USE THE SERVICE IN THE PRIOR
+              12 MONTHS (WHICH, FOR A FREE SERVICE, IS ZERO).
+            </p>
+          </section>
+
+          <section class="doc-sec" id="terms-10">
+            <h3><span class="sec-num">10</span>Termination</h3>
+            <p>
+              You may delete your account at any time. We may suspend or terminate
+              accounts that violate these Terms.
+            </p>
+          </section>
+
+          <section class="doc-sec" id="terms-11">
+            <h3><span class="sec-num">11</span>Changes to these terms</h3>
+            <p>
+              We may update these Terms from time to time. Continued use of the Service
+              after changes constitutes acceptance of the updated Terms.
+            </p>
+          </section>
+
+          <section class="doc-sec" id="terms-12">
+            <h3><span class="sec-num">12</span>Governing law</h3>
+            <p>
+              These Terms are governed by the laws of the Commonwealth of Virginia,
+              without regard to conflict of law principles.
+            </p>
+          </section>
+
+          <section class="doc-sec" id="terms-13">
+            <h3><span class="sec-num">13</span>Contact</h3>
+            <p class="contact-line">
+              <svg lucideMail [size]="14"></svg>
+              <a href="mailto:support&#64;moneymind.us">support&#64;moneymind.us</a>
+            </p>
+          </section>
+        </article>
+
+        <!-- ================================================== -->
+        <!-- PRIVACY POLICY                                      -->
+        <!-- ================================================== -->
+        <article id="privacy" class="doc">
+          <header class="doc-head">
+            <p class="doc-eyebrow">Part two</p>
+            <h2>Privacy Policy</h2>
+            <p class="doc-date">Last updated · July 17, 2026</p>
+          </header>
+
+          <section class="doc-sec" id="privacy-1">
+            <h3><span class="sec-num">01</span>What we collect</h3>
+            <ul class="def-list">
+              <li>
+                <strong>Account information.</strong> Name, email, and authentication
+                details you provide when creating an account.
+              </li>
+              <li>
+                <strong>Financial data.</strong> Transaction history, account balances,
+                and related data synced from your linked financial institutions via Plaid.
+              </li>
+              <li>
+                <strong>Profile information (optional).</strong> Employment status,
+                income, household details, and similar context you choose to provide to
+                personalize AI Advisor recommendations.
+              </li>
+              <li>
+                <strong>AI Advisor conversation data.</strong> Messages you send to and
+                receive from the AI Advisor.
+              </li>
+            </ul>
+          </section>
+
+          <section class="doc-sec" id="privacy-2">
+            <h3><span class="sec-num">02</span>How we use your data</h3>
+            <ul>
+              <li>
+                To provide core functionality: displaying transactions, budgets, goals,
+                and analytics.
+              </li>
+              <li>
+                To generate personalized AI Advisor responses, using your transaction
+                history and (if provided) profile information as context.
+              </li>
+              <li>To detect and prevent fraud, abuse, or unauthorized access.</li>
+            </ul>
+          </section>
+
+          <section class="doc-sec" id="privacy-3">
+            <h3><span class="sec-num">03</span>Third parties we share data with</h3>
+            <ul class="def-list">
+              <li>
+                <strong>Plaid.</strong> Used to securely connect to and sync data from
+                your financial institutions. Plaid's own End User Privacy Policy
+                (<a href="https://plaid.com/legal" target="_blank" rel="noopener">plaid.com/legal</a>)
+                governs how Plaid itself handles your data.
+              </li>
+              <li>
+                <strong>OpenAI.</strong> When you use the AI Advisor, relevant financial
+                context and your message content are sent to OpenAI's API to generate a
+                response. Per OpenAI's current published policy, data sent via the API is
+                not used to train their models by default, and is retained for up to 30
+                days for abuse-monitoring purposes before deletion, unless a legal
+                obligation requires longer retention.
+              </li>
+            </ul>
+            <p class="no-sell">
+              <svg lucideCircleCheck [size]="14"></svg>
+              We do not sell your personal or financial data to third parties.
+            </p>
+          </section>
+
+          <section class="doc-sec" id="privacy-4">
+            <h3><span class="sec-num">04</span>Data security</h3>
+            <p>
+              We use industry-standard measures to protect your data, including
+              encryption of data in transit (HTTPS/TLS) and encryption of sensitive data
+              at rest. Your bank login credentials are never stored by MoneyMind — these
+              are handled directly between Plaid and your financial institution. Access to
+              production data is restricted to what's necessary to operate the Service.
+            </p>
+          </section>
+
+          <section class="doc-sec" id="privacy-5">
+            <h3><span class="sec-num">05</span>Data retention &amp; deletion</h3>
+            <p>
+              You may request deletion of your account and associated data at any time
+              from your account settings or by contacting us. Upon deletion, we will
+              remove your personal and financial data from our systems within 30 days,
+              except where we're required to retain certain records by law.
+            </p>
+          </section>
+
+          <section class="doc-sec" id="privacy-6">
+            <h3><span class="sec-num">06</span>Your rights</h3>
+            <p>
+              You may access, correct, or delete your personal data at any time through
+              your account settings, or by contacting us directly.
+            </p>
+          </section>
+
+          <section class="doc-sec" id="privacy-7">
+            <h3><span class="sec-num">07</span>Children's privacy</h3>
+            <p>
+              MoneyMind is not intended for use by individuals under 18 years of age.
+            </p>
+          </section>
+
+          <section class="doc-sec" id="privacy-8">
+            <h3><span class="sec-num">08</span>Changes to this policy</h3>
+            <p>
+              We may update this Privacy Policy from time to time and will notify users of
+              material changes.
+            </p>
+          </section>
+
+          <section class="doc-sec" id="privacy-9">
+            <h3><span class="sec-num">09</span>Contact</h3>
+            <p class="contact-line">
+              <svg lucideMail [size]="14"></svg>
+              <a href="mailto:support&#64;moneymind.us">support&#64;moneymind.us</a>
+            </p>
+          </section>
+        </article>
+      </div>
+    </div>
+  </main>
+
+  <!-- ============ FOOTER (mirrors landing) ============ -->
+  <footer class="footer">
+    <mm-wordmark [size]="15"></mm-wordmark>
+    <span class="foot-line">Every dollar, accounted for.</span>
+    <nav class="foot-links">
+      <a routerLink="/login">Sign in</a>
+      <a routerLink="/register">Create account</a>
+      <a routerLink="/legal" fragment="terms">Terms</a>
+      <a routerLink="/legal" fragment="privacy">Privacy</a>
+    </nav>
+  </footer>
+</div>

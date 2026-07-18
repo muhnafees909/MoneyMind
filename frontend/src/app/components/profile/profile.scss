@@ -1,0 +1,360 @@
+// ============================================
+// MoneyMind Profile — warm editorial ledger
+// Advisor-personalization form. Follows the
+// moneymind-design-system skill; shared recipes mirror the other screens.
+// ============================================
+
+.mm-dash {
+  min-height: calc(100vh - 64px);
+  background: var(--mm-bg);
+  color: var(--mm-text-1);
+  font-family: var(--mm-font-ui);
+  font-size: 14px;
+  padding: 28px 32px 64px;
+
+  * {
+    box-sizing: border-box;
+  }
+
+  ::selection {
+    background: var(--mm-brand-dim);
+  }
+
+  button {
+    font-family: inherit;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--mm-brand);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+.mm-dash.pre-anim [data-animate] {
+  opacity: 0;
+}
+
+.dash-head,
+.purpose-note,
+.card,
+.save-row,
+.skeleton-page {
+  max-width: 720px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+// ============================================
+// HEADER
+// ============================================
+.dash-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+
+  h1 {
+    margin: 0;
+    font-family: var(--mm-font-serif);
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: 0;
+  }
+
+  .head-date {
+    margin: 4px 0 0;
+    font-size: 13px;
+    color: var(--mm-text-3);
+  }
+}
+
+// ============================================
+// PURPOSE NOTE
+// ============================================
+.purpose-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  margin-bottom: 20px;
+  background: var(--mm-brand-dim);
+  border: 1px solid rgba(124, 169, 130, 0.25);
+  border-radius: var(--mm-radius-sm);
+
+  svg {
+    color: var(--mm-brand);
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  p {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--mm-text-2);
+  }
+}
+
+// ============================================
+// CARDS + FIELDS
+// ============================================
+.card {
+  background: var(--mm-surface-raised);
+  border: 1px solid rgba(244, 241, 236, 0.07);
+  border-radius: var(--mm-radius);
+  padding: 20px 22px;
+  box-shadow: var(--mm-shadow-1);
+  margin-bottom: 18px;
+}
+
+.card-head {
+  margin-bottom: 16px;
+
+  h2 {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-family: var(--mm-font-serif);
+    font-size: 16.5px;
+    font-weight: 600;
+    letter-spacing: 0;
+
+    svg {
+      color: var(--mm-brand);
+    }
+  }
+}
+
+.field-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.f-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+
+  > span {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--mm-text-3);
+  }
+
+  select,
+  input {
+    width: 100%;
+    padding: 9px 11px;
+    background: var(--mm-surface);
+    border: 1px solid var(--mm-hairline-2);
+    border-radius: var(--mm-radius-xs);
+    color: var(--mm-text-1);
+    font-family: var(--mm-font-ui);
+    font-size: 13.5px;
+    outline: none;
+    transition:
+      border-color var(--mm-dur-fast) ease,
+      box-shadow var(--mm-dur-fast) ease;
+
+    &::placeholder {
+      color: var(--mm-text-3);
+    }
+
+    &:focus {
+      border-color: var(--mm-brand);
+      box-shadow: 0 0 0 3px var(--mm-brand-dim);
+    }
+  }
+
+  input[type='number'] {
+    font-family: var(--mm-font-num);
+  }
+
+  select {
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236f6862' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 30px;
+  }
+
+  .field-note {
+    font-style: normal;
+    font-size: 11.5px;
+    line-height: 1.5;
+    color: var(--mm-text-3);
+  }
+}
+
+// ============================================
+// SAVE ROW
+// ============================================
+.save-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 4px;
+
+  .updated-note {
+    font-family: var(--mm-font-num);
+    font-size: 11.5px;
+    color: var(--mm-text-3);
+  }
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: var(--mm-radius-xs);
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition:
+    background var(--mm-dur-fast) ease,
+    transform var(--mm-dur-fast) ease;
+
+  &:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: default;
+  }
+}
+
+.btn-solid {
+  background: var(--mm-brand);
+  color: var(--mm-brand-ink);
+  box-shadow: 0 4px 16px -4px var(--mm-brand-glow);
+
+  &:hover:not(:disabled) {
+    background: var(--mm-brand-strong);
+  }
+}
+
+// ============================================
+// TOAST — quiet save confirmation, in the app's motion language
+// ============================================
+.toast {
+  position: fixed;
+  right: 26px;
+  bottom: 26px;
+  z-index: 300;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 15px;
+  background: var(--mm-surface-raised);
+  border: 1px solid rgba(124, 169, 130, 0.35);
+  border-radius: var(--mm-radius-sm);
+  box-shadow: var(--mm-shadow-1);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--mm-text-1);
+  opacity: 0;
+  transform: translateY(10px);
+  pointer-events: none;
+  transition:
+    opacity 0.3s var(--mm-ease-out),
+    transform 0.3s var(--mm-ease-out);
+
+  svg {
+    color: var(--mm-brand);
+  }
+
+  &.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// ============================================
+// SKELETON
+// ============================================
+.sk {
+  position: relative;
+  overflow: hidden;
+  background: var(--mm-surface);
+  border-radius: var(--mm-radius);
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      100deg,
+      transparent 30%,
+      rgba(255, 255, 255, 0.035) 50%,
+      transparent 70%
+    );
+    animation: mm-shimmer 1.6s infinite;
+  }
+}
+
+@keyframes mm-shimmer {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+.sk-head {
+  height: 42px;
+  width: 240px;
+  margin-bottom: 24px;
+}
+
+.sk-card {
+  height: 170px;
+  margin-bottom: 18px;
+}
+
+// ============================================
+// RESPONSIVE + REDUCED MOTION
+// ============================================
+@media (max-width: 560px) {
+  .mm-dash {
+    padding: 20px 16px 48px;
+  }
+
+  .field-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .save-row {
+    flex-direction: column-reverse;
+    align-items: stretch;
+
+    .btn {
+      justify-content: center;
+    }
+
+    .updated-note {
+      text-align: center;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mm-dash *,
+  .mm-dash *::before,
+  .mm-dash *::after {
+    transition-duration: 0.01ms !important;
+    animation: none !important;
+  }
+}

@@ -8,6 +8,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
+import { LucideX } from '@lucide/angular';
 import { CategoryService, CategoryInfo } from '../../services/category.service';
 
 @Component({
@@ -22,7 +23,8 @@ import { CategoryService, CategoryInfo } from '../../services/category.service';
     MatButtonModule,
     MatSelectModule,
     MatDatepickerModule,
-    MatNativeDateModule
+    MatNativeDateModule,
+    LucideX
   ],
   templateUrl: './transaction-form.html',
   styleUrl: './transaction-form.scss',

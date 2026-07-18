@@ -21,6 +21,9 @@ class Transaction(db.Model):
     merchant_name = db.Column(db.String(255), nullable=True)
     # Plaid's stable merchant entity id — the most reliable recurring-match key when present
     merchant_entity_id = db.Column(db.String(255), nullable=True, index=True)
+    # 'auto' = assigned by Plaid/detection; 'manual' = set by the user.
+    # Sync never overwrites a manual category (see routes/plaid.py).
+    category_source = db.Column(db.String(10), nullable=False, default='auto')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def to_dict(self):
@@ -38,6 +41,7 @@ class Transaction(db.Model):
             'plaid_account_id': self.plaid_account_id,
             'merchant_name': self.merchant_name,
             'merchant_entity_id': self.merchant_entity_id,
+            'category_source': self.category_source,
             'created_at': self.created_at.isoformat()
         }
 

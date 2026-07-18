@@ -1,0 +1,121 @@
+<div class="mm-dash" [class.pre-anim]="preAnim">
+  @if (initialLoading) {
+    <div class="skeleton-page" aria-hidden="true">
+      <div class="sk sk-head"></div>
+      <div class="sk sk-card"></div>
+      <div class="sk sk-card"></div>
+    </div>
+  } @else {
+    <!-- ============ HEADER ============ -->
+    <header class="dash-head" data-animate>
+      <div>
+        <h1>Profile</h1>
+        <p class="head-date">Context that sharpens your advisor's advice</p>
+      </div>
+    </header>
+
+    <!-- ============ PURPOSE NOTE ============ -->
+    <div class="purpose-note" data-animate>
+      <svg lucideShieldCheck [size]="15"></svg>
+      <p>
+        This helps your AI advisor give more personalized advice — nothing here is
+        required, and it stays in your account. Leave anything blank.
+      </p>
+    </div>
+
+    <!-- ============ EMPLOYMENT & INCOME ============ -->
+    <section class="card" data-animate>
+      <header class="card-head">
+        <h2><svg lucideBriefcase [size]="14"></svg> Employment &amp; income</h2>
+      </header>
+      <div class="field-grid">
+        <label class="f-field">
+          <span>Employment status</span>
+          <select [(ngModel)]="form.employment_status">
+            <option value="">Prefer not to say</option>
+            <option value="employed">Employed</option>
+            <option value="self_employed">Self-employed</option>
+            <option value="student">Student</option>
+            <option value="unemployed">Not currently working</option>
+          </select>
+        </label>
+        <label class="f-field">
+          <span>Annual income</span>
+          <input
+            type="number"
+            [(ngModel)]="form.annual_income"
+            placeholder="0"
+            min="0"
+            step="1000"
+          />
+          <em class="field-note">
+            Can differ from what your deposits suggest — useful if your income is irregular.
+          </em>
+        </label>
+      </div>
+    </section>
+
+    <!-- ============ HOUSEHOLD ============ -->
+    <section class="card" data-animate>
+      <header class="card-head">
+        <h2><svg lucideHouse [size]="14"></svg> Household</h2>
+      </header>
+      <div class="field-grid">
+        <label class="f-field">
+          <span>Filing status</span>
+          <select [(ngModel)]="form.marital_status">
+            <option value="">Prefer not to say</option>
+            <option value="single">Single</option>
+            <option value="married">Married</option>
+          </select>
+        </label>
+        <label class="f-field">
+          <span>Dependents</span>
+          <input type="number" [(ngModel)]="form.dependents" placeholder="0" min="0" max="20" step="1" />
+        </label>
+        <label class="f-field">
+          <span>Housing</span>
+          <select [(ngModel)]="form.housing_status">
+            <option value="">Prefer not to say</option>
+            <option value="rent">Rent</option>
+            <option value="own">Own</option>
+            <option value="family">Live with family</option>
+          </select>
+        </label>
+        <label class="f-field">
+          <span>Birth year</span>
+          <input
+            type="number"
+            [(ngModel)]="form.birth_year"
+            placeholder="1998"
+            min="1900"
+            [max]="maxBirthYear"
+            step="1"
+          />
+          <em class="field-note">Used for retirement-horizon advice.</em>
+        </label>
+      </div>
+    </section>
+
+    <!-- ============ SAVE ============ -->
+    <footer class="save-row" data-animate>
+      <span class="updated-note">
+        @if (updatedAt) {
+          Last updated {{ updatedAt | date: 'MMM d, y' }}
+        } @else {
+          Nothing saved yet
+        }
+      </span>
+      <button class="btn btn-solid" (click)="save()" [disabled]="saving">
+        <svg lucideCheck [size]="15"></svg>
+        <span>{{ saving ? 'Saving…' : 'Save profile' }}</span>
+      </button>
+    </footer>
+  }
+
+  <!-- Save confirmation toast -->
+  <div class="toast" [class.show]="toastVisible" role="status" aria-live="polite">
+    <svg lucideCircleCheck [size]="15"></svg>
+    <span>Profile saved</span>
+  </div>
+</div>

@@ -23,24 +23,26 @@ CATEGORY_DISPLAY_NAMES = {
     'RENT_AND_UTILITIES': 'Rent & Utilities'
 }
 
-# Plaid category to muted dark-theme color (no bright colors)
+# Plaid category -> chart color. Mirrors the frontend's shared palette
+# (frontend/src/app/shared/category-colors.ts) — the vivid "gallery" tuning
+# of the heritage family. Keep the two in sync.
 CATEGORY_COLORS = {
-    'INCOME': '#4ade80',          # Muted green
-    'TRANSFER_IN': '#60a5fa',     # Muted blue
-    'TRANSFER_OUT': '#818cf8',    # Muted indigo
-    'LOAN_PAYMENTS': '#f87171',   # Muted red
-    'BANK_FEES': '#ef4444',       # Darker red
-    'ENTERTAINMENT': '#c084fc',   # Muted purple
-    'FOOD_AND_DRINK': '#fb923c',  # Muted orange
-    'GENERAL_MERCHANDISE': '#f472b6', # Muted pink
-    'HOME_IMPROVEMENT': '#a78bfa', # Muted violet
-    'MEDICAL': '#2dd4bf',         # Muted teal
-    'PERSONAL_CARE': '#fca5a5',   # Muted coral
-    'GENERAL_SERVICES': '#22d3ee', # Muted cyan
-    'GOVERNMENT_AND_NON_PROFIT': '#94a3b8', # Muted slate
-    'TRANSPORTATION': '#fbbf24',  # Muted amber
-    'TRAVEL': '#34d399',          # Muted emerald
-    'RENT_AND_UTILITIES': '#38bdf8' # Muted sky blue
+    'INCOME': '#27b9de',                    # petrol
+    'TRANSFER_IN': '#6c9de6',               # cornflower
+    'TRANSFER_OUT': '#b189e0',              # mauve
+    'LOAN_PAYMENTS': '#8f93ea',             # indigo
+    'BANK_FEES': '#8f93ea',                 # indigo
+    'ENTERTAINMENT': '#b189e0',             # mauve
+    'FOOD_AND_DRINK': '#e27c4e',            # terracotta
+    'GENERAL_MERCHANDISE': '#e07b9f',       # rose
+    'HOME_IMPROVEMENT': '#a9bf49',          # olive
+    'MEDICAL': '#a9bf49',                   # olive
+    'PERSONAL_CARE': '#e07b9f',             # rose
+    'GENERAL_SERVICES': '#e27c4e',          # terracotta
+    'GOVERNMENT_AND_NON_PROFIT': '#dba43e', # ochre
+    'TRANSPORTATION': '#dba43e',            # ochre
+    'TRAVEL': '#27b9de',                    # petrol
+    'RENT_AND_UTILITIES': '#6c9de6'         # cornflower
 }
 
 # Legacy lowercase to Plaid uppercase mapping

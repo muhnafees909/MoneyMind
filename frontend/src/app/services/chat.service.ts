@@ -10,6 +10,11 @@ export interface ChatMessage {
   timestamp: Date;
 }
 
+export interface AdvisorUsage {
+  minute: { limit: number; used: number; remaining: number };
+  daily: { limit: number; used: number; remaining: number; resets_in_seconds: number };
+}
+
 export interface ChatResponse {
   response: string;
   context_used: {
@@ -21,10 +26,14 @@ export interface ChatResponse {
     recent_transactions_analyzed: number;
     model_used: string;
   };
+  usage?: AdvisorUsage;
 }
 
 export interface ChatError {
   error: string;
+  error_code?: string;
+  retry_after_seconds?: number;
+  usage?: AdvisorUsage;
 }
 
 @Injectable({
@@ -55,5 +64,9 @@ export class ChatService {
       },
       { headers: this.getHeaders() }
     );
+  }
+
+  getUsage(): Observable<AdvisorUsage> {
+    return this.http.get<AdvisorUsage>(`${this.apiUrl}/usage`, { headers: this.getHeaders() });
   }
 }

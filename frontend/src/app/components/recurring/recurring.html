@@ -1,240 +1,389 @@
-<div class="recurring-container">
-  <!-- Page Header -->
-  <div class="page-header">
-    <div class="header-left">
-      <h1>Recurring Expenses</h1>
-      <p class="subtitle">Subscriptions and bills detected from your transactions</p>
+<div class="mm-dash" [class.pre-anim]="preAnim">
+  @if (initialLoading) {
+    <div class="skeleton-page" aria-hidden="true">
+      <div class="sk sk-head"></div>
+      <div class="sk sk-hero"></div>
+      <div class="sk sk-card"></div>
     </div>
-    <div class="header-stats">
-      <div class="stat-pill" *ngIf="confirmed.length > 0">
-        <span class="stat-icon">🔁</span>
-        <span>{{ totalMonthly | currency }}/mo across {{ confirmed.length }} recurring</span>
+  } @else {
+    <!-- ============ HEADER ============ -->
+    <header class="dash-head" data-animate>
+      <div>
+        <h1>Recurring</h1>
+        <p class="head-date">Subscriptions and bills, detected from your ledger</p>
       </div>
-      <div class="stat-pill detecting" *ngIf="detecting">
-        <span class="stat-icon">🔎</span>
-        <span>Scanning…</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Trigger -->
-  <div class="section-card add-manual-card" *ngIf="!showAddForm">
-    <button class="action-btn confirm" (click)="openAddForm()">+ Track a Recurring Bill</button>
-  </div>
-
-  <!-- Add-recurring form -->
-  <div class="section-card manual-form-card" *ngIf="showAddForm">
-    <h2>Track a Recurring Bill</h2>
-
-    <!-- Mode toggle -->
-    <div class="mode-toggle">
-      <button class="mode-btn" [class.active]="addMode === 'history'" (click)="addMode = 'history'">
-        Pick from history
-      </button>
-      <button class="mode-btn" [class.active]="addMode === 'manual'" (click)="addMode = 'manual'">
-        Enter manually
-      </button>
-    </div>
-
-    <!-- ===== History picker ===== -->
-    <ng-container *ngIf="addMode === 'history'">
-      <p class="section-hint">
-        Pick 1–3 past payments for this bill (e.g. your last few rent charges). We'll match
-        future ones automatically — even if the description changes month to month.
-      </p>
-
-      <div class="form-group">
-        <input type="text" placeholder="🔍 Search your transactions…" [(ngModel)]="txnSearch">
-      </div>
-
-      <div *ngIf="loadingTransactions" class="picker-loading">Loading transactions…</div>
-
-      <div class="txn-picker" *ngIf="!loadingTransactions">
-        <label class="txn-option" *ngFor="let txn of filteredTransactions()"
-               [class.selected]="isSelected(txn)">
-          <input type="checkbox" [checked]="isSelected(txn)" (change)="toggleTxn(txn)">
-          <span class="txn-desc">{{ txn.description }}</span>
-          <span class="txn-amount">{{ txn.amount | currency }}</span>
-          <span class="txn-date">{{ txn.transaction_date | date:'MMM d, y' }}</span>
-        </label>
-        <div class="picker-empty" *ngIf="filteredTransactions().length === 0">
-          No matching transactions.
-        </div>
-      </div>
-
-      <div class="detected-hint" *ngIf="selectedTxnIds.length > 0">
-        <span *ngIf="detectedCadence()">✓ Detected: {{ cadenceLabel(detectedCadence()!) }} · avg {{ form.expected_amount | currency }}</span>
-        <span *ngIf="!detectedCadence()">{{ selectedTxnIds.length }} selected · pick 2+ to auto-detect frequency</span>
-      </div>
-
-      <!-- Confirm details (pre-filled) -->
-      <div class="confirm-fields" *ngIf="selectedTxnIds.length > 0">
-        <div class="form-group">
-          <label>Name</label>
-          <input type="text" placeholder="e.g. Rent" [(ngModel)]="form.name">
-        </div>
-        <div class="form-group">
-          <label>Category</label>
-          <select [(ngModel)]="form.category">
-            <option value="">Pick a category…</option>
-            <option *ngFor="let cat of categories" [value]="cat.value">{{ cat.displayName }}</option>
-          </select>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Amount</label>
-            <input type="number" min="0" step="0.01" placeholder="0.00" [(ngModel)]="form.expected_amount">
-          </div>
-          <div class="form-group">
-            <label>Frequency</label>
-            <select [(ngModel)]="form.cadence">
-              <option value="weekly">Weekly</option>
-              <option value="biweekly">Every 2 weeks</option>
-              <option value="monthly">Monthly</option>
-              <option value="annual">Yearly</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <div class="form-actions">
-        <button class="action-btn" (click)="closeAddForm()">Cancel</button>
-        <button class="action-btn confirm" (click)="submitFromHistory()"
-                [disabled]="creating || selectedTxnIds.length === 0">
-          {{ creating ? 'Saving…' : 'Track Bill' }}
+      <div class="head-actions">
+        <button class="btn btn-ghost" (click)="detectAndLoad()" [disabled]="detecting">
+          <svg lucideRefreshCw [size]="16" [class.spin]="detecting"></svg>
+          <span>{{ detecting ? 'Scanning…' : 'Scan for new' }}</span>
+        </button>
+        <button class="btn btn-solid" (click)="openAddForm()">
+          <svg lucidePlus [size]="16"></svg>
+          <span>Add recurring</span>
         </button>
       </div>
-    </ng-container>
+    </header>
 
-    <!-- ===== Manual fallback ===== -->
-    <ng-container *ngIf="addMode === 'manual'">
-      <p class="section-hint">
-        No matching transactions yet? Enter the bill manually — we'll still try to match future
-        charges by amount and due date.
-      </p>
-
-      <div class="form-group">
-        <label>Name/Description</label>
-        <input type="text" placeholder="e.g. Rent, Netflix" [(ngModel)]="manualEntry.description">
+    <!-- ============ HERO: the key number ============ -->
+    <section class="hero" data-animate>
+      <div class="hero-main">
+        <span class="eyebrow">Recurring monthly cost</span>
+        <div class="hero-figure" [mmCountUp]="totalMonthly" [mmDur]="0.9" aria-live="polite"></div>
+        <p class="hero-hint">What your subscriptions and bills add up to every month</p>
       </div>
-      <div class="form-group">
-        <label>Category</label>
-        <select [(ngModel)]="manualEntry.category">
-          <option value="">Pick a category…</option>
-          <option *ngFor="let cat of categories" [value]="cat.value">{{ cat.displayName }}</option>
-        </select>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Amount</label>
-          <input type="number" min="0" step="0.01" placeholder="0.00" [(ngModel)]="manualEntry.expected_amount">
+      <div class="hero-stats">
+        <div class="stat">
+          <span class="stat-label">Active series</span>
+          <span class="stat-value" [mmCountUp]="confirmed.length" [mmCurrency]="false"></span>
         </div>
-        <div class="form-group">
-          <label>Frequency</label>
-          <select [(ngModel)]="manualEntry.cadence">
-            <option value="weekly">Weekly</option>
-            <option value="biweekly">Every 2 weeks</option>
-            <option value="monthly">Monthly</option>
-            <option value="annual">Yearly</option>
-          </select>
+        <div class="stat">
+          <span class="stat-label">Per year</span>
+          <span class="stat-value" [mmCountUp]="yearlyTotal()"></span>
         </div>
-      </div>
-
-      <div class="form-actions">
-        <button class="action-btn" (click)="closeAddForm()">Cancel</button>
-        <button class="action-btn confirm" (click)="submitManual()" [disabled]="creating">
-          {{ creating ? 'Creating…' : 'Create' }}
-        </button>
-      </div>
-    </ng-container>
-  </div>
-
-  <!-- Review queue -->
-  <div class="section-card review-card" *ngIf="reviewQueue.length > 0">
-    <h2>Needs review <span class="count-badge">{{ reviewQueue.length }}</span></h2>
-    <p class="section-hint">
-      These look recurring. Confirm the real ones — grocery-run lookalikes can be dismissed.
-    </p>
-
-    <div class="series-row candidate" *ngFor="let series of reviewQueue">
-      <div class="series-main" (click)="toggleExpand(series)">
-        <div class="series-title">
-          <span class="merchant">{{ series.merchant_name }}</span>
-          <span class="cadence-chip">{{ cadenceLabel(series.cadence) }}</span>
-        </div>
-        <div class="series-detail">
-          {{ series.expected_amount | currency }} · seen {{ series.occurrence_count }} times ·
-          last on {{ series.last_occurred_at | date:'MMM d' }} ·
-          next expected {{ series.next_expected_date | date:'MMM d' }}
-        </div>
-        <div class="occurrence-history" *ngIf="expandedSeries === series.id">
-          <div class="occurrence" *ngFor="let occurrence of series.occurrences">
-            <span>{{ occurrence.occurred_at | date:'MMM d, y' }}</span>
-            <span>{{ occurrence.amount | currency }}</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="series-actions">
-        <select class="category-select" [(ngModel)]="reviewCategory[series.id]">
-          <option value="">No category</option>
-          <option *ngFor="let cat of categories" [value]="cat.value">{{ cat.displayName }}</option>
-        </select>
-        <button class="action-btn confirm" (click)="confirm(series)">Confirm</button>
-        <button class="action-btn dismiss" (click)="dismiss(series)">Dismiss</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Loading / empty -->
-  <div *ngIf="loading" class="empty-state">
-    <div class="empty-icon">⏳</div>
-    <p>Scanning transactions…</p>
-  </div>
-
-  <div *ngIf="!loading && reviewQueue.length === 0 && confirmed.length === 0" class="empty-state">
-    <div class="empty-icon">🔁</div>
-    <p>No recurring expenses detected yet</p>
-    <span>Sync more transactions — detection needs at least 3 charges from the same merchant.</span>
-  </div>
-
-  <!-- Confirmed list -->
-  <div class="section-card" *ngIf="confirmed.length > 0">
-    <h2>Your recurring expenses</h2>
-
-    <div class="series-row" *ngFor="let series of confirmed">
-      <div class="series-main" (click)="toggleExpand(series)">
-        <div class="series-title">
-          <span class="merchant">{{ series.merchant_name }}</span>
-          <span class="cadence-chip">{{ cadenceLabel(series.cadence) }}</span>
-          <span class="creep-chip" *ngIf="series.price_creep"
-                title="Was averaging {{ series.price_creep.previous_average | currency }}">
-            ▲ Price up {{ series.price_creep.increase_pct }}%
+        <div class="stat">
+          <span class="stat-label">Needs review</span>
+          <span class="stat-value" [class.attention]="reviewQueue.length > 0">
+            {{ reviewQueue.length }}
           </span>
         </div>
-        <div class="series-detail">
-          {{ series.expected_amount | currency }}
-          <span class="monthly-eq" *ngIf="series.cadence !== 'monthly'">
-            ({{ series.monthly_equivalent | currency }}/mo)
-          </span>
-          · next expected {{ series.next_expected_date | date:'MMM d' }}
-        </div>
-        <div class="occurrence-history" *ngIf="expandedSeries === series.id">
-          <div class="occurrence" *ngFor="let occurrence of series.occurrences">
-            <span>{{ occurrence.occurred_at | date:'MMM d, y' }}</span>
-            <span>{{ occurrence.amount | currency }}</span>
-          </div>
-        </div>
       </div>
+    </section>
 
-      <div class="series-actions">
-        <select class="category-select" [ngModel]="series.category || ''"
-                (ngModelChange)="updateCategory(series, $event)">
-          <option value="">No category</option>
-          <option *ngFor="let cat of categories" [value]="cat.value">{{ cat.displayName }}</option>
-        </select>
-        <button class="action-btn dismiss" (click)="cancelSeries(series)">I cancelled this</button>
-      </div>
-    </div>
-  </div>
+    <!-- ============ ADD RECURRING (select-from-history flow) ============ -->
+    @if (showAddForm) {
+      <section class="card add-card">
+        <header class="card-head">
+          <h2>Track a recurring bill</h2>
+          <div class="mode-tabs">
+            <button
+              class="btn btn-ghost sm"
+              [class.on]="addMode === 'history'"
+              (click)="addMode = 'history'"
+            >
+              From past payments
+            </button>
+            <button
+              class="btn btn-ghost sm"
+              [class.on]="addMode === 'manual'"
+              (click)="addMode = 'manual'"
+            >
+              Manual entry
+            </button>
+          </div>
+        </header>
+
+        @if (addMode === 'history') {
+          <p class="card-sub">
+            Find the bill in your history, pick one to three of its payments, and confirm —
+            matching stays accurate because it's anchored to real transactions.
+          </p>
+          <label class="search-field">
+            <svg lucideSearch [size]="14"></svg>
+            <input
+              type="text"
+              [(ngModel)]="txnSearch"
+              placeholder="Search past payments…"
+              aria-label="Search past payments"
+            />
+          </label>
+
+          @if (loadingTransactions) {
+            <p class="picker-note">Loading your transactions…</p>
+          } @else {
+            <ul class="picker-list">
+              @for (txn of filteredTransactions(); track txn.id) {
+                <li>
+                  <button
+                    type="button"
+                    class="picker-row"
+                    [class.selected]="isSelected(txn)"
+                    (click)="toggleTxn(txn)"
+                    [attr.aria-pressed]="isSelected(txn)"
+                  >
+                    <span class="pick-mark">
+                      @if (isSelected(txn)) {
+                        <svg lucideCheck [size]="13"></svg>
+                      }
+                    </span>
+                    <span class="pick-date">{{ txn.transaction_date | date: 'MMM d, y' }}</span>
+                    <span class="pick-desc">{{ txn.description }}</span>
+                    <span class="pick-amount">−{{ txn.amount | currency }}</span>
+                  </button>
+                </li>
+              }
+            </ul>
+            @if (filteredTransactions().length === 0) {
+              <p class="picker-note">No past payments match that search</p>
+            }
+          }
+
+          @if (selectedTxnIds.length > 0) {
+            <div class="confirm-strip">
+              <div class="strip-head">
+                <span class="strip-title">
+                  {{ selectedTxnIds.length }}
+                  {{ selectedTxnIds.length === 1 ? 'payment' : 'payments' }} selected
+                </span>
+                @if (detectedCadence(); as inferred) {
+                  <span class="state-line inferred">
+                    <svg lucideRepeat [size]="12"></svg>
+                    looks {{ cadenceLabel(inferred).toLowerCase() }}
+                  </span>
+                }
+              </div>
+              <div class="confirm-grid">
+                <label class="f-field">
+                  <span>Name</span>
+                  <input type="text" [(ngModel)]="form.name" placeholder="Netflix" />
+                </label>
+                <label class="f-field">
+                  <span>Category</span>
+                  <select [(ngModel)]="form.category">
+                    <option value="" disabled>Choose…</option>
+                    @for (cat of categories; track cat.value) {
+                      <option [value]="cat.value">{{ cat.displayName }}</option>
+                    }
+                  </select>
+                </label>
+                <label class="f-field">
+                  <span>Expected amount</span>
+                  <input
+                    type="number"
+                    [(ngModel)]="form.expected_amount"
+                    placeholder="0.00"
+                    step="0.01"
+                    min="0"
+                  />
+                </label>
+                <label class="f-field">
+                  <span>Cadence</span>
+                  <select [(ngModel)]="form.cadence">
+                    <option value="weekly">Weekly</option>
+                    <option value="biweekly">Every 2 weeks</option>
+                    <option value="monthly">Monthly</option>
+                    <option value="annual">Yearly</option>
+                  </select>
+                </label>
+                <div class="add-actions">
+                  <button class="btn btn-text" (click)="closeAddForm()">Cancel</button>
+                  <button class="btn btn-solid" (click)="submitFromHistory()" [disabled]="creating">
+                    <svg lucideCheck [size]="15"></svg>
+                    <span>{{ creating ? 'Creating…' : 'Track it' }}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          } @else {
+            <div class="add-actions lone">
+              <button class="btn btn-text" (click)="closeAddForm()">Cancel</button>
+            </div>
+          }
+        } @else {
+          <p class="card-sub">
+            For bills with no history yet — rent paid in cash, a brand-new subscription.
+          </p>
+          <div class="confirm-grid manual">
+            <label class="f-field">
+              <span>Description</span>
+              <input type="text" [(ngModel)]="manualEntry.description" placeholder="Rent" />
+            </label>
+            <label class="f-field">
+              <span>Category</span>
+              <select [(ngModel)]="manualEntry.category">
+                <option value="" disabled>Choose…</option>
+                @for (cat of categories; track cat.value) {
+                  <option [value]="cat.value">{{ cat.displayName }}</option>
+                }
+              </select>
+            </label>
+            <label class="f-field">
+              <span>Amount</span>
+              <input
+                type="number"
+                [(ngModel)]="manualEntry.expected_amount"
+                placeholder="0.00"
+                step="0.01"
+                min="0"
+              />
+            </label>
+            <label class="f-field">
+              <span>Cadence</span>
+              <select [(ngModel)]="manualEntry.cadence">
+                <option value="weekly">Weekly</option>
+                <option value="biweekly">Every 2 weeks</option>
+                <option value="monthly">Monthly</option>
+                <option value="annual">Yearly</option>
+              </select>
+            </label>
+            <div class="add-actions">
+              <button class="btn btn-text" (click)="closeAddForm()">Cancel</button>
+              <button class="btn btn-solid" (click)="submitManual()" [disabled]="creating">
+                <svg lucideCheck [size]="15"></svg>
+                <span>{{ creating ? 'Creating…' : 'Track it' }}</span>
+              </button>
+            </div>
+          </div>
+        }
+      </section>
+    }
+
+    <!-- ============ REVIEW QUEUE ============ -->
+    @if (reviewQueue.length > 0) {
+      <section class="card review-card" data-animate>
+        <header class="card-head">
+          <h2>Needs your review</h2>
+          <span class="card-note">
+            {{ reviewQueue.length }} detected {{ reviewQueue.length === 1 ? 'pattern' : 'patterns' }}
+          </span>
+        </header>
+        <ul class="review-list">
+          @for (series of reviewQueue; track series.id) {
+            <li class="review-row">
+              <div class="review-info">
+                <span class="review-name">{{ series.merchant_name }}</span>
+                <span class="review-meta">
+                  <svg lucideRepeat [size]="11"></svg>
+                  {{ cadenceLabel(series.cadence) }} · seen {{ series.occurrence_count }}×
+                  · ~{{ series.expected_amount | currency }}
+                </span>
+              </div>
+              <select
+                class="review-category"
+                [(ngModel)]="reviewCategory[series.id]"
+                aria-label="Category"
+              >
+                <option value="">Category…</option>
+                @for (cat of categories; track cat.value) {
+                  <option [value]="cat.value">{{ cat.displayName }}</option>
+                }
+              </select>
+              <div class="review-actions">
+                <button class="btn btn-ghost sm" (click)="dismiss(series)">
+                  <svg lucideX [size]="14"></svg>
+                  <span>Not recurring</span>
+                </button>
+                <button class="btn btn-solid sm" (click)="confirm(series)">
+                  <svg lucideCheck [size]="14"></svg>
+                  <span>Confirm</span>
+                </button>
+              </div>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+
+    <!-- ============ CONFIRMED SERIES ============ -->
+    <section class="card" data-animate>
+      <header class="card-head">
+        <h2>Your recurring bills</h2>
+        <span class="card-note">{{ confirmed.length }} active</span>
+      </header>
+
+      @if (confirmed.length > 0) {
+        <div class="table-wrap">
+          <table class="tx-table">
+            <thead>
+              <tr>
+                <th>Merchant</th>
+                <th>Cadence</th>
+                <th>Category</th>
+                <th>Next expected</th>
+                <th class="th-amount">Monthly</th>
+                <th class="th-actions"><span class="visually-hidden">Actions</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (series of confirmed; track series.id) {
+                <tr
+                  class="series-row"
+                  [class.expanded]="expandedSeries === series.id"
+                  (click)="toggleExpand(series)"
+                >
+                  <td class="td-desc">
+                    <span class="desc-text">{{ series.merchant_name }}</span>
+                    @if (series.price_creep; as creep) {
+                      <span
+                        class="state-line warn creep"
+                        [title]="'Was ' + (creep.previous_average | currency) + ' on average, latest ' + (creep.latest_amount | currency)"
+                      >
+                        <svg lucideTriangleAlert [size]="12"></svg>
+                        +{{ creep.increase_pct | number: '1.0-0' }}% creep
+                      </span>
+                    }
+                  </td>
+                  <td class="td-cadence">
+                    <svg lucideRepeat [size]="11"></svg>
+                    {{ cadenceLabel(series.cadence) }}
+                  </td>
+                  <td class="td-cat">
+                    <span class="cat-dot" [style.background]="categoryColor(series.category)"></span>
+                    {{ categoryService.getCategoryDisplayName(series.category) }}
+                  </td>
+                  <td class="td-date">
+                    {{ series.next_expected_date ? (series.next_expected_date | date: 'MMM d') : '—' }}
+                  </td>
+                  <td class="td-amount">−{{ series.monthly_equivalent | currency }}</td>
+                  <td class="td-actions" (click)="$event.stopPropagation()">
+                    <button
+                      class="icon-btn danger"
+                      (click)="cancelSeries(series)"
+                      title="Mark as cancelled"
+                    >
+                      <svg lucideBan [size]="14"></svg>
+                    </button>
+                    <button
+                      class="icon-btn expander"
+                      (click)="toggleExpand(series)"
+                      [title]="expandedSeries === series.id ? 'Hide history' : 'Show history'"
+                    >
+                      <svg
+                        lucideChevronDown
+                        [size]="14"
+                        [class.rotated]="expandedSeries === series.id"
+                      ></svg>
+                    </button>
+                  </td>
+                </tr>
+                @if (expandedSeries === series.id) {
+                  <tr class="occurrence-row">
+                    <td colspan="6">
+                      <div class="occurrences">
+                        <span class="occ-title">Payment history</span>
+                        @if (series.occurrences && series.occurrences.length > 0) {
+                          @for (occ of series.occurrences; track occ.id) {
+                            <span class="occ-item">
+                              {{ occ.occurred_at | date: 'MMM d' }} · −{{ occ.amount | currency }}
+                            </span>
+                          }
+                        } @else {
+                          <span class="occ-item muted">
+                            Expected {{ series.expected_amount | currency }}
+                            {{ cadenceLabel(series.cadence).toLowerCase() }}
+                            @if (series.last_occurred_at) {
+                              · last paid {{ series.last_occurred_at | date: 'MMM d' }}
+                            }
+                          </span>
+                        }
+                      </div>
+                    </td>
+                  </tr>
+                }
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <div class="empty">
+          <svg lucideRepeat [size]="22"></svg>
+          <p>Nothing recurring yet</p>
+          <span class="empty-sub">
+            Scan your ledger to detect subscriptions automatically, or add a bill from your
+            payment history
+          </span>
+          <button class="inline-link as-btn" (click)="openAddForm()">Add a recurring bill</button>
+        </div>
+      }
+    </section>
+  }
 </div>

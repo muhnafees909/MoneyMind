@@ -1,13 +1,19 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
-import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import {
+  LucideArrowRight,
+  LucideEye,
+  LucideEyeOff,
+  LucideOctagonAlert,
+  LucideShieldCheck,
+  LucideTarget,
+  LucideTrendingUp,
+  LucideTriangleAlert
+} from '@lucide/angular';
 import { AuthService } from '../../services/auth.service';
-import { ModalService } from '../../services/modal.service';
+import { WordmarkComponent } from '../../shared/wordmark.component';
 
 @Component({
   selector: 'app-login',
@@ -16,43 +22,66 @@ import { ModalService } from '../../services/modal.service';
     CommonModule,
     FormsModule,
     RouterModule,
-    MatCardModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule
+    LucideArrowRight,
+    LucideEye,
+    LucideEyeOff,
+    LucideOctagonAlert,
+    LucideShieldCheck,
+    LucideTarget,
+    LucideTrendingUp,
+    LucideTriangleAlert,
+    WordmarkComponent
   ],
   templateUrl: './login.html',
   styleUrl: './login.scss'
 })
-export class Login {
-  email: string = '';
-  password: string = '';
-  errorMessage: string = '';
+export class Login implements OnInit {
+  email = '';
+  password = '';
+  errorMessage = '';
+  sessionNotice = '';
+  showPassword = false;
+  isLoading = false;
+
+  private returnUrl: string | null = null;
 
   constructor(
     private authService: AuthService,
     private router: Router,
-    private modalService: ModalService
+    private route: ActivatedRoute
   ) {}
-  showPassword = false;
+
+  ngOnInit() {
+    const params = this.route.snapshot.queryParamMap;
+    this.returnUrl = params.get('returnUrl');
+    if (params.get('expired') === '1') {
+      this.sessionNotice = 'Your session expired — please sign in again.';
+    }
+  }
 
   togglePasswordVisibility() {
     this.showPassword = !this.showPassword;
   }
+
   onLogin() {
+    if (this.isLoading) {
+      return;
+    }
     this.errorMessage = '';
+    this.isLoading = true;
 
     this.authService.login(this.email, this.password).subscribe({
-      next: (response) => {
-        console.log('Login successful:', response);
-        this.authService.saveToken(response.access_token);
-        this.router.navigate(['/dashboard']);  // Navigate to dashboard
-
-        this.modalService.showSuccess('Login successful!');
+      next: () => {
+        // Session cookies are set by the server; land where the user
+        // was originally heading (or the dashboard)
+        const target =
+          this.returnUrl && this.returnUrl.startsWith('/') ? this.returnUrl : '/dashboard';
+        this.router.navigateByUrl(target);
       },
       error: (error) => {
-        console.error('Login failed:', error);
-        this.errorMessage = error.error?.error || 'Login failed. Please try again.';
+        this.isLoading = false;
+        this.errorMessage =
+          error.error?.message || error.error?.error || 'Those credentials did not match. Try again.';
       }
     });
   }

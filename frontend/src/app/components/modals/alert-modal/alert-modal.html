@@ -1,14 +1,27 @@
-<div class="modal-container">
-  <div class="modal-header" [ngClass]="data.type">
-    <div class="modal-icon">{{ getIcon() }}</div>
-    <h2 class="modal-title">{{ data.title }}</h2>
+<div class="mm-dialog">
+  <div class="mm-dialog-head">
+    <span class="dialog-icon" [class]="'dialog-icon ' + data.type">
+      @switch (data.type) {
+        @case ('error') {
+          <svg lucideOctagonAlert [size]="17"></svg>
+        }
+        @case ('success') {
+          <svg lucideCircleCheck [size]="17"></svg>
+        }
+        @default {
+          <svg lucideInfo [size]="17"></svg>
+        }
+      }
+    </span>
+    <h2 class="mm-dialog-title">{{ data.title }}</h2>
+    <button class="dialog-close" (click)="close()" aria-label="Close">
+      <svg lucideX [size]="15"></svg>
+    </button>
   </div>
 
-  <div class="modal-content">
-    <p class="modal-message">{{ data.message }}</p>
-  </div>
+  <p class="mm-dialog-message">{{ data.message }}</p>
 
-  <div class="modal-actions">
-    <button class="btn btn-primary" (click)="close()">OK</button>
+  <div class="mm-dialog-actions">
+    <button class="btn btn-solid" (click)="close()">OK</button>
   </div>
 </div>

@@ -1,0 +1,353 @@
+// ============================================
+// MoneyMind Onboarding — warm editorial ledger
+// Optional post-signup wizard; writes to the same profile model as /profile.
+// Follows the moneymind-design-system skill.
+// ============================================
+
+.onboarding {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  background:
+    radial-gradient(90% 70% at 50% 0%, rgba(124, 169, 130, 0.07) 0%, transparent 55%),
+    var(--mm-bg);
+  color: var(--mm-text-1);
+  font-family: var(--mm-font-ui);
+
+  * {
+    box-sizing: border-box;
+  }
+
+  ::selection {
+    background: var(--mm-brand-dim);
+  }
+
+  button {
+    font-family: inherit;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--mm-brand);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+.shell {
+  width: 100%;
+  max-width: 500px;
+}
+
+.ob-brand {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 34px;
+}
+
+// ============================================
+// PROGRESS — the app's meter treatment, brand-filled
+// ============================================
+.ob-progress {
+  margin-bottom: 34px;
+
+  .ob-progress-label {
+    display: block;
+    margin-bottom: 8px;
+    font-family: var(--mm-font-num);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--mm-text-3);
+  }
+
+  .meter {
+    height: 6px;
+    border-radius: var(--mm-radius-xs);
+    background: var(--mm-surface-3);
+    overflow: hidden;
+  }
+
+  .meter-fill {
+    height: 100%;
+    border-radius: var(--mm-radius-xs);
+    background: linear-gradient(90deg, var(--mm-brand), var(--mm-brand-strong));
+    transition: width 0.6s var(--mm-ease-out);
+  }
+}
+
+// ============================================
+// STEPS — remount per step; direction-aware slide/fade
+// ============================================
+.ob-step {
+  animation: ob-in-forward 0.4s var(--mm-ease-out);
+
+  &.from-back {
+    animation: ob-in-back 0.4s var(--mm-ease-out);
+  }
+}
+
+@keyframes ob-in-forward {
+  from {
+    opacity: 0;
+    transform: translateX(26px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes ob-in-back {
+  from {
+    opacity: 0;
+    transform: translateX(-26px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.step-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  margin-bottom: 16px;
+  border-radius: var(--mm-radius-sm);
+  background: var(--mm-brand-dim);
+  color: var(--mm-brand);
+}
+
+.step-title {
+  margin: 0 0 10px;
+  font-family: var(--mm-font-serif);
+  font-size: clamp(24px, 4vw, 30px);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+// The "why": what this specific answer improves
+.step-why {
+  margin: 0 0 26px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--mm-text-2);
+  padding-left: 14px;
+  border-left: 2px solid rgba(124, 169, 130, 0.4);
+}
+
+.step-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 30px;
+}
+
+.f-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  > span {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--mm-text-3);
+  }
+
+  select,
+  input {
+    width: 100%;
+    padding: 10px 12px;
+    background: var(--mm-surface);
+    border: 1px solid var(--mm-hairline-2);
+    border-radius: var(--mm-radius-xs);
+    color: var(--mm-text-1);
+    font-family: var(--mm-font-ui);
+    font-size: 14px;
+    outline: none;
+    transition:
+      border-color var(--mm-dur-fast) ease,
+      box-shadow var(--mm-dur-fast) ease;
+
+    &::placeholder {
+      color: var(--mm-text-3);
+    }
+
+    &:focus {
+      border-color: var(--mm-brand);
+      box-shadow: 0 0 0 3px var(--mm-brand-dim);
+    }
+  }
+
+  input[type='number'] {
+    font-family: var(--mm-font-num);
+  }
+
+  select {
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236f6862' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 30px;
+  }
+
+  .field-note {
+    font-style: normal;
+    font-size: 11.5px;
+    line-height: 1.5;
+    color: var(--mm-text-3);
+  }
+}
+
+// ============================================
+// ACTIONS — Skip is as visible as Continue, by design
+// ============================================
+.ob-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ob-actions-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: var(--mm-radius-xs);
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  background: transparent;
+  color: var(--mm-text-2);
+  transition:
+    background var(--mm-dur-fast) ease,
+    color var(--mm-dur-fast) ease,
+    transform var(--mm-dur-fast) ease;
+
+  svg {
+    flex-shrink: 0;
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: default;
+  }
+
+  &.lg {
+    padding: 13px 22px;
+    font-size: 14.5px;
+  }
+}
+
+.btn-solid {
+  background: var(--mm-brand);
+  color: var(--mm-brand-ink);
+  box-shadow: 0 4px 16px -4px var(--mm-brand-glow);
+
+  &:hover:not(:disabled) {
+    background: var(--mm-brand-strong);
+  }
+}
+
+.btn-ghost {
+  border: 1px solid var(--mm-hairline-2);
+
+  &:hover:not(:disabled) {
+    background: var(--mm-surface-2);
+    color: var(--mm-text-1);
+  }
+}
+
+.btn-text {
+  padding: 8px 10px;
+
+  &:hover {
+    color: var(--mm-text-1);
+  }
+}
+
+.ob-footnote {
+  margin: 18px 0 0;
+  font-family: var(--mm-font-num);
+  font-size: 11px;
+  color: var(--mm-text-3);
+  text-align: center;
+}
+
+// ============================================
+// COMPLETION — low-key
+// ============================================
+.ob-step.done {
+  text-align: center;
+
+  .done-icon {
+    background: var(--mm-brand-dim);
+    color: var(--mm-brand);
+  }
+
+  .step-why {
+    border-left: none;
+    padding-left: 0;
+    max-width: 42ch;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .ob-actions {
+    justify-content: center;
+  }
+}
+
+// ============================================
+// RESPONSIVE + REDUCED MOTION
+// ============================================
+@media (max-width: 480px) {
+  .ob-actions {
+    flex-wrap: wrap;
+
+    .back {
+      order: 3;
+      width: 100%;
+      justify-content: center;
+      margin-top: 4px;
+    }
+  }
+
+  .ob-actions-main {
+    width: 100%;
+
+    .btn {
+      flex: 1;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .onboarding *,
+  .onboarding *::before,
+  .onboarding *::after {
+    transition-duration: 0.01ms !important;
+    animation: none !important;
+  }
+}
