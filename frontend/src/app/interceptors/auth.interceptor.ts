@@ -26,8 +26,16 @@ function readCookie(name: string): string | null {
  * - strip any legacy Authorization header (cookies are canonical)
  * - attach the CSRF double-submit header on state-changing methods
  */
+function isApiRequest(url: string): boolean {
+  // Dev: absolute apiUrl (http://localhost:5000/api/...).
+  // Prod: apiUrl is '' and API calls are same-origin relative (/api/...).
+  return environment.apiUrl
+    ? url.startsWith(`${environment.apiUrl}/api/`)
+    : url.startsWith('/api/');
+}
+
 function prepare(req: HttpRequest<unknown>): HttpRequest<unknown> {
-  if (!req.url.startsWith(environment.apiUrl)) {
+  if (!isApiRequest(req.url)) {
     return req;
   }
   let headers = req.headers.delete('Authorization');

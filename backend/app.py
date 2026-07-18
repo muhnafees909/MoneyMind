@@ -42,7 +42,13 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 app.config['JWT_TOKEN_LOCATION'] = ['cookies', 'headers']
 app.config['JWT_COOKIE_SECURE'] = _is_prod          # HTTPS-only cookies in prod
-app.config['JWT_COOKIE_SAMESITE'] = 'None' if _is_prod else 'Lax'
+# Lax everywhere. Production serves the API through the frontend host's
+# /api/* rewrite (same-origin), so Lax cookies are always sent. The previous
+# 'None' setting assumed direct cross-site calls to the backend domain —
+# but cross-site session cookies are third-party cookies, which browsers
+# now block outright (this is what broke prod login), and 'None' would
+# needlessly re-enable CSRF exposure once same-origin.
+app.config['JWT_COOKIE_SAMESITE'] = 'Lax'
 app.config['JWT_COOKIE_CSRF_PROTECT'] = True        # double-submit CSRF for cookie auth
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=30)
 app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(hours=12)   # idle window; rotated on use
