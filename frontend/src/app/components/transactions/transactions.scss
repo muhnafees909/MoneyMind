@@ -635,6 +635,130 @@
   tbody tr:hover .td-actions .locked {
     opacity: 1;
   }
+
+  // The notes button is a persistent at-a-glance indicator: when a note
+  // exists (or the editor is open) it stays visible even without row hover.
+  .td-actions .note-btn.has-note,
+  .td-actions .note-btn.open {
+    opacity: 1;
+  }
+}
+
+// Notes button — filled + fern when a note exists, outline when empty
+.note-btn {
+  svg {
+    transition: fill var(--mm-dur-fast) ease, color var(--mm-dur-fast) ease;
+  }
+
+  &.has-note {
+    color: var(--mm-brand-strong);
+
+    svg {
+      fill: var(--mm-brand-dim);
+    }
+
+    &:hover {
+      color: var(--mm-brand);
+    }
+  }
+
+  &.open {
+    background: var(--mm-surface-3);
+    color: var(--mm-text-1);
+  }
+}
+
+// Inline note editor — an expanding row under the transaction (robust inside
+// the horizontally-scrolling table; no popover clipping)
+.note-editor-row > td {
+  padding: 0 12px 12px;
+  border-bottom: 1px solid var(--mm-hairline);
+}
+
+.note-editor {
+  padding: 12px 14px;
+  background: var(--mm-bg);
+  border: 1px solid var(--mm-hairline-2);
+  border-radius: var(--mm-radius-sm);
+  animation: note-open 0.16s var(--mm-ease-out);
+
+  .note-label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--mm-text-3);
+
+    .note-for {
+      font-weight: 500;
+      letter-spacing: 0;
+      text-transform: none;
+      color: var(--mm-text-2);
+    }
+  }
+
+  .note-input {
+    width: 100%;
+    padding: 8px 10px;
+    background: var(--mm-surface);
+    border: 1px solid var(--mm-hairline-2);
+    border-radius: var(--mm-radius-xs);
+    color: var(--mm-text-1);
+    font-family: var(--mm-font-ui);
+    font-size: 13.5px;
+    line-height: 1.5;
+    resize: vertical;
+    outline: none;
+    transition: border-color var(--mm-dur-fast) ease, box-shadow var(--mm-dur-fast) ease;
+
+    &::placeholder {
+      color: var(--mm-text-3);
+    }
+
+    &:focus {
+      border-color: var(--mm-brand);
+      box-shadow: 0 0 0 3px var(--mm-brand-dim);
+    }
+  }
+
+  .note-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 8px;
+  }
+
+  .note-count {
+    font-family: var(--mm-font-num);
+    font-size: 11px;
+    color: var(--mm-text-3);
+  }
+
+  .note-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+}
+
+@keyframes note-open {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .note-editor {
+    animation: none;
+  }
 }
 
 .cat-dot {

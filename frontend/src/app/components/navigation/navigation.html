@@ -49,6 +49,10 @@
 
     <!-- Secondary: separated by a hairline, quieter -->
     <div class="nav-secondary">
+      <a routerLink="/accounts" routerLinkActive="active" class="secondary-link" title="Accounts">
+        <svg lucideLandmark [size]="15"></svg>
+        <span>Accounts</span>
+      </a>
       <a routerLink="/profile" routerLinkActive="active" class="secondary-link" title="Profile">
         <svg lucideUserRound [size]="15"></svg>
         <span>Profile</span>
@@ -108,6 +112,10 @@
       </a>
     }
     <div class="mobile-divider"></div>
+    <a routerLink="/accounts" routerLinkActive="active" class="mobile-link" (click)="closeMobileMenu()">
+      <svg lucideLandmark [size]="16"></svg>
+      <span>Accounts</span>
+    </a>
     <a routerLink="/profile" routerLinkActive="active" class="mobile-link" (click)="closeMobileMenu()">
       <svg lucideUserRound [size]="16"></svg>
       <span>Profile</span>

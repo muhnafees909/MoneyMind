@@ -162,6 +162,25 @@ export class TransactionService {
     );
   }
   
+  updateNotes(id: number, notes: string): Observable<any> {
+    const payload = { transaction_notes: notes };
+    this.logger.apiRequest('PATCH', `${this.apiUrl}/transactions/${id}/notes`, payload);
+
+    return this.http.patch(`${this.apiUrl}/transactions/${id}/notes`, payload, {
+      headers: this.getHeaders()
+    }).pipe(
+      tap(() => {
+        this.logger.success(`Transaction ${id} note saved`, 'TransactionService');
+        this.logger.apiResponse('PATCH', `${this.apiUrl}/transactions/${id}/notes`, 200);
+      }),
+      catchError(error => {
+        this.logger.error(`Failed to save note for ${id}`, 'TransactionService', error);
+        this.logger.apiError('PATCH', `${this.apiUrl}/transactions/${id}/notes`, error);
+        return throwError(() => error);
+      })
+    );
+  }
+
   bulkRecategorize(transactionIds: number[], category: string): Observable<any> {
     this.logger.info(
       `Recategorizing ${transactionIds.length} transactions to ${category}`,

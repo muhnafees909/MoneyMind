@@ -9,6 +9,7 @@ import { CommonModule } from '@angular/common';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import {
+  LucideLandmark,
   LucideLayoutDashboard,
   LucideLogOut,
   LucideMail,
@@ -35,6 +36,7 @@ interface NavItem {
   imports: [
     CommonModule,
     RouterModule,
+    LucideLandmark,
     LucideLayoutDashboard,
     LucideLogOut,
     LucideMail,

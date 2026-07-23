@@ -401,7 +401,7 @@ def get_envelope_context(user_id):
             })
         actual = Decimal(account.current_balance) if account.current_balance is not None else None
         result.append({
-            'account_name': account.name,
+            'account_name': account.display_name,
             'institution': account.plaid_item.institution_name if account.plaid_item else None,
             'actual_balance': float(actual) if actual is not None else None,
             'allocated_total': float(allocated),

@@ -97,7 +97,10 @@ def perform_transaction_sync(user_id: int, access_token: str, plaid_item: PlaidI
                 plaid_account_id=account_map.get(txn.get('account_id')),
                 merchant_name=txn.get('merchant_name'),
                 merchant_entity_id=txn.get('merchant_entity_id'),
-                transaction_notes=f"Merchant: {txn.get('merchant_name', 'N/A')}"
+                # transaction_notes is the user's note field — leave it empty on
+                # sync (the merchant is already stored in merchant_name). Writing
+                # filler here would make every synced row look like it has a note.
+                transaction_notes=''
             )
             db.session.add(transaction)
             new_transactions.append(transaction)

@@ -1,0 +1,128 @@
+<div class="mm-dash" [class.pre-anim]="preAnim">
+  @if (initialLoading) {
+    <div class="skeleton-page" aria-hidden="true">
+      <div class="sk sk-head"></div>
+      <div class="sk sk-card"></div>
+      <div class="sk sk-card"></div>
+    </div>
+  } @else {
+    <!-- ============ HEADER ============ -->
+    <header class="dash-head" data-animate>
+      <div>
+        <h1>Accounts</h1>
+        <p class="head-date">Your linked banks and cards — rename them, review balances</p>
+      </div>
+      <div class="head-actions">
+        <button class="btn btn-ghost" (click)="syncAccounts()" [disabled]="syncing">
+          <svg lucideRefreshCw [size]="16" [class.spin]="syncing"></svg>
+          <span>{{ syncing ? 'Refreshing…' : 'Refresh balances' }}</span>
+        </button>
+      </div>
+    </header>
+
+    @if (accounts.length > 0) {
+      <ul class="account-list">
+        @for (account of accounts; track account.id) {
+          <li class="card account-card" data-animate>
+            <!-- Mark: bank vs card -->
+            <span class="acct-ico" [class.liability]="account.is_liability">
+              @if (account.is_liability) {
+                <svg lucideCreditCard [size]="18"></svg>
+              } @else {
+                <svg lucideLandmark [size]="18"></svg>
+              }
+            </span>
+
+            <div class="acct-body">
+              <!-- Name row: display name (nickname or Plaid name) + inline rename -->
+              @if (editingId === account.id) {
+                <div class="rename-row">
+                  <input
+                    class="rename-input"
+                    [(ngModel)]="editValue"
+                    (keydown)="onRenameKeydown($event, account)"
+                    maxlength="60"
+                    placeholder="e.g. Main Checking"
+                    aria-label="Account nickname"
+                  />
+                  <button
+                    class="icon-btn confirm"
+                    (click)="saveEdit(account)"
+                    [disabled]="savingId === account.id"
+                    title="Save"
+                  >
+                    <svg lucideCheck [size]="15"></svg>
+                  </button>
+                  <button class="icon-btn" (click)="cancelEdit()" title="Cancel">
+                    <svg lucideX [size]="15"></svg>
+                  </button>
+                </div>
+              } @else {
+                <div class="name-row">
+                  <span class="acct-name">{{ account.display_name }}</span>
+                  @if (account.mask) {
+                    <span class="acct-mask">··{{ account.mask }}</span>
+                  }
+                  <button
+                    class="icon-btn rename-btn"
+                    (click)="startEdit(account)"
+                    [attr.aria-label]="'Rename ' + account.display_name"
+                    title="Rename"
+                  >
+                    <svg lucidePencil [size]="14"></svg>
+                  </button>
+                </div>
+                <!-- When a nickname is set, show the original Plaid name so it's clear what this maps to -->
+                @if (account.nickname) {
+                  <button class="acct-original" (click)="clearNickname(account)" title="Reset to bank name">
+                    {{ account.name }} · reset
+                  </button>
+                }
+              }
+
+              <p class="acct-meta">
+                {{ account.institution_name || 'Unknown institution' }} · {{ accountKind(account) }}
+              </p>
+
+              <!-- Envelope eligibility -->
+              @if (account.is_envelope_eligible) {
+                <span class="state-line ok">
+                  <svg lucideWallet [size]="13"></svg>
+                  Can hold envelopes
+                </span>
+              } @else {
+                <span class="state-line muted" [title]="'Credit cards and loans are money owed, not cash you hold — so they can\'t back an envelope.'">
+                  <svg lucideBan [size]="13"></svg>
+                  Not envelope-eligible
+                </span>
+              }
+            </div>
+
+            <!-- Balance -->
+            <div class="acct-balance">
+              <span class="bal-label">{{ balanceLabel(account) }}</span>
+              @if (account.current_balance !== null) {
+                <span class="bal-value" [class.owed]="account.is_liability" [mmCountUp]="account.current_balance"></span>
+              } @else {
+                <span class="bal-value muted">—</span>
+              }
+            </div>
+          </li>
+        }
+      </ul>
+
+      <p class="foot-note" data-animate>
+        Credit cards and loans show here for reference but can't back an envelope —
+        <a routerLink="/envelopes" class="inline-link">envelopes</a> divide real cash you
+        hold, not balances you owe.
+      </p>
+    } @else {
+      <div class="card empty" data-animate>
+        <svg lucideInbox [size]="22"></svg>
+        <p>No linked accounts yet</p>
+        <span class="empty-sub">Connect a bank from the dashboard to see your accounts here.</span>
+        <a routerLink="/dashboard" class="inline-link">Go to dashboard</a>
+      </div>
+    }
+  }
+</div>

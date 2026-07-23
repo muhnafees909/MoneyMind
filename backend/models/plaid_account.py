@@ -12,7 +12,8 @@ class PlaidAccount(db.Model):
     plaid_item_id = db.Column(db.Integer, db.ForeignKey('plaid_items.id'), nullable=False)
 
     plaid_account_id = db.Column(db.String(255), unique=True, nullable=False)  # Plaid's account_id
-    name = db.Column(db.String(255), nullable=False)
+    name = db.Column(db.String(255), nullable=False)           # raw Plaid-provided name
+    nickname = db.Column(db.String(255), nullable=True)        # user's custom label (overrides name for display)
     official_name = db.Column(db.String(255), nullable=True)
     account_type = db.Column(db.String(50), nullable=True)      # depository, credit, ...
     account_subtype = db.Column(db.String(50), nullable=True)   # checking, savings, ...
@@ -28,16 +29,38 @@ class PlaidAccount(db.Model):
 
     plaid_item = db.relationship('PlaidItem', backref=db.backref('accounts', lazy=True))
 
+    @property
+    def display_name(self):
+        """The name to show anywhere this account is referenced: the user's
+        nickname if set, otherwise the raw Plaid name. Every consumer should
+        use this rather than .name so a rename propagates app-wide."""
+        return self.nickname or self.name
+
+    @property
+    def is_envelope_eligible(self):
+        """Only asset (depository) accounts can back envelopes. Credit cards
+        and loans are liabilities — you don't allocate cash you owe."""
+        return (self.account_type or '').lower() == 'depository'
+
+    @property
+    def is_liability(self):
+        """Credit cards / loans — money owed, not held."""
+        return (self.account_type or '').lower() in ('credit', 'loan')
+
     def to_dict(self):
         return {
             'id': self.id,
             'plaid_item_id': self.plaid_item_id,
             'plaid_account_id': self.plaid_account_id,
-            'name': self.name,
+            'name': self.name,                    # raw Plaid name
+            'nickname': self.nickname,            # user's custom label (may be null)
+            'display_name': self.display_name,    # nickname or name — use this for display
             'official_name': self.official_name,
             'account_type': self.account_type,
             'account_subtype': self.account_subtype,
             'mask': self.mask,
+            'is_envelope_eligible': self.is_envelope_eligible,
+            'is_liability': self.is_liability,
             'current_balance': float(self.current_balance) if self.current_balance is not None else None,
             'available_balance': float(self.available_balance) if self.available_balance is not None else None,
             'iso_currency_code': self.iso_currency_code,

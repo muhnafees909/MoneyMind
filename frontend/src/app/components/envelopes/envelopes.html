@@ -75,7 +75,7 @@
             <option [ngValue]="null">None — track a target only</option>
             @for (account of assetAccounts(); track account.id) {
               <option [ngValue]="account.id">
-                {{ account.name }}{{ account.mask ? ' ··' + account.mask : '' }}
+                {{ account.display_name }}{{ account.mask ? ' ··' + account.mask : '' }}
               </option>
             }
           </select>
@@ -149,7 +149,7 @@
             <section class="card" data-animate>
               <header class="card-head">
                 <h2>
-                  {{ entry.account.name }}
+                  {{ entry.account.display_name }}
                   @if (entry.account.mask) {
                     <span class="mask">··{{ entry.account.mask }}</span>
                   }

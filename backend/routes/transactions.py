@@ -111,6 +111,40 @@ def update_transaction(transaction_id):
     return jsonify(transaction.to_dict()), 200
 
 
+NOTES_MAX_LEN = 255  # matches the transaction_notes column width
+
+
+@transactions_bp.route('/<int:transaction_id>/notes', methods=['PATCH'], endpoint='update_notes')
+@jwt_required()
+def update_notes(transaction_id):
+    """Set/edit/clear the user's note on ANY transaction — manual or
+    Plaid-synced. Notes are a user field, independent of the bank record, so
+    there is no source restriction here (unlike amount/date, which are locked
+    for synced rows). Body: {"transaction_notes": "..."} (empty string clears)."""
+    user_id = get_jwt_identity()
+    transaction = Transaction.query.filter_by(id=transaction_id, user_id=int(user_id)).first()
+    if not transaction:
+        return jsonify({'error': 'Transaction not found'}), 404
+
+    data = request.get_json(silent=True) or {}
+    if 'transaction_notes' not in data:
+        return jsonify({'error': 'transaction_notes field is required'}), 400
+
+    note = data.get('transaction_notes')
+    if note is None:
+        note = ''
+    if not isinstance(note, str):
+        return jsonify({'error': 'transaction_notes must be a string'}), 400
+
+    note = note.strip()
+    if len(note) > NOTES_MAX_LEN:
+        return jsonify({'error': f'Note must be {NOTES_MAX_LEN} characters or fewer'}), 400
+
+    transaction.transaction_notes = note
+    db.session.commit()
+    return jsonify(transaction.to_dict()), 200
+
+
 @transactions_bp.route('/recategorize', methods=['POST'], endpoint='recategorize')
 @jwt_required()
 def bulk_recategorize():

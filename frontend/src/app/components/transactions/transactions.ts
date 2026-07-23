@@ -14,6 +14,7 @@ import {
   LucideSearch,
   LucideSearchX,
   LucideSlidersHorizontal,
+  LucideStickyNote,
   LucideTrash2,
   LucideX
 } from '@lucide/angular';
@@ -46,6 +47,7 @@ import { CATEGORY_COLORS, OTHER_COLOR } from '../../shared/category-colors';
     LucideSearch,
     LucideSearchX,
     LucideSlidersHorizontal,
+    LucideStickyNote,
     LucideTrash2,
     LucideX
   ],
@@ -80,6 +82,12 @@ export class TransactionsComponent implements OnInit {
   // Inline category editing: id of the row whose category select is open
   editingCategoryId: number | null = null;
   savingCategoryId: number | null = null;
+
+  // Inline notes editing: id of the row whose note editor is expanded
+  notesRowId: number | null = null;
+  notesDraft = '';
+  savingNotesId: number | null = null;
+  readonly notesMaxLen = 255;
 
   initialLoading = true;
   revealed = false;
@@ -223,6 +231,64 @@ export class TransactionsComponent implements OnInit {
   }
 
   // ============================================
+  // INLINE NOTES (any transaction — manual or Plaid-synced)
+  // ============================================
+
+  hasNote(txn: any): boolean {
+    return !!(txn.transaction_notes && txn.transaction_notes.trim().length > 0);
+  }
+
+  toggleNotes(txn: any): void {
+    if (this.notesRowId === txn.id) {
+      this.cancelNotes();
+      return;
+    }
+    // Opening a note closes any open category editor to avoid two open editors
+    this.editingCategoryId = null;
+    this.notesRowId = txn.id;
+    this.notesDraft = txn.transaction_notes || '';
+    setTimeout(() => {
+      this.host.nativeElement.querySelector<HTMLTextAreaElement>('.note-input')?.focus();
+    });
+  }
+
+  cancelNotes(): void {
+    this.notesRowId = null;
+    this.notesDraft = '';
+  }
+
+  saveNotes(txn: any): void {
+    const next = this.notesDraft.trim();
+    if (next === (txn.transaction_notes || '').trim()) {
+      this.cancelNotes(); // nothing changed
+      return;
+    }
+    this.savingNotesId = txn.id;
+    this.transactionService.updateNotes(txn.id, next).subscribe({
+      next: (updated) => {
+        txn.transaction_notes = updated.transaction_notes;
+        this.savingNotesId = null;
+        this.cancelNotes();
+      },
+      error: (error) => {
+        this.savingNotesId = null;
+        this.modalService.showError(error?.error?.error || 'Could not save the note — try again.');
+      }
+    });
+  }
+
+  onNotesKeydown(event: KeyboardEvent, txn: any): void {
+    // Ctrl/Cmd+Enter saves; Esc cancels (plain Enter makes a new line)
+    if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
+      event.preventDefault();
+      this.saveNotes(txn);
+    } else if (event.key === 'Escape') {
+      event.preventDefault();
+      this.cancelNotes();
+    }
+  }
+
+  // ============================================
   // INLINE CATEGORY EDITING
   // ============================================
 
@@ -230,6 +296,7 @@ export class TransactionsComponent implements OnInit {
     if (this.savingCategoryId !== null) {
       return;
     }
+    this.notesRowId = null; // don't leave a note editor open behind the select
     this.editingCategoryId = txn.id;
     // Focus the freshly rendered select so keyboard users land in it
     setTimeout(() => {

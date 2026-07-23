@@ -201,6 +201,18 @@
                     {{ txn.transaction_type === 'expense' ? '−' : '+' }}{{ txn.amount | currency }}
                   </td>
                   <td class="td-actions">
+                    <!-- Notes: available on every transaction (manual or synced).
+                         Filled state = a note exists. -->
+                    <button
+                      class="icon-btn note-btn"
+                      [class.has-note]="hasNote(txn)"
+                      [class.open]="notesRowId === txn.id"
+                      (click)="toggleNotes(txn)"
+                      [attr.aria-expanded]="notesRowId === txn.id"
+                      [title]="hasNote(txn) ? 'View or edit note' : 'Add a note'"
+                    >
+                      <svg lucideStickyNote [size]="14"></svg>
+                    </button>
                     @if (txn.source === 'manual') {
                       <button class="icon-btn" (click)="editTransaction(txn)" title="Edit">
                         <svg lucidePencil [size]="14"></svg>
@@ -212,13 +224,43 @@
                       >
                         <svg lucideTrash2 [size]="14"></svg>
                       </button>
-                    } @else {
-                      <span class="locked" title="Synced from bank — read only">
-                        <svg lucideLock [size]="13"></svg>
-                      </span>
                     }
                   </td>
                 </tr>
+                @if (notesRowId === txn.id) {
+                  <tr class="note-editor-row">
+                    <td colspan="5">
+                      <div class="note-editor">
+                        <label class="note-label" [attr.for]="'note-' + txn.id">
+                          Note
+                          <span class="note-for">· {{ txn.description }}</span>
+                        </label>
+                        <textarea
+                          [id]="'note-' + txn.id"
+                          class="note-input"
+                          [(ngModel)]="notesDraft"
+                          (keydown)="onNotesKeydown($event, txn)"
+                          [maxlength]="notesMaxLen"
+                          rows="2"
+                          placeholder="Add a note — why this purchase, who to split with, anything to remember…"
+                        ></textarea>
+                        <div class="note-foot">
+                          <span class="note-count">{{ notesDraft.length }}/{{ notesMaxLen }}</span>
+                          <div class="note-actions">
+                            <button class="btn btn-text" (click)="cancelNotes()">Cancel</button>
+                            <button
+                              class="btn btn-solid sm"
+                              (click)="saveNotes(txn)"
+                              [disabled]="savingNotesId === txn.id"
+                            >
+                              {{ savingNotesId === txn.id ? 'Saving…' : 'Save note' }}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                }
               }
             </tbody>
           </table>

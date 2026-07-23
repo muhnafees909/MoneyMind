@@ -9,6 +9,7 @@ import { EnvelopesComponent } from './components/envelopes/envelopes';
 import { RecurringComponent } from './components/recurring/recurring';
 import { ChatComponent } from './components/chat/chat';
 import { ProfileComponent } from './components/profile/profile';
+import { AccountsComponent } from './components/accounts/accounts';
 import { LegalComponent } from './components/legal/legal';
 import { OnboardingComponent } from './components/onboarding/onboarding';
 import { authGuard } from './guards/auth.guard';
@@ -31,6 +32,7 @@ export const routes: Routes = [
   { path: 'envelopes', component: EnvelopesComponent, canActivate: [authGuard] },
   { path: 'recurring', component: RecurringComponent, canActivate: [authGuard] },
   { path: 'chat', component: ChatComponent, canActivate: [authGuard] },
+  { path: 'accounts', component: AccountsComponent, canActivate: [authGuard] },
   { path: 'profile', component: ProfileComponent, canActivate: [authGuard] }
 
 ];

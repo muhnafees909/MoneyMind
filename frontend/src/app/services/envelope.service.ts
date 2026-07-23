@@ -6,11 +6,15 @@ import { environment } from '../../environments/environment';
 
 export interface PlaidAccount {
   id: number;
-  name: string;
+  name: string;                       // raw Plaid name
+  nickname: string | null;            // user's custom label
+  display_name: string;               // nickname or name — use this for display
   official_name: string | null;
   account_type: string | null;
   account_subtype: string | null;
   mask: string | null;
+  is_envelope_eligible: boolean;
+  is_liability: boolean;
   current_balance: number | null;
   available_balance: number | null;
   balance_updated_at: string | null;

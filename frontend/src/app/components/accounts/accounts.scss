@@ -1,0 +1,420 @@
+// ============================================
+// MoneyMind Accounts — warm editorial ledger
+// Linked banks & cards: view balances, rename, see envelope eligibility.
+// Follows the moneymind-design-system skill; shell mirrors Profile.
+// ============================================
+
+.mm-dash {
+  min-height: calc(100vh - 64px);
+  background: var(--mm-bg);
+  color: var(--mm-text-1);
+  font-family: var(--mm-font-ui);
+  font-size: 14px;
+  padding: 28px 32px 64px;
+
+  * {
+    box-sizing: border-box;
+  }
+
+  ::selection {
+    background: var(--mm-brand-dim);
+  }
+
+  button {
+    font-family: inherit;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--mm-brand);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+.mm-dash.pre-anim [data-animate] {
+  opacity: 0;
+}
+
+.dash-head,
+.account-list,
+.foot-note,
+.empty,
+.skeleton-page {
+  max-width: 760px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+// ============================================
+// HEADER
+// ============================================
+.dash-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+
+  h1 {
+    margin: 0;
+    font-family: var(--mm-font-serif);
+    font-size: 24px;
+    font-weight: 600;
+  }
+
+  .head-date {
+    margin: 4px 0 0;
+    font-size: 13px;
+    color: var(--mm-text-3);
+  }
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border: none;
+  border-radius: var(--mm-radius-xs);
+  font-family: var(--mm-font-ui);
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--mm-dur-fast, 140ms) ease, color var(--mm-dur-fast, 140ms) ease;
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: default;
+  }
+}
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--mm-hairline-2);
+  color: var(--mm-text-2);
+
+  &:hover:not(:disabled) {
+    background: var(--mm-surface-2);
+    color: var(--mm-text-1);
+  }
+}
+
+.spin {
+  animation: acct-spin 0.9s linear infinite;
+}
+@keyframes acct-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// ============================================
+// ACCOUNT CARDS
+// ============================================
+.account-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.card {
+  background: var(--mm-surface-raised);
+  border: 1px solid rgba(244, 241, 236, 0.07);
+  border-radius: var(--mm-radius);
+  box-shadow: var(--mm-shadow-1);
+}
+
+.account-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: start;
+  gap: 16px;
+  padding: 18px 20px;
+}
+
+// Bank/card mark: saturated fern chip for assets, brass for liabilities
+.acct-ico {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: var(--mm-radius-sm);
+  background: var(--mm-brand-chip);
+  color: var(--mm-brand-ink);
+  box-shadow: 0 6px 16px -6px var(--mm-brand-glow);
+
+  &.liability {
+    background: linear-gradient(135deg, #d8b95e 0%, #ecd287 100%);
+    color: #2a2205;
+    box-shadow: 0 6px 16px -6px var(--mm-brass-dim);
+  }
+}
+
+.acct-body {
+  min-width: 0;
+}
+
+.name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.acct-name {
+  font-family: var(--mm-font-serif);
+  font-size: 16.5px;
+  font-weight: 600;
+  color: var(--mm-text-1);
+}
+
+.acct-mask {
+  font-family: var(--mm-font-num);
+  font-size: 12.5px;
+  color: var(--mm-text-3);
+}
+
+// Original Plaid name shown under a nickname, click to reset
+.acct-original {
+  margin: 3px 0 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font-family: var(--mm-font-num);
+  font-size: 11px;
+  color: var(--mm-text-3);
+  cursor: pointer;
+  transition: color var(--mm-dur-fast, 140ms) ease;
+
+  &:hover {
+    color: var(--mm-brand-strong);
+  }
+}
+
+.acct-meta {
+  margin: 6px 0 0;
+  font-size: 12.5px;
+  color: var(--mm-text-2);
+}
+
+// Rename affordance — pencil hidden until row hover/focus
+.rename-btn {
+  opacity: 0;
+  transition: opacity var(--mm-dur-fast, 140ms) ease;
+}
+.account-card:hover .rename-btn,
+.name-row:focus-within .rename-btn {
+  opacity: 1;
+}
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 27px;
+  height: 27px;
+  border: none;
+  border-radius: var(--mm-radius-sm);
+  background: transparent;
+  color: var(--mm-text-3);
+  cursor: pointer;
+  transition: background var(--mm-dur-fast, 140ms) ease, color var(--mm-dur-fast, 140ms) ease;
+  flex-shrink: 0;
+
+  &:hover:not(:disabled) {
+    background: var(--mm-surface-3);
+    color: var(--mm-text-1);
+  }
+
+  &.confirm:hover:not(:disabled) {
+    background: var(--mm-brand-dim);
+    color: var(--mm-brand-strong);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+// Inline rename input
+.rename-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rename-input {
+  flex: 1;
+  min-width: 0;
+  padding: 7px 10px;
+  background: var(--mm-surface);
+  border: 1px solid var(--mm-hairline-2);
+  border-radius: var(--mm-radius-xs);
+  color: var(--mm-text-1);
+  font-family: var(--mm-font-ui);
+  font-size: 14px;
+  outline: none;
+  transition: border-color var(--mm-dur-fast, 140ms) ease, box-shadow var(--mm-dur-fast, 140ms) ease;
+
+  &::placeholder {
+    color: var(--mm-text-3);
+  }
+
+  &:focus {
+    border-color: var(--mm-brand);
+    box-shadow: 0 0 0 3px var(--mm-brand-dim);
+  }
+}
+
+// ============================================
+// STATUS LINES (envelope eligibility)
+// ============================================
+.state-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 10px;
+  font-family: var(--mm-font-num);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+
+  &.ok {
+    color: var(--mm-brand-strong);
+  }
+
+  &.muted {
+    color: var(--mm-text-3);
+    cursor: help;
+  }
+}
+
+// ============================================
+// BALANCE
+// ============================================
+.acct-balance {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.bal-label {
+  display: block;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mm-text-3);
+}
+
+.bal-value {
+  display: block;
+  margin-top: 4px;
+  font-family: var(--mm-font-num);
+  font-size: 19px;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  color: var(--mm-text-1);
+
+  &.owed {
+    color: var(--mm-brass-strong);
+  }
+
+  &.muted {
+    color: var(--mm-text-3);
+  }
+}
+
+// ============================================
+// FOOT NOTE + EMPTY + INLINE LINK
+// ============================================
+.foot-note {
+  margin: 18px auto 0;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--mm-text-3);
+}
+
+.inline-link {
+  color: var(--mm-brand-strong);
+  font-weight: 600;
+  text-decoration: none;
+
+  &:hover {
+    color: var(--mm-brand);
+  }
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 44px 16px;
+  text-align: center;
+
+  svg {
+    box-sizing: content-box;
+    padding: 11px;
+    border-radius: var(--mm-radius-sm);
+    background: var(--mm-brand-chip);
+    color: var(--mm-brand-ink);
+    box-shadow: 0 10px 24px -10px var(--mm-brand-glow);
+  }
+
+  p {
+    margin: 4px 0 0;
+    font-family: var(--mm-font-serif);
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--mm-text-1);
+  }
+
+  .empty-sub {
+    font-size: 13px;
+    color: var(--mm-text-2);
+  }
+}
+
+// ============================================
+// SKELETON
+// ============================================
+.skeleton-page {
+  .sk {
+    border-radius: var(--mm-radius);
+    background: var(--mm-surface);
+    margin-bottom: 14px;
+  }
+  .sk-head {
+    height: 48px;
+    width: 40%;
+    border-radius: var(--mm-radius-xs);
+  }
+  .sk-card {
+    height: 96px;
+  }
+}
+
+// ============================================
+// RESPONSIVE
+// ============================================
+@media (max-width: 640px) {
+  .mm-dash {
+    padding: 20px 16px 48px;
+  }
+
+  .account-card {
+    grid-template-columns: auto 1fr;
+    row-gap: 12px;
+  }
+
+  .acct-balance {
+    grid-column: 2;
+    text-align: left;
+  }
+}

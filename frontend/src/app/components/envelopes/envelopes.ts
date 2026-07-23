@@ -175,7 +175,9 @@ export class EnvelopesComponent implements OnInit {
   }
 
   isAssetAccount(account: PlaidAccount): boolean {
-    return (account.account_type || '').toLowerCase() === 'depository';
+    // Single source of truth for "can back an envelope" now lives on the
+    // account (backend is_envelope_eligible = depository-only)
+    return account.is_envelope_eligible;
   }
 
   assetAccounts(): PlaidAccount[] {

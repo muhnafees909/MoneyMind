@@ -28,7 +28,7 @@ class IncomeEvent(db.Model):
             'id': self.id,
             'transaction_id': self.transaction_id,
             'plaid_account_id': self.plaid_account_id,
-            'account_name': self.account.name if self.account else None,
+            'account_name': self.account.display_name if self.account else None,
             'amount': float(self.amount),
             'status': self.status,
             'detected_at': self.detected_at.isoformat(),

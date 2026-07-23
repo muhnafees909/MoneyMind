@@ -21,7 +21,7 @@ allowed_origins = [
 
 CORS(app,
      origins=allowed_origins,
-     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+     methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
      allow_headers=["Content-Type", "Authorization", "X-CSRF-TOKEN"],
      supports_credentials=True,
      expose_headers=["Content-Type", "Authorization"]
@@ -117,6 +117,9 @@ app.register_blueprint(recurring_bp, url_prefix='/api/recurring')
 
 from routes.profile import profile_bp
 app.register_blueprint(profile_bp, url_prefix='/api/profile')
+
+from routes.accounts import accounts_bp
+app.register_blueprint(accounts_bp, url_prefix='/api/accounts')
 
 @app.route('/')
 def moneyMindWorks(): 
