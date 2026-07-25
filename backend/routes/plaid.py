@@ -4,6 +4,8 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from utils.auth_guards import require_verified_email
 from utils.plaid_client import get_plaid_client
+from utils.plaid_errors import PlaidItemActionRequired, item_action_from_exception
+from plaid.exceptions import ApiException
 from plaid.model.link_token_create_request import LinkTokenCreateRequest
 from plaid.model.link_token_create_request_user import LinkTokenCreateRequestUser
 from plaid.model.products import Products
@@ -58,17 +60,30 @@ def perform_transaction_sync(user_id: int, access_token: str, plaid_item: PlaidI
     cursor = plaid_item.sync_cursor if plaid_item else None
 
     added, modified, removed = [], [], []
-    while True:
-        kwargs = {'access_token': access_token}
-        if cursor:
-            kwargs['cursor'] = cursor
-        response = client.transactions_sync(TransactionsSyncRequest(**kwargs)).to_dict()
-        added.extend(response.get('added', []))
-        modified.extend(response.get('modified', []))
-        removed.extend(response.get('removed', []))
-        cursor = response.get('next_cursor') or cursor
-        if not response.get('has_more'):
-            break
+    try:
+        while True:
+            kwargs = {'access_token': access_token}
+            if cursor:
+                kwargs['cursor'] = cursor
+            response = client.transactions_sync(TransactionsSyncRequest(**kwargs)).to_dict()
+            added.extend(response.get('added', []))
+            modified.extend(response.get('modified', []))
+            removed.extend(response.get('removed', []))
+            cursor = response.get('next_cursor') or cursor
+            if not response.get('has_more'):
+                break
+    except ApiException as e:
+        # If Plaid says the item needs the user to act (re-auth, etc.), record
+        # it on the item and raise a structured signal the route turns into a
+        # calm reconnect prompt instead of a raw 400.
+        action = item_action_from_exception(e, plaid_item)
+        if action and plaid_item:
+            plaid_item.needs_reauth = action.reconnect
+            plaid_item.last_error_code = action.error_code
+            db.session.commit()
+        if action:
+            raise action
+        raise
 
     # Map Plaid's string account ids to our PlaidAccount rows
     account_map = {
@@ -149,6 +164,10 @@ def perform_transaction_sync(user_id: int, access_token: str, plaid_item: PlaidI
     if plaid_item:
         plaid_item.sync_cursor = cursor
         plaid_item.last_sync_timestamp = datetime.utcnow()
+        # A successful sync means the connection is healthy again — clear any
+        # stale reauth flag so the reconnect prompt disappears.
+        plaid_item.needs_reauth = False
+        plaid_item.last_error_code = None
 
     db.session.commit()
 
@@ -169,10 +188,22 @@ def perform_transaction_sync(user_id: int, access_token: str, plaid_item: PlaidI
 
 def sync_accounts_for_item(plaid_item: PlaidItem) -> int:
     """Fetch real-time balances for all accounts under a PlaidItem and upsert
-    PlaidAccount rows. Returns number of accounts synced. Caller handles exceptions."""
+    PlaidAccount rows. Returns number of accounts synced.
+
+    Raises PlaidItemActionRequired if Plaid reports an item-level error (the
+    caller turns that into a reconnect prompt); other exceptions propagate."""
     client = get_plaid_client()
     request_data = AccountsBalanceGetRequest(access_token=plaid_item.get_access_token())
-    response = client.accounts_balance_get(request_data).to_dict()
+    try:
+        response = client.accounts_balance_get(request_data).to_dict()
+    except ApiException as e:
+        action = item_action_from_exception(e, plaid_item)
+        if action:
+            plaid_item.needs_reauth = action.reconnect
+            plaid_item.last_error_code = action.error_code
+            db.session.commit()
+            raise action
+        raise
 
     synced = 0
     for acct in response.get('accounts', []):
@@ -197,6 +228,9 @@ def sync_accounts_for_item(plaid_item: PlaidItem) -> int:
         account.balance_updated_at = datetime.utcnow()
         synced += 1
 
+    # Balances came back cleanly — the connection is healthy again.
+    plaid_item.needs_reauth = False
+    plaid_item.last_error_code = None
     db.session.commit()
     return synced
 
@@ -204,7 +238,12 @@ def sync_accounts_for_item(plaid_item: PlaidItem) -> int:
 @plaid_bp.route('/sync-accounts', methods=['POST'])
 @jwt_required()
 def sync_accounts():
-    """Refresh account list + balances for all of the user's connected banks"""
+    """Refresh account list + balances for all of the user's connected banks.
+
+    One bank needing re-auth shouldn't block the others: each item is synced
+    independently. If any item reports an item-level error (e.g.
+    ITEM_LOGIN_REQUIRED), the still-current accounts are returned alongside a
+    list of items that need the user to reconnect."""
     try:
         user_id = get_jwt_identity()
         plaid_items = PlaidItem.query.filter_by(user_id=int(user_id)).all()
@@ -213,13 +252,30 @@ def sync_accounts():
             return jsonify({'error': 'No bank account connected. Please connect a bank account first.'}), 404
 
         total = 0
+        items_need_action = []
         for item in plaid_items:
-            total += sync_accounts_for_item(item)
+            try:
+                total += sync_accounts_for_item(item)
+            except PlaidItemActionRequired as action:
+                items_need_action.append(action.to_payload())
 
         accounts = PlaidAccount.query.filter_by(user_id=int(user_id)).order_by(PlaidAccount.name).all()
+        accounts_payload = [a.to_dict() for a in accounts]
+
+        # At least one bank needs the user to act — surface a calm prompt (409)
+        # while still handing back whatever balances are current.
+        if items_need_action:
+            return jsonify({
+                'error_code': 'ITEM_ACTION_REQUIRED',
+                'message': 'One or more of your banks need to be reconnected.',
+                'items': items_need_action,
+                'accounts': accounts_payload,
+                'synced': total
+            }), 409
+
         return jsonify({
             'message': f'Synced {total} accounts',
-            'accounts': [a.to_dict() for a in accounts]
+            'accounts': accounts_payload
         }), 200
     except Exception as e:
         db.session.rollback()
@@ -248,6 +304,45 @@ def create_link_token():
 
         response = client.link_token_create(request_data).to_dict()
 
+        return jsonify({'link_token': response['link_token']}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@plaid_bp.route('/create-update-link-token', methods=['POST'])
+@require_verified_email
+def create_update_link_token():
+    """Create a Plaid Link token in UPDATE MODE for a specific existing item.
+
+    Update mode re-authenticates an already-linked bank (fixing
+    ITEM_LOGIN_REQUIRED etc.) without creating a new item: the token is built
+    with the item's existing access_token and no `products`. On success the
+    frontend does NOT exchange a public token — the original access_token is
+    simply valid again — it just retries the sync."""
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json(silent=True) or {}
+        item_id = data.get('item_id')
+        if not item_id:
+            return jsonify({'error': 'item_id required'}), 400
+
+        # Scope to the authenticated user — never issue an update token for an
+        # item that isn't theirs.
+        plaid_item = PlaidItem.query.filter_by(
+            user_id=int(user_id), item_id=item_id).first()
+        if not plaid_item:
+            return jsonify({'error': 'Connected bank not found.'}), 404
+
+        client = get_plaid_client()
+        request_data = LinkTokenCreateRequest(
+            user=LinkTokenCreateRequestUser(client_user_id=str(user_id)),
+            client_name="MoneyMind",
+            country_codes=[CountryCode('US')],
+            language='en',
+            access_token=plaid_item.get_access_token(),  # update mode: no products
+            webhook='https://moneymind-dy31.onrender.com/api/plaid/webhook'
+        )
+        response = client.link_token_create(request_data).to_dict()
         return jsonify({'link_token': response['link_token']}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -364,6 +459,14 @@ def sync_transactions():
             'removed_transactions': result['removed']
         }), 200
 
+    except PlaidItemActionRequired as action:
+        # The bank needs the user to reconnect — a calm, actionable prompt
+        # rather than a raw error.
+        return jsonify({
+            'error_code': 'ITEM_ACTION_REQUIRED',
+            'message': action.message,
+            'items': [action.to_payload()]
+        }), 409
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500

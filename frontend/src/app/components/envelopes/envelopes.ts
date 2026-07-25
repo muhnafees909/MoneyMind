@@ -17,6 +17,7 @@ import {
   LucideRefreshCw,
   LucideTarget,
   LucideTrash2,
+  LucideTriangleAlert,
   LucideX
 } from '@lucide/angular';
 import {
@@ -29,6 +30,7 @@ import {
 } from '../../services/envelope.service';
 import { GoalService } from '../../services/goal.service';
 import { ModalService } from '../../services/modal.service';
+import { PlaidLinkService, ReauthItem } from '../../services/plaid-link.service';
 import { CountUpDirective } from '../../shared/count-up.directive';
 
 // Envelope band slots come from the shared palette (color follows the
@@ -66,6 +68,7 @@ interface BandSegment {
     LucideRefreshCw,
     LucideTarget,
     LucideTrash2,
+    LucideTriangleAlert,
     LucideX
   ],
   templateUrl: './envelopes.html',
@@ -115,6 +118,11 @@ export class EnvelopesComponent implements OnInit {
   revealed = false;
   preAnim = true;
   syncing = false;
+
+  // Banks needing reconnection (from a 409, or flagged on load).
+  reauthItems: ReauthItem[] = [];
+  reconnectingItemId: string | null = null;
+
   private entranceDone = false;
   private readonly reducedMotion =
     typeof window !== 'undefined' &&
@@ -127,6 +135,7 @@ export class EnvelopesComponent implements OnInit {
     private envelopeService: EnvelopeService,
     private goalService: GoalService,
     private modalService: ModalService,
+    private plaidLink: PlaidLinkService,
     private zone: NgZone,
     private host: ElementRef<HTMLElement>
   ) {
@@ -154,6 +163,8 @@ export class EnvelopesComponent implements OnInit {
       this.goals = res.goals || [];
       this.accounts = res.accounts || [];
       this.rules = res.rules || [];
+      // Durable reconnect prompt for any linked bank already flagged.
+      this.reauthItems = this.deriveReauthFromAccounts(res.accounts || []);
       this.computeTotals();
       if (first) {
         this.initialLoading = false;
@@ -325,11 +336,64 @@ export class EnvelopesComponent implements OnInit {
     this.envelopeService.syncAccounts().subscribe({
       next: () => {
         this.syncing = false;
+        this.reauthItems = [];  // everything synced cleanly
         this.loadAll();
       },
       error: (error) => {
         this.syncing = false;
+        // A linked bank needs reconnection — show the calm prompt, not an error.
+        if (error?.status === 409 && error.error?.error_code === 'ITEM_ACTION_REQUIRED') {
+          this.reauthItems = error.error.items || [];
+          this.loadAll();  // refresh balances that did come through
+          return;
+        }
         this.modalService.showError(error?.error?.error || 'Failed to sync balances');
+      }
+    });
+  }
+
+  /** Build one reconnect prompt per flagged item from the accounts list. */
+  private deriveReauthFromAccounts(accounts: PlaidAccount[]): ReauthItem[] {
+    const byItem = new Map<string, ReauthItem>();
+    for (const a of accounts) {
+      if (a.needs_reauth && a.item_id && !byItem.has(a.item_id)) {
+        const bank = a.institution_name || 'your bank';
+        byItem.set(a.item_id, {
+          item_id: a.item_id,
+          institution_name: a.institution_name,
+          error_code: 'ITEM_LOGIN_REQUIRED',
+          message: `Your connection to ${bank} needs to be reconnected.`,
+          reconnect: true
+        });
+      }
+    }
+    return [...byItem.values()];
+  }
+
+  /** Relaunch Plaid Link in update mode for a flagged item, then retry sync. */
+  reconnect(item: ReauthItem) {
+    if (this.reconnectingItemId) {
+      return;
+    }
+    this.reconnectingItemId = item.item_id;
+    this.plaidLink.createUpdateLinkToken(item.item_id).subscribe({
+      next: (res) => {
+        this.plaidLink.open(
+          res.link_token,
+          () => {
+            this.reconnectingItemId = null;
+            this.syncBalances();  // retry; clears the flag on success
+          },
+          () => {
+            this.reconnectingItemId = null;
+          }
+        );
+      },
+      error: (error) => {
+        this.reconnectingItemId = null;
+        this.modalService.showError(
+          error?.error?.error || 'Could not start reconnecting. Please try again.'
+        );
       }
     });
   }

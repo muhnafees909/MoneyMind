@@ -19,6 +19,8 @@ export interface PlaidAccount {
   available_balance: number | null;
   balance_updated_at: string | null;
   institution_name: string | null;
+  item_id: string | null;
+  needs_reauth: boolean;
 }
 
 export interface EnvelopeSummary {

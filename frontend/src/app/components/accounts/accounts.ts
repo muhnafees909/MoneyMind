@@ -11,12 +11,14 @@ import {
   LucideLandmark,
   LucidePencil,
   LucideRefreshCw,
+  LucideTriangleAlert,
   LucideWallet,
   LucideX
 } from '@lucide/angular';
 import { AccountService } from '../../services/account.service';
 import { PlaidAccount } from '../../services/envelope.service';
 import { ModalService } from '../../services/modal.service';
+import { PlaidLinkService, ReauthItem } from '../../services/plaid-link.service';
 import { CountUpDirective } from '../../shared/count-up.directive';
 
 @Component({
@@ -34,6 +36,7 @@ import { CountUpDirective } from '../../shared/count-up.directive';
     LucideLandmark,
     LucidePencil,
     LucideRefreshCw,
+    LucideTriangleAlert,
     LucideWallet,
     LucideX
   ],
@@ -44,6 +47,10 @@ export class AccountsComponent implements OnInit {
   accounts: PlaidAccount[] = [];
   initialLoading = true;
   syncing = false;
+
+  // Banks that need the user to reconnect (from a 409, or flagged on load).
+  reauthItems: ReauthItem[] = [];
+  reconnectingItemId: string | null = null;
 
   // Inline rename state
   editingId: number | null = null;
@@ -60,6 +67,7 @@ export class AccountsComponent implements OnInit {
   constructor(
     private accountService: AccountService,
     private modalService: ModalService,
+    private plaidLink: PlaidLinkService,
     private zone: NgZone,
     private host: ElementRef<HTMLElement>
   ) {
@@ -76,6 +84,9 @@ export class AccountsComponent implements OnInit {
     this.accountService.getAccounts().subscribe({
       next: (accounts) => {
         this.accounts = accounts;
+        // Surface a durable reconnect prompt for any bank already flagged,
+        // without waiting for the user to hit Refresh.
+        this.reauthItems = this.deriveReauthFromAccounts(accounts);
         this.finishLoad();
       },
       error: () => {
@@ -83,6 +94,24 @@ export class AccountsComponent implements OnInit {
         this.finishLoad();
       }
     });
+  }
+
+  /** Build one reconnect prompt per flagged item from the accounts list. */
+  private deriveReauthFromAccounts(accounts: PlaidAccount[]): ReauthItem[] {
+    const byItem = new Map<string, ReauthItem>();
+    for (const a of accounts) {
+      if (a.needs_reauth && a.item_id && !byItem.has(a.item_id)) {
+        const bank = a.institution_name || 'your bank';
+        byItem.set(a.item_id, {
+          item_id: a.item_id,
+          institution_name: a.institution_name,
+          error_code: 'ITEM_LOGIN_REQUIRED',
+          message: `Your connection to ${bank} needs to be reconnected.`,
+          reconnect: true
+        });
+      }
+    }
+    return [...byItem.values()];
   }
 
   private finishLoad() {
@@ -99,12 +128,52 @@ export class AccountsComponent implements OnInit {
       next: (res) => {
         this.syncing = false;
         this.accounts = res.accounts;
+        this.reauthItems = [];  // everything synced cleanly
         this.modalService.showSuccess(res.message || 'Accounts refreshed');
       },
       error: (error) => {
         this.syncing = false;
+        // A bank (or several) needs the user to reconnect — show the calm
+        // prompt instead of a raw error, and keep any balances that did sync.
+        if (error?.status === 409 && error.error?.error_code === 'ITEM_ACTION_REQUIRED') {
+          this.reauthItems = error.error.items || [];
+          if (error.error.accounts) {
+            this.accounts = error.error.accounts;
+          }
+          return;
+        }
         this.modalService.showError(
           error?.error?.error || 'Could not refresh — connect a bank from the dashboard first.'
+        );
+      }
+    });
+  }
+
+  /** Relaunch Plaid Link in update mode for a flagged item, then retry sync. */
+  reconnect(item: ReauthItem) {
+    if (this.reconnectingItemId) {
+      return;
+    }
+    this.reconnectingItemId = item.item_id;
+    this.plaidLink.createUpdateLinkToken(item.item_id).subscribe({
+      next: (res) => {
+        this.plaidLink.open(
+          res.link_token,
+          () => {
+            // Re-auth completed — retry the sync, which clears the flag on success.
+            this.reconnectingItemId = null;
+            this.syncAccounts();
+          },
+          () => {
+            // User dismissed Link without finishing — leave the prompt in place.
+            this.reconnectingItemId = null;
+          }
+        );
+      },
+      error: (error) => {
+        this.reconnectingItemId = null;
+        this.modalService.showError(
+          error?.error?.error || 'Could not start reconnecting. Please try again.'
         );
       }
     });

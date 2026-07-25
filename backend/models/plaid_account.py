@@ -65,7 +65,11 @@ class PlaidAccount(db.Model):
             'available_balance': float(self.available_balance) if self.available_balance is not None else None,
             'iso_currency_code': self.iso_currency_code,
             'balance_updated_at': self.balance_updated_at.isoformat() if self.balance_updated_at else None,
-            'institution_name': self.plaid_item.institution_name if self.plaid_item else None
+            'institution_name': self.plaid_item.institution_name if self.plaid_item else None,
+            # Item id + reauth state so the UI can show a durable reconnect
+            # prompt and relaunch Link update mode for the right connection.
+            'item_id': self.plaid_item.item_id if self.plaid_item else None,
+            'needs_reauth': self.plaid_item.needs_reauth if self.plaid_item else False,
         }
 
     def __repr__(self):

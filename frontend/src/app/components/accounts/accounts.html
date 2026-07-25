@@ -20,6 +20,29 @@
       </div>
     </header>
 
+    <!-- ============ RECONNECT PROMPTS ============ -->
+    @for (item of reauthItems; track item.item_id) {
+      <section class="card reconnect-card" data-animate>
+        <span class="reconnect-ico">
+          <svg lucideTriangleAlert [size]="18"></svg>
+        </span>
+        <div class="reconnect-body">
+          <h2>Reconnect {{ item.institution_name || 'your bank' }}</h2>
+          <p>{{ item.message }}</p>
+        </div>
+        @if (item.reconnect) {
+          <button
+            class="btn btn-solid reconnect-btn"
+            (click)="reconnect(item)"
+            [disabled]="reconnectingItemId === item.item_id"
+          >
+            <svg lucideRefreshCw [size]="16" [class.spin]="reconnectingItemId === item.item_id"></svg>
+            <span>{{ reconnectingItemId === item.item_id ? 'Opening…' : 'Reconnect' }}</span>
+          </button>
+        }
+      </section>
+    }
+
     @if (accounts.length > 0) {
       <ul class="account-list">
         @for (account of accounts; track account.id) {

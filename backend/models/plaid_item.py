@@ -14,6 +14,11 @@ class PlaidItem(db.Model):
     institution_name = db.Column(db.String(255), nullable=True)
     last_sync_timestamp = db.Column(db.DateTime, nullable=True)
     sync_cursor = db.Column(db.String(255), nullable=True)  # transactions_sync incremental cursor
+    # Item-error state: set when Plaid reports the connection needs the user to
+    # act (e.g. ITEM_LOGIN_REQUIRED). Cleared automatically on the next
+    # successful sync. Drives the "reconnect" prompt on Accounts/Envelopes.
+    needs_reauth = db.Column(db.Boolean, nullable=False, default=False)
+    last_error_code = db.Column(db.String(60), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -35,5 +40,7 @@ class PlaidItem(db.Model):
             'item_id': self.item_id,
             'institution_name': self.institution_name,
             'last_sync_timestamp': self.last_sync_timestamp.isoformat() if self.last_sync_timestamp else None,
+            'needs_reauth': self.needs_reauth,
+            'last_error_code': self.last_error_code,
             'created_at': self.created_at.isoformat()
         }

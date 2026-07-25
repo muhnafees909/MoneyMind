@@ -39,6 +39,7 @@
 .account-list,
 .foot-note,
 .empty,
+.reconnect-card,
 .skeleton-page {
   max-width: 760px;
   margin-left: auto;
@@ -99,6 +100,20 @@
   }
 }
 
+.btn-solid {
+  background: var(--mm-brand);
+  color: var(--mm-brand-ink);
+  box-shadow: 0 4px 16px -4px var(--mm-brand-glow);
+
+  &:hover:not(:disabled) {
+    background: var(--mm-brand-strong);
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+}
+
 .spin {
   animation: acct-spin 0.9s linear infinite;
 }
@@ -133,6 +148,65 @@
   align-items: start;
   gap: 16px;
   padding: 18px 20px;
+}
+
+// ============================================
+// RECONNECT PROMPT — calm attention, not an error state.
+// Amber accent + hairline; reads as "something to fix", not "something broke".
+// ============================================
+.reconnect-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  margin-bottom: 14px;
+  border-color: var(--mm-warn-dim);
+
+  .reconnect-ico {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    border-radius: var(--mm-radius-sm);
+    background: var(--mm-warn-dim);
+    color: var(--mm-warn);
+  }
+
+  .reconnect-body {
+    min-width: 0;
+
+    h2 {
+      margin: 0 0 2px;
+      font-family: var(--mm-font-serif);
+      font-size: 16.5px;
+      font-weight: 600;
+      color: var(--mm-text-1);
+    }
+
+    p {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.45;
+      color: var(--mm-text-2);
+    }
+  }
+
+  .reconnect-btn {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 560px) {
+    grid-template-columns: auto 1fr;
+
+    .reconnect-btn {
+      grid-column: 1 / -1;
+      justify-content: center;
+    }
+  }
 }
 
 // Bank/card mark: saturated fern chip for assets, brass for liabilities
