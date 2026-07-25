@@ -25,6 +25,16 @@ from models.user import db, User
 
 plaid_bp = Blueprint('plaid', __name__)
 
+import logging
+logger = logging.getLogger('moneymind.plaid')
+
+# (connect, read) seconds for every outbound Plaid call. Worst case (5 + 20 =
+# 25s) stays under gunicorn's default 30s worker timeout, so a slow/hanging
+# Plaid response fails fast with a catchable exception (clean 500 + traceback)
+# instead of blocking the worker until it's SIGKILLed — which surfaces to the
+# user as a Cloudflare 520.
+PLAID_TIMEOUT = (5, 20)
+
 
 def _delete_removed_transaction(transaction):
     """Remove a transaction Plaid retracted, cleaning up rows that point at it."""
@@ -65,7 +75,8 @@ def perform_transaction_sync(user_id: int, access_token: str, plaid_item: PlaidI
             kwargs = {'access_token': access_token}
             if cursor:
                 kwargs['cursor'] = cursor
-            response = client.transactions_sync(TransactionsSyncRequest(**kwargs)).to_dict()
+            response = client.transactions_sync(
+                TransactionsSyncRequest(**kwargs), _request_timeout=PLAID_TIMEOUT).to_dict()
             added.extend(response.get('added', []))
             modified.extend(response.get('modified', []))
             removed.extend(response.get('removed', []))
@@ -195,7 +206,7 @@ def sync_accounts_for_item(plaid_item: PlaidItem) -> int:
     client = get_plaid_client()
     request_data = AccountsBalanceGetRequest(access_token=plaid_item.get_access_token())
     try:
-        response = client.accounts_balance_get(request_data).to_dict()
+        response = client.accounts_balance_get(request_data, _request_timeout=PLAID_TIMEOUT).to_dict()
     except ApiException as e:
         action = item_action_from_exception(e, plaid_item)
         if action:
@@ -302,7 +313,7 @@ def create_link_token():
             webhook='https://moneymind-dy31.onrender.com/api/plaid/webhook'
         )
 
-        response = client.link_token_create(request_data).to_dict()
+        response = client.link_token_create(request_data, _request_timeout=PLAID_TIMEOUT).to_dict()
 
         return jsonify({'link_token': response['link_token']}), 200
     except Exception as e:
@@ -342,10 +353,14 @@ def create_update_link_token():
             access_token=plaid_item.get_access_token(),  # update mode: no products
             webhook='https://moneymind-dy31.onrender.com/api/plaid/webhook'
         )
-        response = client.link_token_create(request_data).to_dict()
+        response = client.link_token_create(request_data, _request_timeout=PLAID_TIMEOUT).to_dict()
         return jsonify({'link_token': response['link_token']}), 200
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        # Log the full error server-side (never leak Plaid internals to the
+        # client). A timeout now raises here instead of hanging the worker.
+        logger.exception('create-update-link-token failed for item %s: %s',
+                         data.get('item_id'), e)
+        return jsonify({'error': 'Could not start reconnecting. Please try again.'}), 500
 
 
 @plaid_bp.route('/exchange-public-token', methods=['POST'])
