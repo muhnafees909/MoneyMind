@@ -128,7 +128,10 @@
 // ============================================
 .account-list {
   list-style: none;
-  margin: 0;
+  // `0 auto` (not `0`): zero the default <ul> vertical margin while keeping the
+  // horizontal auto-margins that center the 760px column. A bare `margin: 0`
+  // here overrode the centering group above and pinned the list hard-left.
+  margin: 0 auto;
   padding: 0;
   display: flex;
   flex-direction: column;
