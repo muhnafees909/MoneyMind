@@ -94,6 +94,12 @@ export class BudgetManager implements OnInit {
     private host: ElementRef<HTMLElement>
   ) {
     this.categories = this.categoryService.getAllCategories();
+    // Pull the latest (includes the user's custom categories) in case this is
+    // the first screen loaded before the shared cache warmed up.
+    this.categoryService.refresh().subscribe({
+      next: () => (this.categories = this.categoryService.getAllCategories()),
+      error: () => {}
+    });
     this.viewMonth = this.now.getMonth() + 1;
     this.viewYear = this.now.getFullYear();
     if (this.reducedMotion) {
@@ -286,7 +292,11 @@ export class BudgetManager implements OnInit {
   // ============================================
 
   categoryColor(category: string): string {
-    return CATEGORY_COLORS[(category || '').toUpperCase()] || OTHER_COLOR;
+    return (
+      this.categoryService.getCategoryColor(category) ||
+      CATEGORY_COLORS[(category || '').toUpperCase()] ||
+      OTHER_COLOR
+    );
   }
 
   stateLabel(row: BudgetRow): string {

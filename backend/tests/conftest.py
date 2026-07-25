@@ -21,9 +21,20 @@ def app():
     flask_app.config['TESTING'] = True
     with flask_app.app_context():
         db.create_all()
+        _seed_system_categories()
         yield flask_app
         db.session.remove()
         db.drop_all()
+
+
+def _seed_system_categories():
+    """Seed the 17 system default categories the migration creates in prod, so
+    category validation (is_valid_category) works in tests just like it does
+    against the real database."""
+    from models.category import Category, DEFAULT_CATEGORIES, UNCATEGORIZED
+    for value, name, color, icon in DEFAULT_CATEGORIES + [UNCATEGORIZED]:
+        db.session.add(Category(user_id=None, value=value, name=name, color=color, icon=icon))
+    db.session.commit()
 
 
 @pytest.fixture

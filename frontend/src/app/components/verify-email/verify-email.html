@@ -1,0 +1,35 @@
+<div class="verify-page">
+  <a routerLink="/" class="verify-home" title="MoneyMind home">
+    <mm-wordmark [size]="19"></mm-wordmark>
+  </a>
+
+  <div class="verify-card" data-animate>
+    @switch (state()) {
+      @case ('verifying') {
+        <span class="verify-icon spin"><svg lucideLoader [size]="24"></svg></span>
+        <h1>Verifying your email…</h1>
+        <p>One moment.</p>
+      }
+      @case ('success') {
+        <span class="verify-icon ok"><svg lucideCircleCheck [size]="24"></svg></span>
+        <h1>Email verified</h1>
+        <p>Your email is confirmed — bank connections are now unlocked.</p>
+        @if (loggedIn) {
+          <a routerLink="/dashboard" class="btn btn-solid">Go to dashboard</a>
+        } @else {
+          <a routerLink="/login" class="btn btn-solid">Sign in</a>
+        }
+      }
+      @case ('error') {
+        <span class="verify-icon err"><svg lucideOctagonAlert [size]="24"></svg></span>
+        <h1>Couldn’t verify</h1>
+        <p>{{ message() }}</p>
+        @if (loggedIn) {
+          <a routerLink="/dashboard" class="btn btn-ghost">Back to app</a>
+        } @else {
+          <a routerLink="/login" class="btn btn-ghost">Back to sign in</a>
+        }
+      }
+    }
+  </div>
+</div>

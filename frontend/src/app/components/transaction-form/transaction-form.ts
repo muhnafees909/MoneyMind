@@ -8,7 +8,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
-import { LucideX } from '@lucide/angular';
+import { LucideOctagonAlert, LucideX } from '@lucide/angular';
 import { CategoryService, CategoryInfo } from '../../services/category.service';
 
 @Component({
@@ -24,12 +24,17 @@ import { CategoryService, CategoryInfo } from '../../services/category.service';
     MatSelectModule,
     MatDatepickerModule,
     MatNativeDateModule,
+    LucideOctagonAlert,
     LucideX
   ],
   templateUrl: './transaction-form.html',
   styleUrl: './transaction-form.scss',
 })
 export class TransactionForm {
+  // Mirrors the backend cap (routes/transactions.py MAX_AMOUNT) and stays
+  // well within the NUMERIC(10,2) column so a valid amount never overflows.
+  readonly maxAmount = 10_000_000;
+
   transaction: any = {
     amount: null,
     description: '',
@@ -44,6 +49,10 @@ export class TransactionForm {
 
   categories: CategoryInfo[] = [];
 
+  // Money-in categories — they describe income, so they don't belong in the
+  // expense category picker (the only place the picker is shown).
+  private readonly incomeOnlyCategories = ['INCOME', 'TRANSFER_IN'];
+
   constructor(
     public dialogRef: MatDialogRef<TransactionForm>,
     @Inject(MAT_DIALOG_DATA) public data: any,
@@ -56,6 +65,11 @@ export class TransactionForm {
         this.transaction.transaction_date = new Date(this.transaction.transaction_date);
       }
     }
+  }
+
+  /** Categories offered in the expense picker — excludes money-in categories. */
+  get selectableCategories(): CategoryInfo[] {
+    return this.categories.filter((c) => !this.incomeOnlyCategories.includes(c.value));
   }
 
   toggleCategoryDropdown(): void {
@@ -82,11 +96,46 @@ export class TransactionForm {
     }
   }
 
+  /**
+   * Inline amount validation message, or null when the amount is acceptable.
+   * Drives both the inline error and the disabled state of Save.
+   */
+  get amountError(): string | null {
+    const raw = this.transaction.amount;
+    if (raw === null || raw === undefined || raw === '') {
+      return null; // empty is handled by `required` / the disabled Save button
+    }
+    const amount = Number(raw);
+    if (isNaN(amount)) {
+      return 'Enter a valid amount.';
+    }
+    if (amount <= 0) {
+      return 'Amount must be greater than zero.';
+    }
+    if (amount > this.maxAmount) {
+      return `Amount must be at most $${this.maxAmount.toLocaleString('en-US')}.`;
+    }
+    return null;
+  }
+
+  get canSave(): boolean {
+    return (
+      !!this.transaction.amount &&
+      !!this.transaction.description &&
+      this.amountError === null &&
+      !(this.transaction.transaction_type === 'expense' && !this.transaction.category)
+    );
+  }
+
   onCancel(): void {
     this.dialogRef.close();
   }
 
   onSave(): void {
+    // Guard against submission even if the button's disabled state is bypassed
+    if (!this.canSave) {
+      return;
+    }
     const formattedTransaction = {
       ...this.transaction,
       transaction_date: this.transaction.transaction_date instanceof Date

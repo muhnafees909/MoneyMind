@@ -11,6 +11,7 @@ import {
 } from '@lucide/angular';
 import { AdvisorProfile, ProfileService } from '../../services/profile.service';
 import { ModalService } from '../../services/modal.service';
+import { SecuritySettingsComponent } from '../security-settings/security-settings';
 
 @Component({
   selector: 'app-profile',
@@ -22,7 +23,8 @@ import { ModalService } from '../../services/modal.service';
     LucideCheck,
     LucideCircleCheck,
     LucideHouse,
-    LucideShieldCheck
+    LucideShieldCheck,
+    SecuritySettingsComponent
   ],
   templateUrl: './profile.html',
   styleUrl: './profile.scss'

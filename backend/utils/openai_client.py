@@ -135,9 +135,45 @@ Now answer the user's question with specific, personalized financial advice. Rem
     return system_prompt
 
 
-# How many prior conversation turns to replay to the model. Keeps clarifying
-# question -> answer exchanges coherent without unbounded prompt growth.
-MAX_HISTORY_MESSAGES = 10
+# Conversation history handling: keep the most recent turns verbatim (enough
+# for follow-ups to make sense), and condense anything older into a one-line
+# note instead of replaying it. This avoids re-transmitting stale answers —
+# which restate figures the freshly-rebuilt snapshot already carries — on
+# every message.
+VERBATIM_HISTORY_MESSAGES = 6   # ~3 recent exchanges kept word-for-word
+MAX_OLDER_SUMMARIZED = 6        # cap the older user questions we mention
+
+
+def assemble_history(history):
+    """
+    Build the list of prior-turn messages to send before the current question:
+    a short note summarizing older *user questions* (old assistant answers are
+    dropped — they echo figures the current snapshot already has), followed by
+    the most recent turns verbatim.
+    """
+    history = history or []
+    if len(history) <= VERBATIM_HISTORY_MESSAGES:
+        return [{"role": m['role'], "content": m['content']} for m in history]
+
+    recent = history[-VERBATIM_HISTORY_MESSAGES:]
+    older = history[:-VERBATIM_HISTORY_MESSAGES]
+    older_questions = [
+        m['content'].strip() for m in older if m.get('role') == 'user'
+    ][-MAX_OLDER_SUMMARIZED:]
+
+    assembled = []
+    if older_questions:
+        summary = "; ".join(q[:120] for q in older_questions)
+        assembled.append({
+            "role": "system",
+            "content": (
+                "Earlier in this conversation the user asked about: "
+                f"{summary}. (Older turns condensed to save space; the financial "
+                "snapshot above is current — use it, not those earlier figures.)"
+            )
+        })
+    assembled.extend({"role": m['role'], "content": m['content']} for m in recent)
+    return assembled
 
 
 def send_message(user_id, user_message, history=None):
@@ -148,8 +184,8 @@ def send_message(user_id, user_message, history=None):
         user_id: ID of the user asking the question
         user_message: The user's message/question
         history: Optional list of prior messages, oldest first, each a dict
-                 {'role': 'user'|'assistant', 'content': str}. Only the last
-                 MAX_HISTORY_MESSAGES are sent.
+                 {'role': 'user'|'assistant', 'content': str}. Recent turns are
+                 sent verbatim; older ones are condensed (see assemble_history).
 
     Returns:
         dict with:
@@ -163,7 +199,16 @@ def send_message(user_id, user_message, history=None):
     try:
         # Gather user's financial context
         try:
-            context = format_context_for_llm(user_id)
+            # Intent for profile relevance: the current question plus the most
+            # recent prior user question, so a short follow-up ("make it 6
+            # months") still counts as needing the same profile fields.
+            prior_user_turns = [
+                m['content'] for m in (history or []) if m.get('role') == 'user'
+            ]
+            last_prior = prior_user_turns[-1] if prior_user_turns else ''
+            intent_text = f"{user_message} {last_prior}".strip()
+
+            context = format_context_for_llm(user_id, intent_text=intent_text)
             context_string = build_context_string(context)
             print(f"[CHAT DEBUG] Context built successfully for user {user_id}")
         except Exception as e:
@@ -188,8 +233,7 @@ def send_message(user_id, user_message, history=None):
         print(f"[CHAT DEBUG] System prompt preview: {system_prompt[:200]}...")
 
         messages = [{"role": "system", "content": system_prompt}]
-        for msg in (history or [])[-MAX_HISTORY_MESSAGES:]:
-            messages.append({"role": msg['role'], "content": msg['content']})
+        messages.extend(assemble_history(history))
         messages.append({"role": "user", "content": user_message})
 
         print(f"[CHAT DEBUG] Full message list: {len(messages)} messages")

@@ -5,7 +5,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from models.user import db
 from sqlalchemy import func, extract
 from datetime import datetime, timedelta
-from utils.categories import get_category_display_name, get_category_color
+from utils.categories import category_lookup, display_name_from, color_from
 
 analytics_bp = Blueprint("analytics", __name__)
 
@@ -23,11 +23,12 @@ def spending_by_category():
         Transaction.transaction_type == 'expense'
     ).group_by(Transaction.category).all()
 
+    lookup = category_lookup(user_id)
     category_totals = [
         {
             "category": row.category,
-            "display_name": get_category_display_name(row.category),
-            "color": get_category_color(row.category),
+            "display_name": display_name_from(row.category, lookup),
+            "color": color_from(row.category, lookup),
             "total": float(row.total)
         }
         for row in results
@@ -124,11 +125,12 @@ def spending_by_category_monthly():
         Transaction.transaction_date < month_end
     ).group_by(Transaction.category).all()
 
+    lookup = category_lookup(user_id)
     category_totals = [
         {
             "category": row.category,
-            "display_name": get_category_display_name(row.category),
-            "color": get_category_color(row.category),
+            "display_name": display_name_from(row.category, lookup),
+            "color": color_from(row.category, lookup),
             "total": float(row.total)
         }
         for row in results

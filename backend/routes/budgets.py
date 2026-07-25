@@ -5,6 +5,7 @@ from models.budget import Budget
 from models.transaction import Transaction
 from sqlalchemy import func, extract
 from datetime import datetime
+from utils.categories import is_valid_category
 
 budgets_bp = Blueprint('budgets', __name__)
 
@@ -26,7 +27,11 @@ def create_budget():
     # Validate required fields
     if not data.get('category') or not data.get('amount'):
         return jsonify({'error': 'Category and amount are required'}), 400
-    
+
+    # Category must be one the user can use (system default or their own custom)
+    if not is_valid_category(user_id, data['category']):
+        return jsonify({'error': 'Unknown category.'}), 400
+
     # Check if budget already exists for this category
     existing = Budget.query.filter_by(
         user_id=int(user_id),

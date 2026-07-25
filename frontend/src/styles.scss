@@ -330,6 +330,31 @@ $transition-base: 0.14s ease;
     border-color: $accent-orange;
     box-shadow: 0 0 0 3px rgba($accent-orange, 0.12);
   }
+
+  // Invalid field (e.g. amount out of range) — red border + red focus ring
+  &.has-error {
+    border-color: var(--mm-neg);
+
+    &:focus {
+      border-color: var(--mm-neg);
+      box-shadow: 0 0 0 3px var(--mm-neg-dim);
+    }
+  }
+}
+
+// Inline field-level validation message (mirrors the auth forms' error style)
+.field-error {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0 0;
+  color: var(--mm-neg);
+  font-size: 12.5px;
+  font-weight: 500;
+
+  svg {
+    flex-shrink: 0;
+  }
 }
 
 .form-textarea {

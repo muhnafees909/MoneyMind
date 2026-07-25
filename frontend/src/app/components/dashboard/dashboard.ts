@@ -337,7 +337,8 @@ export class Dashboard implements OnInit, AfterViewInit {
       key: c.category as string,
       label: c.display_name as string,
       value: c.total as number,
-      color: CATEGORY_COLORS[(c.category || '').toUpperCase()] || OTHER_COLOR
+      // Prefer the server-resolved color (custom-aware); fall back to the map
+      color: (c.color as string) || CATEGORY_COLORS[(c.category || '').toUpperCase()] || OTHER_COLOR
     }));
     if (rest.length > 0) {
       items.push({
@@ -630,7 +631,12 @@ export class Dashboard implements OnInit, AfterViewInit {
   // ============================================
 
   categoryColor(category: string): string {
-    return CATEGORY_COLORS[(category || '').toUpperCase()] || OTHER_COLOR;
+    // Backend-driven: covers custom categories, falls back to the static map
+    return (
+      this.categoryService.getCategoryColor(category) ||
+      CATEGORY_COLORS[(category || '').toUpperCase()] ||
+      OTHER_COLOR
+    );
   }
 
   getCurrentMonthName(): string {

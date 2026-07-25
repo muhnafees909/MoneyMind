@@ -38,11 +38,16 @@
   <main class="form-panel">
     <div class="form-shell" data-animate>
       <header class="form-head">
-        <h2>Welcome back</h2>
-        <p>Sign in to pick up where you left off.</p>
+        @if (mfaStep) {
+          <h2>Two-factor authentication</h2>
+          <p>Enter the 6-digit code from your authenticator app.</p>
+        } @else {
+          <h2>Welcome back</h2>
+          <p>Sign in to pick up where you left off.</p>
+        }
       </header>
 
-      @if (sessionNotice) {
+      @if (sessionNotice && !mfaStep) {
         <div class="form-notice" role="status">
           <svg lucideTriangleAlert [size]="14"></svg>
           <span>{{ sessionNotice }}</span>
@@ -54,6 +59,38 @@
           <span>{{ errorMessage }}</span>
         </div>
       }
+
+      <!-- ============ MFA STEP ============ -->
+      @if (mfaStep) {
+        <form class="auth-form" (ngSubmit)="onVerifyMfa()">
+          <label class="field">
+            <span class="field-label">Authentication code</span>
+            <input
+              type="text"
+              name="mfaCode"
+              [(ngModel)]="mfaCode"
+              inputmode="numeric"
+              autocomplete="one-time-code"
+              placeholder="123456"
+              maxlength="10"
+              autofocus
+            />
+            <span class="field-hint">Lost your device? Enter one of your backup codes instead.</span>
+          </label>
+          <button type="submit" class="btn btn-solid submit" [class.loading]="isLoading" [disabled]="isLoading">
+            @if (isLoading) {
+              <span class="load-rule"><span></span></span>
+              <span>Verifying…</span>
+            } @else {
+              <span>Verify &amp; sign in</span>
+              <svg lucideArrowRight [size]="16"></svg>
+            }
+          </button>
+        </form>
+        <p class="form-switch">
+          <a routerLink="/login" (click)="$event.preventDefault(); backToPassword()">← Back to sign in</a>
+        </p>
+      } @else {
 
       <form class="auth-form" (ngSubmit)="onLogin()">
         <label class="field">
@@ -113,6 +150,7 @@
       <p class="form-switch">
         New to MoneyMind? <a routerLink="/register">Create an account</a>
       </p>
+      }
     </div>
   </main>
 </div>

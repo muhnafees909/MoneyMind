@@ -130,3 +130,64 @@ def get_all_categories():
     ]
 
 
+# ---------------------------------------------------------------------------
+# DB-backed category resolution (system defaults + a user's custom categories).
+# These are the source of truth once the categories table exists; the dicts
+# above remain as a safe fallback for any value not found in the table.
+# ---------------------------------------------------------------------------
+
+def get_user_categories(user_id, include_archived=False):
+    """All categories visible to a user: system defaults + their own custom
+    ones. Returns a list of Category models."""
+    from models.category import Category
+    query = Category.query.filter(
+        (Category.user_id.is_(None)) | (Category.user_id == int(user_id))
+    )
+    if not include_archived:
+        query = query.filter(Category.archived.is_(False))
+    # System first, then custom; alphabetical-ish by name within each
+    return query.order_by(Category.user_id.isnot(None), Category.name.asc()).all()
+
+
+def category_lookup(user_id):
+    """value -> {'display_name', 'color', 'icon'} for a user (defaults + custom).
+    Used to resolve names/colors for analytics and the advisor in one query."""
+    lookup = {}
+    for cat in get_user_categories(user_id, include_archived=True):
+        lookup[cat.value] = {
+            'display_name': cat.name,
+            'color': cat.color,
+            'icon': cat.icon,
+        }
+    return lookup
+
+
+def display_name_from(value, lookup):
+    """Resolve a category value to its display name using a prebuilt lookup,
+    falling back to the static dict / title-cased value for unknowns."""
+    if not value:
+        return 'Uncategorized'
+    if lookup and value in lookup:
+        return lookup[value]['display_name']
+    return get_category_display_name(value)
+
+
+def color_from(value, lookup):
+    if lookup and value in lookup:
+        return lookup[value]['color']
+    return get_category_color(value)
+
+
+def is_valid_category(user_id, value):
+    """True if `value` is a category the user may assign (system or their own,
+    not archived)."""
+    if not value:
+        return False
+    from models.category import Category
+    return Category.query.filter(
+        Category.value == value,
+        Category.archived.is_(False),
+        (Category.user_id.is_(None)) | (Category.user_id == int(user_id))
+    ).first() is not None
+
+

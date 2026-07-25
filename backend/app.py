@@ -66,6 +66,9 @@ from models.income_event import IncomeEvent
 from models.recurring import RecurringExpense, RecurringExpenseOccurrence
 from models.user_profile import UserProfile
 from models.advisor_usage import AdvisorUsage, AdvisorAbuseFlag
+from models.category import Category
+from models.user import MfaBackupCode
+from models.login_security import LoginAttempt, LoginLockout
 
 migrate = Migrate(app, db)
 
@@ -120,6 +123,9 @@ app.register_blueprint(profile_bp, url_prefix='/api/profile')
 
 from routes.accounts import accounts_bp
 app.register_blueprint(accounts_bp, url_prefix='/api/accounts')
+
+from routes.categories import categories_bp
+app.register_blueprint(categories_bp, url_prefix='/api/categories')
 
 @app.route('/')
 def moneyMindWorks(): 

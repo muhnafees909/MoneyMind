@@ -53,6 +53,10 @@
         <svg lucideLandmark [size]="15"></svg>
         <span>Accounts</span>
       </a>
+      <a routerLink="/categories" routerLinkActive="active" class="secondary-link" title="Categories">
+        <svg lucideTags [size]="15"></svg>
+        <span>Categories</span>
+      </a>
       <a routerLink="/profile" routerLinkActive="active" class="secondary-link" title="Profile">
         <svg lucideUserRound [size]="15"></svg>
         <span>Profile</span>
@@ -115,6 +119,10 @@
     <a routerLink="/accounts" routerLinkActive="active" class="mobile-link" (click)="closeMobileMenu()">
       <svg lucideLandmark [size]="16"></svg>
       <span>Accounts</span>
+    </a>
+    <a routerLink="/categories" routerLinkActive="active" class="mobile-link" (click)="closeMobileMenu()">
+      <svg lucideTags [size]="16"></svg>
+      <span>Categories</span>
     </a>
     <a routerLink="/profile" routerLinkActive="active" class="mobile-link" (click)="closeMobileMenu()">
       <svg lucideUserRound [size]="16"></svg>

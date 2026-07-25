@@ -12,7 +12,7 @@ from models.budget import Budget
 from models.goal import FinancialGoal
 from models.plaid_account import PlaidAccount
 from models.recurring import RecurringExpense
-from utils.categories import get_category_display_name
+from utils.categories import get_category_display_name, category_lookup, display_name_from
 import calendar
 
 
@@ -452,10 +452,69 @@ def get_profile_context(user_id):
     return profile.to_dict() if profile else None
 
 
-def format_context_for_llm(user_id):
+# Keyword → profile field relevance. The profile is the most sensitive data in
+# the snapshot, so each field is sent only when the question plausibly needs it;
+# questions that clearly don't (e.g. "what did I spend on groceries") send none.
+_PROFILE_FIELD_KEYWORDS = {
+    'annual_income': (
+        'income', 'salary', 'earn', 'afford', 'affordab', 'emergency fund',
+        'save', 'saving', 'retire', 'retirement', 'invest', 'debt', 'loan',
+        'mortgage', 'net worth', 'how much should i', 'can i afford',
+        'down payment', 'raise',
+    ),
+    'employment_status': (
+        'income', 'salary', 'job', 'employ', 'self-employed', 'self employed',
+        'freelance', 'emergency fund', 'afford', 'stable', 'stability',
+        'irregular', 'retire', 'retirement',
+    ),
+    'dependents': (
+        'emergency fund', 'afford', 'family', 'kid', 'child', 'children',
+        'dependent', 'household', 'college', 'insurance', 'save for',
+    ),
+    'marital_status': (
+        'tax', 'filing', 'spouse', 'married', 'marriage', 'partner', 'joint',
+        'household', 'wife', 'husband',
+    ),
+    'housing_status': (
+        'rent', 'mortgage', 'housing', 'home', 'apartment', 'move', 'moving',
+        'relocat', 'utilities', 'budget', 'buy a house', 'down payment',
+    ),
+    'birth_year': (
+        'retire', 'retirement', 'age', 'pension', '401k', '401(k)', 'ira',
+        'long-term', 'long term', 'horizon',
+    ),
+}
+
+
+def select_relevant_profile(message, profile):
+    """
+    Keep only the profile fields the current question plausibly needs (keyword
+    match). Returns (filtered_profile, included_field_names). Field NAMES are
+    safe to log for auditing; field VALUES must never be logged.
+    """
+    if not profile:
+        return {}, []
+    text = (message or '').lower()
+    filtered = {}
+    included = []
+    for field, keywords in _PROFILE_FIELD_KEYWORDS.items():
+        if profile.get(field) is None:
+            continue
+        if any(kw in text for kw in keywords):
+            filtered[field] = profile[field]
+            included.append(field)
+    return filtered, included
+
+
+def format_context_for_llm(user_id, intent_text=None):
     """
     Gather all financial context and format it into a structured
     prompt-friendly format for the LLM.
+
+    intent_text: the current question (optionally plus the immediately prior
+    one), used to decide which sensitive profile fields are relevant. When
+    omitted (non-advisor callers), the full profile is kept for backward
+    compatibility.
 
     Returns dict with all financial data organized for AI consumption.
     """
@@ -531,11 +590,31 @@ def format_context_for_llm(user_id):
         recurring = {'series': [], 'total_monthly': 0.0, 'pending_review_count': 0}
 
     try:
-        profile = get_profile_context(user_id)
+        full_profile = get_profile_context(user_id)
     except Exception:
         # Generic on purpose — never let profile values reach logs
         print("Error getting profile context")
+        full_profile = None
+
+    if intent_text is None:
+        # Non-advisor caller (e.g. direct/tests): keep prior behavior.
+        profile = full_profile
+    elif full_profile:
+        # Advisor path: send only the fields this question plausibly needs, and
+        # audit which ones (field NAMES only — never the values).
+        profile, included_fields = select_relevant_profile(intent_text, full_profile)
+        print(f"[ADVISOR AUDIT] user {user_id} profile fields sent: "
+              f"{included_fields or 'none'}")
+    else:
         profile = None
+
+    try:
+        # value -> display name/color for this user (system defaults + custom),
+        # so custom category names render correctly in the prompt
+        cat_lookup = category_lookup(user_id)
+    except Exception as e:
+        print(f"Error building category lookup: {e}")
+        cat_lookup = {}
 
     return {
         'profile': profile,
@@ -547,7 +626,8 @@ def format_context_for_llm(user_id):
         'spending_by_category': spending_by_category,
         'spending_trends': spending_trends,
         'envelope_accounts': envelope_accounts,
-        'recurring': recurring
+        'recurring': recurring,
+        'category_lookup': cat_lookup
     }
 
 
@@ -567,6 +647,8 @@ def build_context_string(context):
     goals = context.get('goals', [])
     categories = context.get('spending_by_category', [])
     trends = context.get('spending_trends', {})
+    # Resolves both default and custom category values to their display names
+    cat_lookup = context.get('category_lookup', {})
 
     current_date = date.today()
     month_name = current_date.strftime("%B %Y")
@@ -623,7 +705,7 @@ def build_context_string(context):
             by_cat = m.get('by_category', {})
             if by_cat:
                 cat_parts = ", ".join(
-                    f"{get_category_display_name(cat)}: ${amt:,.2f}"
+                    f"{display_name_from(cat, cat_lookup)}: ${amt:,.2f}"
                     for cat, amt in sorted(by_cat.items(), key=lambda kv: kv[1], reverse=True)
                 )
                 lines.append(f"    by category — {cat_parts}")
@@ -637,19 +719,19 @@ def build_context_string(context):
         lines.append("\n⚠️ IMMEDIATE ALERTS")
         for alert in alerts:
             over_by = alert['spent_this_month'] - alert['budget_amount']
-            lines.append(f"  🔴 {get_category_display_name(alert['category'])}: OVER BUDGET by ${over_by:,.2f}")
+            lines.append(f"  🔴 {display_name_from(alert['category'], cat_lookup)}: OVER BUDGET by ${over_by:,.2f}")
         lines.append(f"  📈 Projected month-end: ${trends.get('projected_month_total', 0):,.2f}")
 
     # 3. SPENDING BREAKDOWN SECTION
     if categories:
         lines.append("\n💰 SPENDING BREAKDOWN (This Month)")
         for cat in sorted(categories, key=lambda x: x['amount'], reverse=True):
-            lines.append(f"  {get_category_display_name(cat['category'])}: ${cat['amount']:,.2f} ({cat['transaction_count']} tx)")
+            lines.append(f"  {display_name_from(cat['category'], cat_lookup)}: ${cat['amount']:,.2f} ({cat['transaction_count']} tx)")
 
         highest_cat = trends.get('highest_category')
         if highest_cat:
             growth = trends.get('month_growth_percent', 0)
-            lines.append(f"\n  Top category: {get_category_display_name(highest_cat)} at ${trends.get('highest_amount', 0):,.2f}")
+            lines.append(f"\n  Top category: {display_name_from(highest_cat, cat_lookup)} at ${trends.get('highest_amount', 0):,.2f}")
             lines.append(f"  Spending trend: {growth:+.1f}% vs last month")
 
     # 4. BUDGET STATUS SECTION
@@ -660,7 +742,7 @@ def build_context_string(context):
             remaining = budget['budget_amount'] - budget['spent_this_month']
             status_text = f"${remaining:,.2f} left" if remaining >= 0 else f"${abs(remaining):,.2f} over"
             lines.append(
-                f"  {status_emoji} {get_category_display_name(budget['category'])}: "
+                f"  {status_emoji} {display_name_from(budget['category'], cat_lookup)}: "
                 f"${budget['spent_this_month']:,.2f}/${budget['budget_amount']:,.2f} ({status_text})"
             )
     else:
@@ -721,7 +803,7 @@ def build_context_string(context):
         for tx in transactions[:10]:
             tx_emoji = "💸" if tx['type'] == 'expense' else "💰"
             tx_date = tx['date'][:10] if 'T' in tx['date'] else tx['date']  # Extract date part if ISO format
-            lines.append(f"  {tx_emoji} {tx_date}: {tx['description']} - ${tx['amount']:,.2f} ({get_category_display_name(tx['category'])})")
+            lines.append(f"  {tx_emoji} {tx_date}: {tx['description']} - ${tx['amount']:,.2f} ({display_name_from(tx['category'], cat_lookup)})")
 
     lines.append("\n" + "=" * 60)
 

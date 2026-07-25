@@ -146,7 +146,7 @@ class TestManualRecurringExpense:
     def test_create_manual_recurring_expense(self, client, auth_headers, user):
         """POST /manual creates a recurring expense without relying on detection"""
         response = client.post('/api/recurring/manual', headers=auth_headers, json={
-            'category': 'rent',
+            'category': 'RENT_AND_UTILITIES',
             'expected_amount': 1500.00,
             'cadence': 'monthly',
             'description': 'Apartment rent'
@@ -155,7 +155,7 @@ class TestManualRecurringExpense:
         assert response.status_code == 201
         data = response.get_json()
         assert data['merchant_name'] == 'Apartment rent'
-        assert data['category'] == 'rent'
+        assert data['category'] == 'RENT_AND_UTILITIES'
         assert float(data['expected_amount']) == 1500.00
         assert data['cadence'] == 'monthly'
         assert data['confirmed_by_user'] is True
@@ -175,7 +175,7 @@ class TestManualRecurringExpense:
     def test_manual_recurring_requires_amount(self, client, auth_headers, user):
         """Amount is required"""
         response = client.post('/api/recurring/manual', headers=auth_headers, json={
-            'category': 'rent',
+            'category': 'RENT_AND_UTILITIES',
             'cadence': 'monthly',
             'description': 'Rent'
         })
@@ -186,7 +186,7 @@ class TestManualRecurringExpense:
     def test_manual_recurring_requires_cadence(self, client, auth_headers, user):
         """Cadence is required"""
         response = client.post('/api/recurring/manual', headers=auth_headers, json={
-            'category': 'rent',
+            'category': 'RENT_AND_UTILITIES',
             'expected_amount': 1500.00,
             'description': 'Rent'
         })
@@ -197,7 +197,7 @@ class TestManualRecurringExpense:
     def test_manual_recurring_validates_cadence(self, client, auth_headers, user):
         """Invalid cadence is rejected"""
         response = client.post('/api/recurring/manual', headers=auth_headers, json={
-            'category': 'rent',
+            'category': 'RENT_AND_UTILITIES',
             'expected_amount': 1500.00,
             'cadence': 'invalid',
             'description': 'Rent'
@@ -209,7 +209,7 @@ class TestManualRecurringExpense:
     def test_manual_recurring_validates_positive_amount(self, client, auth_headers, user):
         """Amount must be positive"""
         response = client.post('/api/recurring/manual', headers=auth_headers, json={
-            'category': 'rent',
+            'category': 'RENT_AND_UTILITIES',
             'expected_amount': 0,
             'cadence': 'monthly',
             'description': 'Rent'
@@ -222,7 +222,7 @@ class TestManualRecurringExpense:
         """Manually created recurring expenses appear in confirmed list immediately"""
         # Create manual entry
         response = client.post('/api/recurring/manual', headers=auth_headers, json={
-            'category': 'rent',
+            'category': 'RENT_AND_UTILITIES',
             'expected_amount': 1500.00,
             'cadence': 'monthly',
             'description': 'Apartment rent'
@@ -242,7 +242,7 @@ class TestManualRecurringExpense:
         """Manually created entries skip the review queue"""
         # Create manual entry
         client.post('/api/recurring/manual', headers=auth_headers, json={
-            'category': 'rent',
+            'category': 'RENT_AND_UTILITIES',
             'expected_amount': 1500.00,
             'cadence': 'monthly',
             'description': 'Rent'
@@ -259,7 +259,7 @@ class TestManualRecurringExpense:
         """Manual recurring expenses are included in budget summary"""
         # Create manual entry
         client.post('/api/recurring/manual', headers=auth_headers, json={
-            'category': 'rent',
+            'category': 'RENT_AND_UTILITIES',
             'expected_amount': 1500.00,
             'cadence': 'monthly',
             'description': 'Rent'
@@ -272,7 +272,7 @@ class TestManualRecurringExpense:
         summary = response.get_json()
         assert summary['total_monthly'] == 1500.00
         assert len(summary['categories']) == 1
-        assert summary['categories'][0]['category'] == 'rent'
+        assert summary['categories'][0]['category'] == 'RENT_AND_UTILITIES'
         assert summary['categories'][0]['monthly_total'] == 1500.00
 
     def test_manual_recurring_with_all_cadences(self, client, auth_headers, user):
@@ -287,7 +287,7 @@ class TestManualRecurringExpense:
 
         for cadence in cadences:
             response = client.post('/api/recurring/manual', headers=auth_headers, json={
-                'category': 'test',
+                'category': 'GENERAL_SERVICES',
                 'expected_amount': 100.00,
                 'cadence': cadence,
                 'description': f'Test {cadence}'
@@ -302,7 +302,7 @@ class TestManualRecurringExpense:
     def test_manual_recurring_without_description_defaults_to_manual_entry(self, client, auth_headers, user):
         """If no description provided, merchant_name defaults to 'Manual Entry'"""
         response = client.post('/api/recurring/manual', headers=auth_headers, json={
-            'category': 'rent',
+            'category': 'RENT_AND_UTILITIES',
             'expected_amount': 1500.00,
             'cadence': 'monthly'
         })

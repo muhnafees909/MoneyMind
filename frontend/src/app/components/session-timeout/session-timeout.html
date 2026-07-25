@@ -1,0 +1,33 @@
+@if (session.warningVisible()) {
+  <div class="session-backdrop" role="presentation">
+    <div
+      class="mm-dialog session-dialog"
+      role="alertdialog"
+      aria-labelledby="session-timeout-title"
+      aria-describedby="session-timeout-msg"
+    >
+      <div class="mm-dialog-head">
+        <span class="dialog-icon warn">
+          <svg lucideTimerReset [size]="17"></svg>
+        </span>
+        <h2 class="mm-dialog-title" id="session-timeout-title">Still there?</h2>
+      </div>
+
+      <p class="mm-dialog-message" id="session-timeout-msg">
+        Your session is about to expire from inactivity. You'll be signed out in
+        <strong class="countdown">{{ session.secondsLeft() }}</strong>
+        second{{ session.secondsLeft() === 1 ? '' : 's' }}.
+      </p>
+
+      <div class="mm-dialog-actions">
+        <button class="btn btn-ghost" (click)="session.logoutNow()">
+          <svg lucideLogOut [size]="15"></svg>
+          Log out
+        </button>
+        <button class="btn btn-solid" (click)="session.continueSession()" [disabled]="session.continuing()">
+          {{ session.continuing() ? 'Extending…' : 'Continue session' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

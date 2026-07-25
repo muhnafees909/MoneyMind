@@ -43,6 +43,11 @@ export class Login implements OnInit {
   showPassword = false;
   isLoading = false;
 
+  // MFA second step
+  mfaStep = false;
+  mfaCode = '';
+  private mfaToken = '';
+
   private returnUrl: string | null = null;
 
   constructor(
@@ -63,26 +68,63 @@ export class Login implements OnInit {
     this.showPassword = !this.showPassword;
   }
 
+  private goToApp() {
+    const target =
+      this.returnUrl && this.returnUrl.startsWith('/') ? this.returnUrl : '/dashboard';
+    this.router.navigateByUrl(target);
+  }
+
   onLogin() {
     if (this.isLoading) {
       return;
     }
     this.errorMessage = '';
+    this.sessionNotice = '';
     this.isLoading = true;
 
     this.authService.login(this.email, this.password).subscribe({
-      next: () => {
-        // Session cookies are set by the server; land where the user
-        // was originally heading (or the dashboard)
-        const target =
-          this.returnUrl && this.returnUrl.startsWith('/') ? this.returnUrl : '/dashboard';
-        this.router.navigateByUrl(target);
+      next: (res) => {
+        if (res.mfa_required && res.mfa_token) {
+          // Password accepted; ask for the authenticator code before any session.
+          this.mfaToken = res.mfa_token;
+          this.mfaStep = true;
+          this.isLoading = false;
+          return;
+        }
+        this.goToApp();
       },
       error: (error) => {
         this.isLoading = false;
+        // Distinct lockout message (429) vs. non-revealing credential error.
         this.errorMessage =
-          error.error?.message || error.error?.error || 'Those credentials did not match. Try again.';
+          error.error?.message || 'Those credentials did not match. Try again.';
       }
     });
+  }
+
+  onVerifyMfa() {
+    if (this.isLoading || !this.mfaCode.trim()) {
+      return;
+    }
+    this.errorMessage = '';
+    this.isLoading = true;
+    this.authService.completeMfaLogin(this.mfaToken, this.mfaCode.trim()).subscribe({
+      next: () => this.goToApp(),
+      error: (error) => {
+        this.isLoading = false;
+        this.errorMessage = error.error?.message || 'That code isn’t right. Try again.';
+        if (error.error?.code === 'mfa_expired') {
+          // Pending token lapsed — send them back to the password step.
+          this.mfaStep = false;
+          this.mfaCode = '';
+        }
+      }
+    });
+  }
+
+  backToPassword() {
+    this.mfaStep = false;
+    this.mfaCode = '';
+    this.errorMessage = '';
   }
 }

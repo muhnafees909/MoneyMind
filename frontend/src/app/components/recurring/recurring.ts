@@ -101,6 +101,11 @@ export class RecurringComponent implements OnInit {
     private host: ElementRef<HTMLElement>
   ) {
     this.categories = this.categoryService.getAllCategories();
+    // Refresh so custom categories appear even if this loads before the cache warms
+    this.categoryService.refresh().subscribe({
+      next: () => (this.categories = this.categoryService.getAllCategories()),
+      error: () => {}
+    });
     if (this.reducedMotion) {
       this.preAnim = false;
     }
@@ -195,7 +200,11 @@ export class RecurringComponent implements OnInit {
   }
 
   categoryColor(category: string | null): string {
-    return CATEGORY_COLORS[(category || '').toUpperCase()] || OTHER_COLOR;
+    return (
+      this.categoryService.getCategoryColor(category) ||
+      CATEGORY_COLORS[(category || '').toUpperCase()] ||
+      OTHER_COLOR
+    );
   }
 
   yearlyTotal(): number {

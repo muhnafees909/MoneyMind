@@ -117,6 +117,8 @@ export class TransactionsComponent implements OnInit {
 
   ngOnInit() {
     this.loadTransactions(true);
+    // Ensure the inline category editor lists the user's custom categories
+    this.categoryService.refresh().subscribe({ error: () => {} });
   }
 
   loadTransactions(first = false) {
@@ -520,7 +522,11 @@ export class TransactionsComponent implements OnInit {
   }
 
   categoryColor(category: string): string {
-    return CATEGORY_COLORS[(category || '').toUpperCase()] || OTHER_COLOR;
+    return (
+      this.categoryService.getCategoryColor(category) ||
+      CATEGORY_COLORS[(category || '').toUpperCase()] ||
+      OTHER_COLOR
+    );
   }
 
   // ============================================

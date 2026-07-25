@@ -1,0 +1,127 @@
+<section class="card">
+  <header class="card-head">
+    <h2><svg lucideShieldCheck [size]="14"></svg> Two-factor authentication</h2>
+    @if (!loading() && mode() === 'idle') {
+      <span class="mfa-state" [class.on]="mfaEnabled()">
+        {{ mfaEnabled() ? 'On' : 'Off' }}
+      </span>
+    }
+  </header>
+
+  @if (loading()) {
+    <p class="muted">Loading…</p>
+  } @else {
+    @if (error()) {
+      <p class="inline-error" role="alert">
+        <svg lucideTriangleAlert [size]="13"></svg> {{ error() }}
+      </p>
+    }
+
+    <!-- ===== IDLE ===== -->
+    @if (mode() === 'idle') {
+      @if (!mfaEnabled()) {
+        <p class="sec-copy">
+          Add a second step at sign-in using an authenticator app (Google Authenticator,
+          Authy, 1Password…). Optional, but strongly recommended for a finance account.
+        </p>
+        <button class="btn btn-solid" (click)="startSetup()" [disabled]="busy()">
+          <svg lucideLock [size]="15"></svg> Enable two-factor
+        </button>
+      } @else {
+        <p class="sec-copy">
+          <svg lucideCheck [size]="14" class="ok-tick"></svg>
+          Two-factor is on. You'll enter a code from your authenticator app each sign-in.
+        </p>
+        <p class="muted">{{ backupRemaining() }} backup code(s) remaining.</p>
+        <button class="btn btn-ghost" (click)="startDisable()">Disable two-factor</button>
+      }
+    }
+
+    <!-- ===== SETUP (scan + confirm) ===== -->
+    @if (mode() === 'setup') {
+      <ol class="setup-steps">
+        <li>Scan this QR code with your authenticator app.</li>
+      </ol>
+      <div class="qr-row">
+        <img class="qr" [src]="qrDataUri()" alt="MFA QR code" width="160" height="160" />
+        <div class="manual">
+          <span class="manual-label">Can’t scan? Enter this key manually:</span>
+          <code class="manual-key">{{ secret() }}</code>
+        </div>
+      </div>
+      <label class="field">
+        <span class="field-label">Enter the 6-digit code to confirm</span>
+        <input
+          type="text"
+          [(ngModel)]="setupCode"
+          inputmode="numeric"
+          autocomplete="one-time-code"
+          maxlength="6"
+          placeholder="123456"
+          (keydown.enter)="confirmSetup()"
+        />
+      </label>
+      <div class="sec-actions">
+        <button class="btn btn-ghost" (click)="cancel()">Cancel</button>
+        <button class="btn btn-solid" (click)="confirmSetup()" [disabled]="busy() || !setupCode.trim()">
+          {{ busy() ? 'Verifying…' : 'Verify & enable' }}
+        </button>
+      </div>
+    }
+
+    <!-- ===== BACKUP CODES (shown once) ===== -->
+    @if (mode() === 'backup') {
+      <div class="backup-warn">
+        <svg lucideKeyRound [size]="15"></svg>
+        <p>
+          Save these backup codes somewhere safe. Each works once if you lose your device —
+          <strong>they won’t be shown again.</strong>
+        </p>
+      </div>
+      <ul class="backup-grid">
+        @for (code of backupCodes(); track code) {
+          <li>{{ code }}</li>
+        }
+      </ul>
+      <div class="sec-actions">
+        <button class="btn btn-ghost" (click)="copyBackup()">
+          {{ copied() ? 'Copied ✓' : 'Copy codes' }}
+        </button>
+        <button class="btn btn-solid" (click)="finishBackup()">I’ve saved them</button>
+      </div>
+    }
+
+    <!-- ===== DISABLE (re-auth) ===== -->
+    @if (mode() === 'disable') {
+      <p class="sec-copy">
+        For your security, confirm your password and a current authenticator (or backup) code
+        to turn two-factor off.
+      </p>
+      <label class="field">
+        <span class="field-label">Password</span>
+        <input type="password" [(ngModel)]="disablePassword" autocomplete="current-password" />
+      </label>
+      <label class="field">
+        <span class="field-label">Authentication code</span>
+        <input
+          type="text"
+          [(ngModel)]="disableCode"
+          inputmode="numeric"
+          autocomplete="one-time-code"
+          maxlength="10"
+          placeholder="123456"
+        />
+      </label>
+      <div class="sec-actions">
+        <button class="btn btn-ghost" (click)="cancel()">Cancel</button>
+        <button
+          class="btn btn-danger"
+          (click)="confirmDisable()"
+          [disabled]="busy() || !disablePassword || !disableCode.trim()"
+        >
+          {{ busy() ? 'Disabling…' : 'Turn off two-factor' }}
+        </button>
+      </div>
+    }
+  }
+</section>

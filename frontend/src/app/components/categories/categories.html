@@ -1,0 +1,139 @@
+<div class="mm-dash" [class.pre-anim]="preAnim">
+  @if (initialLoading) {
+    <div class="skeleton-page" aria-hidden="true">
+      <div class="sk sk-head"></div>
+      <div class="sk sk-card"></div>
+    </div>
+  } @else {
+    <!-- ============ HEADER ============ -->
+    <header class="dash-head" data-animate>
+      <div>
+        <h1>Categories</h1>
+        <p class="head-date">Your spending categories — the defaults, plus any you create</p>
+      </div>
+      <div class="head-actions">
+        <button class="btn btn-solid" (click)="toggleAdd()">
+          <svg lucidePlus [size]="16"></svg>
+          <span>New category</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ============ CREATE PANEL ============ -->
+    @if (showAdd) {
+      <section class="card add-panel" data-animate>
+        <div class="add-preview">
+          <span class="cat-chip" [style.background]="draft.color + '22'" [style.color]="draft.color">
+            <app-category-icon [name]="draft.icon" [size]="18"></app-category-icon>
+          </span>
+          <span class="preview-name">{{ draft.name.trim() || 'New category' }}</span>
+        </div>
+
+        <label class="field">
+          <span class="field-label">Name</span>
+          <input
+            type="text"
+            [(ngModel)]="draft.name"
+            [class.has-error]="nameError"
+            [maxlength]="maxNameLen"
+            placeholder="e.g. Dining Out"
+            (keydown.enter)="create()"
+          />
+          @if (nameError) {
+            <span class="inline-err">{{ nameError }}</span>
+          }
+        </label>
+
+        <div class="field">
+          <span class="field-label">Color</span>
+          <div class="swatch-row">
+            @for (c of palette; track c) {
+              <button
+                type="button"
+                class="swatch"
+                [class.selected]="draft.color === c"
+                [style.background]="c"
+                [attr.aria-label]="'Color ' + c"
+                (click)="draft.color = c"
+              ></button>
+            }
+          </div>
+        </div>
+
+        <div class="field">
+          <span class="field-label">Icon</span>
+          <div class="icon-grid">
+            @for (ic of icons; track ic) {
+              <button
+                type="button"
+                class="icon-cell"
+                [class.selected]="draft.icon === ic"
+                [style.color]="draft.icon === ic ? draft.color : null"
+                [attr.aria-label]="ic"
+                (click)="draft.icon = ic"
+              >
+                <app-category-icon [name]="ic" [size]="17"></app-category-icon>
+              </button>
+            }
+          </div>
+        </div>
+
+        <div class="add-actions">
+          <button class="btn btn-ghost" (click)="toggleAdd()">Cancel</button>
+          <button class="btn btn-solid" (click)="create()" [disabled]="!canCreate">
+            <svg lucideCheck [size]="16"></svg>
+            <span>{{ saving ? 'Creating…' : 'Create category' }}</span>
+          </button>
+        </div>
+      </section>
+    }
+
+    <!-- ============ YOUR CATEGORIES ============ -->
+    @if (customCategories.length > 0) {
+      <section class="cat-section" data-animate>
+        <h2 class="section-title">Your categories</h2>
+        <ul class="cat-list">
+          @for (cat of customCategories; track cat.value) {
+            <li class="cat-row">
+              <span class="cat-chip" [style.background]="cat.color + '22'" [style.color]="cat.color">
+                <app-category-icon [name]="cat.icon" [size]="16"></app-category-icon>
+              </span>
+              <span class="cat-name">{{ cat.displayName }}</span>
+              <button
+                class="icon-btn danger"
+                (click)="remove(cat)"
+                [disabled]="deletingId === cat.id"
+                [attr.aria-label]="'Delete ' + cat.displayName"
+                title="Delete"
+              >
+                <svg lucideTrash2 [size]="14"></svg>
+              </button>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+
+    <!-- ============ DEFAULTS ============ -->
+    <section class="cat-section" data-animate>
+      <h2 class="section-title">Default categories</h2>
+      <ul class="cat-list">
+        @for (cat of systemCategories; track cat.value) {
+          <li class="cat-row">
+            <span class="cat-chip" [style.background]="cat.color + '22'" [style.color]="cat.color">
+              <app-category-icon [name]="cat.icon" [size]="16"></app-category-icon>
+            </span>
+            <span class="cat-name">{{ cat.displayName }}</span>
+            <span class="default-tag">Default</span>
+          </li>
+        }
+      </ul>
+    </section>
+
+    <p class="foot-note" data-animate>
+      Custom categories work everywhere the defaults do — recategorize transactions,
+      set budgets, and tag recurring expenses. Deleting one moves its transactions to
+      Uncategorized.
+    </p>
+  }
+</div>

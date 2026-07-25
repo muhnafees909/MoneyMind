@@ -145,10 +145,10 @@ class TestRecurringEndpoints:
     def test_confirm_moves_out_of_review(self, client, auth_headers, user):
         series = self.seed_candidate(client, auth_headers, user)
         res = client.post(f'/api/recurring/{series.id}/confirm', headers=auth_headers,
-                          json={'category': 'SUBSCRIPTIONS'})
+                          json={'category': 'ENTERTAINMENT'})
         assert res.status_code == 200
         assert res.get_json()['confirmed_by_user'] is True
-        assert res.get_json()['category'] == 'SUBSCRIPTIONS'
+        assert res.get_json()['category'] == 'ENTERTAINMENT'
         assert client.get('/api/recurring?status=review', headers=auth_headers).get_json() == []
         assert len(client.get('/api/recurring?status=confirmed', headers=auth_headers).get_json()) == 1
 

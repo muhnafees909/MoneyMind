@@ -623,31 +623,35 @@
     text-align: right;
     white-space: nowrap;
 
-    .icon-btn,
+    // Edit/delete follow the table pattern: hidden until the row is hovered.
+    // The notes button is deliberately excluded — it's always visible because
+    // it doubles as the at-a-glance note indicator.
+    .icon-btn:not(.note-btn),
     .locked {
       opacity: 0;
       transition: opacity var(--mm-dur-fast) ease;
     }
   }
 
-  tbody tr:hover .td-actions .icon-btn,
-  tbody tr:focus-within .td-actions .icon-btn,
+  tbody tr:hover .td-actions .icon-btn:not(.note-btn),
+  tbody tr:focus-within .td-actions .icon-btn:not(.note-btn),
   tbody tr:hover .td-actions .locked {
-    opacity: 1;
-  }
-
-  // The notes button is a persistent at-a-glance indicator: when a note
-  // exists (or the editor is open) it stays visible even without row hover.
-  .td-actions .note-btn.has-note,
-  .td-actions .note-btn.open {
     opacity: 1;
   }
 }
 
-// Notes button — filled + fern when a note exists, outline when empty
+// Notes button — always visible: a muted outline when empty (an "add a note"
+// affordance + the "no note" state), filled fern when a note exists.
 .note-btn {
+  opacity: 1;
+  color: var(--mm-text-3);
+
   svg {
     transition: fill var(--mm-dur-fast) ease, color var(--mm-dur-fast) ease;
+  }
+
+  &:hover {
+    color: var(--mm-text-1);
   }
 
   &.has-note {

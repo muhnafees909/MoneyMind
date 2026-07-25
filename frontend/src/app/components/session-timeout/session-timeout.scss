@@ -1,0 +1,160 @@
+// ============================================
+// Session timeout warning — warm editorial ledger.
+// Standalone overlay (not a Material dialog), so it carries both the backdrop
+// and the dialog chrome; the body mirrors the confirmation dialog recipe.
+// ============================================
+
+.session-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(12, 11, 10, 0.72);
+  backdrop-filter: blur(5px);
+  animation: session-fade 0.16s ease;
+}
+
+.session-dialog {
+  background: var(--mm-surface-raised);
+  border: 1px solid var(--mm-hairline-2);
+  border-radius: var(--mm-radius-lg);
+  box-shadow: var(--mm-shadow-2);
+  animation: session-pop 0.18s var(--mm-ease-out);
+}
+
+// ----- dialog body (mirrors the confirmation dialog) -----
+.mm-dialog {
+  font-family: var(--mm-font-ui);
+  color: var(--mm-text-1);
+  padding: 20px 22px;
+  min-width: 340px;
+  max-width: 420px;
+}
+
+.mm-dialog-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.dialog-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--mm-radius-sm);
+  flex-shrink: 0;
+
+  &.warn {
+    background: var(--mm-warn-dim);
+    color: var(--mm-warn);
+  }
+}
+
+.mm-dialog-title {
+  flex: 1;
+  margin: 0;
+  font-family: var(--mm-font-serif);
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.mm-dialog-message {
+  margin: 0 0 20px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--mm-text-2);
+
+  .countdown {
+    font-family: var(--mm-font-num);
+    font-weight: 600;
+    color: var(--mm-warn);
+  }
+}
+
+.mm-dialog-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 16px;
+  border: none;
+  border-radius: var(--mm-radius-xs);
+  font-family: var(--mm-font-ui);
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition:
+    background var(--mm-dur-fast) ease,
+    color var(--mm-dur-fast) ease,
+    transform var(--mm-dur-fast) ease;
+
+  &:active {
+    transform: scale(0.97);
+  }
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+}
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--mm-hairline-2);
+  color: var(--mm-text-2);
+
+  &:hover:not(:disabled) {
+    background: var(--mm-surface-2);
+    color: var(--mm-text-1);
+  }
+}
+
+.btn-solid {
+  background: var(--mm-brand);
+  color: var(--mm-brand-ink);
+  box-shadow: 0 4px 16px -4px var(--mm-brand-glow);
+
+  &:hover:not(:disabled) {
+    background: var(--mm-brand-strong);
+  }
+}
+
+@keyframes session-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes session-pop {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .session-backdrop,
+  .session-dialog {
+    animation: none;
+  }
+}

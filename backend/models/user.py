@@ -11,6 +11,21 @@ class User(db.Model):
     first_name = db.Column(db.String(50), nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
 
+    # --- Email verification ---
+    email_verified = db.Column(db.Boolean, nullable=False, default=False)
+    # sha256 of the current single-use verification token (never the raw token)
+    verification_token_hash = db.Column(db.String(64), nullable=True, index=True)
+    verification_sent_at = db.Column(db.DateTime, nullable=True)
+
+    # --- TOTP MFA ---
+    mfa_enabled = db.Column(db.Boolean, nullable=False, default=False)
+    # Fernet-encrypted TOTP secret (like Plaid tokens); null until enrolled
+    mfa_secret = db.Column(db.String(255), nullable=True)
+
+    backup_codes = db.relationship(
+        'MfaBackupCode', backref='user', lazy=True, cascade='all, delete-orphan'
+    )
+
     def set_password(self, password):
         self.password_hash = bcrypt.hashpw(
             password.encode('utf-8'), bcrypt.gensalt(rounds=12)
@@ -35,3 +50,14 @@ class User(db.Model):
 
     def __repr__(self):
         return f"User('{self.email}', '{self.first_name}')"
+
+
+class MfaBackupCode(db.Model):
+    """One-time recovery code for MFA. Stored as a bcrypt hash — the raw codes
+    are shown to the user exactly once at generation time."""
+    __tablename__ = 'mfa_backup_codes'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
+    code_hash = db.Column(db.String(255), nullable=False)
+    used = db.Column(db.Boolean, nullable=False, default=False)

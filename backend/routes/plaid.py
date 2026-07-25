@@ -2,6 +2,7 @@ import json
 import os
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from utils.auth_guards import require_verified_email
 from utils.plaid_client import get_plaid_client
 from plaid.model.link_token_create_request import LinkTokenCreateRequest
 from plaid.model.link_token_create_request_user import LinkTokenCreateRequestUser
@@ -226,7 +227,7 @@ def sync_accounts():
 
 
 @plaid_bp.route('/create-link-token', methods=['POST'])
-@jwt_required()
+@require_verified_email   # bank linking is gated behind a confirmed email
 def create_link_token():
     """Create a Plaid Link token for the user"""
 
@@ -253,7 +254,7 @@ def create_link_token():
 
 
 @plaid_bp.route('/exchange-public-token', methods=['POST'])
-@jwt_required()
+@require_verified_email   # completing a bank link is gated behind a confirmed email
 def exchange_public_token():
     """Exchange Plaid public token for access token and store in database"""
     try:

@@ -7,10 +7,9 @@ import {
   HttpRequest
 } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { Router } from '@angular/router';
-import { Observable, catchError, finalize, shareReplay, switchMap, throwError } from 'rxjs';
+import { Observable, catchError, finalize, shareReplay, switchMap, tap, throwError } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { AuthService } from '../services/auth.service';
+import { SessionService } from '../services/session.service';
 
 // One refresh at a time: parallel 401s all wait on the same attempt
 let refreshInFlight: Observable<unknown> | null = null;
@@ -52,8 +51,7 @@ function prepare(req: HttpRequest<unknown>): HttpRequest<unknown> {
 }
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  const router = inject(Router);
-  const auth = inject(AuthService);
+  const session = inject(SessionService);
   // Raw client (bypasses interceptors) for the refresh call itself
   const rawHttp = new HttpClient(inject(HttpBackend));
 
@@ -83,6 +81,8 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
             }
           )
           .pipe(
+            // A successful refresh resets the idle-timeout clock too
+            tap(() => session.extend()),
             shareReplay(1),
             finalize(() => (refreshInFlight = null))
           );
@@ -91,11 +91,10 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
       return refreshInFlight.pipe(
         switchMap(() => next(prepare(req))), // re-prepare: fresh CSRF cookie
         catchError((refreshError) => {
-          // Refresh failed → the session is genuinely over
-          auth.clearSession();
-          router.navigate(['/login'], {
-            queryParams: { expired: '1', returnUrl: router.url }
-          });
+          // Refresh failed → the session is genuinely over. Route through the
+          // SessionService so the timer/modal reset and we redirect with the
+          // "expired" notice, preserving the current page as returnUrl.
+          session.expire();
           return throwError(() => refreshError);
         })
       );

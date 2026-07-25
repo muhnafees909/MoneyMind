@@ -10,7 +10,9 @@ import { RecurringComponent } from './components/recurring/recurring';
 import { ChatComponent } from './components/chat/chat';
 import { ProfileComponent } from './components/profile/profile';
 import { AccountsComponent } from './components/accounts/accounts';
+import { CategoriesComponent } from './components/categories/categories';
 import { LegalComponent } from './components/legal/legal';
+import { VerifyEmailComponent } from './components/verify-email/verify-email';
 import { OnboardingComponent } from './components/onboarding/onboarding';
 import { authGuard } from './guards/auth.guard';
 import { guestGuard } from './guards/guest.guard';
@@ -22,6 +24,8 @@ export const routes: Routes = [
   { path: 'register', component: RegisterComponent, canActivate: [guestGuard] },
   // Terms of Service & Privacy Policy — public, no guard
   { path: 'legal', component: LegalComponent },
+  // Email verification landing — public (the link works before login)
+  { path: 'verify-email', component: VerifyEmailComponent },
   // One-time optional setup after account creation; skippable, revisitable
   { path: 'welcome', component: OnboardingComponent, canActivate: [authGuard] },
   { path: 'dashboard', component: Dashboard, canActivate: [authGuard] },
@@ -33,6 +37,7 @@ export const routes: Routes = [
   { path: 'recurring', component: RecurringComponent, canActivate: [authGuard] },
   { path: 'chat', component: ChatComponent, canActivate: [authGuard] },
   { path: 'accounts', component: AccountsComponent, canActivate: [authGuard] },
+  { path: 'categories', component: CategoriesComponent, canActivate: [authGuard] },
   { path: 'profile', component: ProfileComponent, canActivate: [authGuard] }
 
 ];

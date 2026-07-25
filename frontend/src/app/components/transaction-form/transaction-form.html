@@ -16,12 +16,22 @@
           <input
             type="number"
             class="form-input"
+            [class.has-error]="amountError"
             [(ngModel)]="transaction.amount"
             name="amount"
             placeholder="0.00"
+            min="0.01"
+            [max]="maxAmount"
+            step="0.01"
             required
           />
         </div>
+        @if (amountError) {
+          <p class="field-error" role="alert">
+            <svg lucideOctagonAlert [size]="13"></svg>
+            <span>{{ amountError }}</span>
+          </p>
+        }
       </div>
 
       <!-- Type Field -->
@@ -87,7 +97,7 @@
           </button>
           <div class="select-dropdown" *ngIf="showCategoryDropdown">
             <div
-              *ngFor="let cat of categories"
+              *ngFor="let cat of selectableCategories"
               class="select-option"
               (click)="selectCategory(cat.value)"
               [class.selected]="transaction.category === cat.value"
@@ -142,7 +152,7 @@
     <button
       class="btn btn-save"
       (click)="onSave()"
-      [disabled]="!transaction.amount || !transaction.description || (transaction.transaction_type === 'expense' && !transaction.category)"
+      [disabled]="!canSave"
     >
       Save Transaction
     </button>

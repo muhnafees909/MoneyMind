@@ -1,12 +1,35 @@
+from decimal import Decimal, InvalidOperation
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models.user import db
 from models.transaction import Transaction
 from datetime import datetime
-from utils.categories import normalize_legacy_category, CATEGORY_DISPLAY_NAMES
+from utils.categories import normalize_legacy_category, is_valid_category
 from utils.recurring import detect_recurring
 
 transactions_bp = Blueprint("transaction", __name__)
+
+# Amount bounds. The DB column is NUMERIC(10, 2) — it can physically store up to
+# 99,999,999.99. We cap well below that at $10M: more than enough for any real
+# personal transaction (a house, a car, a down payment) while staying clear of
+# the column's ceiling so a valid amount can never overflow it.
+MAX_AMOUNT = Decimal('10000000')   # $10,000,000.00
+MIN_AMOUNT = Decimal('0.01')
+
+
+def validate_amount(value):
+    """Return (Decimal amount, None) if valid, else (None, error message)."""
+    try:
+        amount = Decimal(str(value))
+    except (InvalidOperation, TypeError, ValueError):
+        return None, 'Amount must be a number.'
+    if amount.is_nan() or amount.is_infinite():
+        return None, 'Amount must be a valid number.'
+    if amount < MIN_AMOUNT:
+        return None, 'Amount must be greater than zero.'
+    if amount > MAX_AMOUNT:
+        return None, f'Amount is too large — it must be at most ${MAX_AMOUNT:,.0f}.'
+    return amount, None
 
 
 def _rerun_recurring_detection(user_id):
@@ -36,12 +59,20 @@ def create_transaction():
     if not all(field in data for field in required_fields):
         return jsonify({'error': 'Missing required fields'}), 400
 
-    # Normalize category to Plaid format
+    # Validate amount range (guards the NUMERIC(10,2) column from overflow)
+    amount, amount_error = validate_amount(data['amount'])
+    if amount_error:
+        return jsonify({'error': amount_error}), 400
+
+    # Normalize legacy lowercase values, then confirm it's a category the user
+    # can actually use (system default or one of their custom categories).
     category = normalize_legacy_category(data.get('category', ''))
+    if not is_valid_category(user_id, category):
+        return jsonify({'error': 'Unknown category.'}), 400
 
     transaction = Transaction(
         user_id = int(user_id),
-        amount = data['amount'],
+        amount = amount,
         category = category,
         description = data['description'],
         transaction_type=data.get('transaction_type', 'expense'),
@@ -83,10 +114,13 @@ def update_transaction(transaction_id):
             }), 400
 
     if 'amount' in data:
-        transaction.amount = data['amount']
+        amount, amount_error = validate_amount(data['amount'])
+        if amount_error:
+            return jsonify({'error': amount_error}), 400
+        transaction.amount = amount
     if 'category' in data:
         new_category = normalize_legacy_category(data['category'])
-        if new_category not in CATEGORY_DISPLAY_NAMES:
+        if not is_valid_category(user_id, new_category):
             return jsonify({'error': 'Unknown category.'}), 400
         if new_category != transaction.category:
             transaction.category = new_category
@@ -165,7 +199,7 @@ def bulk_recategorize():
         return jsonify({'error': 'Too many transactions at once (max 500).'}), 400
 
     category = normalize_legacy_category(data.get('category', ''))
-    if category not in CATEGORY_DISPLAY_NAMES:
+    if not is_valid_category(user_id, category):
         return jsonify({'error': 'Unknown category.'}), 400
 
     # Only rows the user owns; ids belonging to others are silently skipped

@@ -1,0 +1,22 @@
+@if (show()) {
+  <div class="verify-banner" role="status">
+    <span class="vb-icon"><svg lucideMailWarning [size]="15"></svg></span>
+    <div class="vb-text">
+      @if (resent()) {
+        <strong>Verification email sent.</strong>
+        <span>Check your inbox for the confirmation link.</span>
+      } @else {
+        <strong>Confirm your email</strong>
+        <span>Verify your email to unlock bank connections. {{ error() }}</span>
+      }
+    </div>
+    @if (!resent()) {
+      <button class="vb-action" (click)="resend()" [disabled]="sending()">
+        {{ sending() ? 'Sending…' : 'Resend link' }}
+      </button>
+    }
+    <button class="vb-dismiss" (click)="dismiss()" aria-label="Dismiss">
+      <svg lucideX [size]="14"></svg>
+    </button>
+  </div>
+}
