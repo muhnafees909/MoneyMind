@@ -129,8 +129,8 @@
           </span>
           <span class="terms-text">
             I agree to the
-            <a routerLink="/legal" fragment="terms" target="_blank">Terms</a>&ngsp;and
-            <a routerLink="/legal" fragment="privacy" target="_blank">Privacy Policy</a>
+            <a href="#" (click)="openLegal('terms', $event)">Terms</a>&ngsp;and
+            <a href="#" (click)="openLegal('privacy', $event)">Privacy Policy</a>
           </span>
         </label>
 

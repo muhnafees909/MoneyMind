@@ -13,6 +13,7 @@ import {
   LucideTrendingUp
 } from '@lucide/angular';
 import { AuthService } from '../../services/auth.service';
+import { ModalService } from '../../services/modal.service';
 import { WordmarkComponent } from '../../shared/wordmark.component';
 
 @Component({
@@ -51,8 +52,19 @@ export class RegisterComponent {
 
   constructor(
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private modalService: ModalService
   ) {}
+
+  /** Open Terms/Privacy as a modal without navigating away — signup form state
+   *  underneath is preserved. */
+  openLegal(section: 'terms' | 'privacy', event: Event): void {
+    // preventDefault stops both the anchor navigation and the wrapping <label>
+    // from toggling the "agree" checkbox; stopPropagation is belt-and-suspenders.
+    event.preventDefault();
+    event.stopPropagation();
+    this.modalService.showLegal(section);
+  }
 
   togglePasswordVisibility(): void {
     this.showPassword = !this.showPassword;

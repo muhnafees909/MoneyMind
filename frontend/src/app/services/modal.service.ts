@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmationModalComponent } from '../components/modals/confirmation-modal/confirmation-modal';
 import { AlertModalComponent } from '../components/modals/alert-modal/alert-modal';
+import { LegalModalComponent } from '../components/modals/legal-modal/legal-modal';
 import { firstValueFrom } from 'rxjs';
 
 export type AlertType = 'error' | 'success' | 'info';
@@ -76,5 +77,21 @@ export class ModalService {
 
     const result = await firstValueFrom(dialogRef.afterClosed());
     return result === true;
+  }
+
+  /**
+   * Open the Terms of Service / Privacy Policy as a modal over the current
+   * screen. `section` scrolls straight to that document on open. The modal
+   * scrolls internally; the page underneath is untouched (form state, etc.).
+   */
+  showLegal(section: 'terms' | 'privacy' = 'terms'): void {
+    this.dialog.open(LegalModalComponent, {
+      data: { section },
+      width: '760px',
+      maxWidth: '94vw',
+      maxHeight: '85vh',
+      panelClass: 'custom-modal',
+      autoFocus: false
+    });
   }
 }

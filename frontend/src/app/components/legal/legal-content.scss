@@ -1,0 +1,206 @@
+// ============================================
+// MoneyMind Legal — document body (Terms + Privacy)
+// Shared by the /legal page and the Terms/Privacy modal. Warm editorial
+// ledger: long-form legal text set for actual reading.
+// ============================================
+
+.docs {
+  max-width: 660px;
+
+  a {
+    text-decoration: none;
+  }
+}
+
+.doc {
+  & + .doc {
+    margin-top: 72px;
+    padding-top: 56px;
+    border-top: 1px solid var(--mm-hairline-2);
+  }
+}
+
+.doc-head {
+  margin-bottom: 36px;
+
+  .doc-eyebrow {
+    margin: 0 0 8px;
+    font-family: var(--mm-font-num);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--mm-brand-strong);
+  }
+
+  h2 {
+    margin: 0 0 10px;
+    font-family: var(--mm-font-serif);
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 1.15;
+  }
+
+  .doc-date {
+    margin: 0;
+    font-family: var(--mm-font-num);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--mm-text-3);
+  }
+}
+
+// Anchor targets clear the fixed topbar (page) / sticky modal header when a
+// cross-link or the modal nav scrolls to a section.
+.doc,
+.doc-sec {
+  scroll-margin-top: 96px;
+}
+
+.doc-sec {
+  & + .doc-sec {
+    margin-top: 34px;
+  }
+
+  h3 {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin: 0 0 12px;
+    font-family: var(--mm-font-serif);
+    font-size: 16.5px;
+    font-weight: 600;
+    color: var(--mm-text-1);
+  }
+
+  .sec-num {
+    font-family: var(--mm-font-num);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    color: var(--mm-text-3);
+  }
+
+  p,
+  li {
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--mm-text-2);
+  }
+
+  p {
+    margin: 0 0 12px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  ul {
+    margin: 0;
+    padding-left: 20px;
+
+    li + li {
+      margin-top: 8px;
+    }
+
+    li::marker {
+      color: var(--mm-text-3);
+    }
+  }
+
+  a {
+    color: var(--mm-brand-strong);
+    font-weight: 500;
+    transition: color var(--mm-dur-fast) ease;
+
+    &:hover {
+      color: var(--mm-brand);
+    }
+  }
+
+  // Internal cross-reference links ("see the Privacy Policy below") — behave
+  // like links but scroll within the host container instead of navigating.
+  .xref {
+    cursor: pointer;
+  }
+
+  strong {
+    font-weight: 600;
+    color: var(--mm-text-1);
+  }
+
+  // The all-caps liability block — loosened slightly so it stays legible
+  .caps {
+    font-size: 12.5px;
+    letter-spacing: 0.015em;
+    line-height: 1.75;
+  }
+}
+
+// Definition-style lists (What we collect / Third parties): no bullets,
+// bold lead-ins carry the structure
+.def-list {
+  padding-left: 0;
+  list-style: none;
+
+  li {
+    padding-left: 14px;
+    border-left: 1px solid var(--mm-hairline-2);
+  }
+
+  li + li {
+    margin-top: 12px;
+  }
+}
+
+// AI disclaimer aside — quiet inset panel, ink not alarm color
+.doc-aside {
+  display: flex;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 16px 18px;
+  background: var(--mm-surface);
+  border: 1px solid var(--mm-hairline);
+  border-radius: var(--mm-radius-sm);
+
+  > svg {
+    flex-shrink: 0;
+    margin-top: 3px;
+    color: var(--mm-text-3);
+  }
+
+  ul {
+    padding-left: 16px;
+  }
+}
+
+// "We do not sell" — plain ink + check, being fine is silent
+.no-sell {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 14px;
+  font-weight: 500;
+  color: var(--mm-text-1);
+
+  svg {
+    flex-shrink: 0;
+    align-self: center;
+    color: var(--mm-text-3);
+  }
+}
+
+.contact-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mm-font-num);
+  font-size: 13px;
+
+  svg {
+    color: var(--mm-text-3);
+  }
+}

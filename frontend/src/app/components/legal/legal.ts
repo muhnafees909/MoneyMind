@@ -9,6 +9,7 @@ import {
   LucideShieldCheck
 } from '@lucide/angular';
 import { WordmarkComponent } from '../../shared/wordmark.component';
+import { LegalContentComponent } from './legal-content';
 
 @Component({
   selector: 'app-legal',
@@ -16,11 +17,9 @@ import { WordmarkComponent } from '../../shared/wordmark.component';
   imports: [
     RouterModule,
     LucideArrowRight,
-    LucideCircleCheck,
-    LucideInfo,
-    LucideMail,
     LucideShieldCheck,
-    WordmarkComponent
+    WordmarkComponent,
+    LegalContentComponent
   ],
   templateUrl: './legal.html',
   styleUrl: './legal.scss'

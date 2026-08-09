@@ -1,0 +1,136 @@
+// ============================================
+// MoneyMind Terms/Privacy modal
+// Container chrome (surface, border, radius, shadow, backdrop) comes from the
+// global .mat-mdc-dialog-container + .cdk-overlay-dark-backdrop overrides in
+// styles.scss. This lays out a fixed header over an internally-scrolling body.
+// ============================================
+
+.legal-modal {
+  display: flex;
+  flex-direction: column;
+  // Cap the whole modal so it never overflows the viewport; the body scrolls.
+  max-height: 85vh;
+  font-family: var(--mm-font-ui);
+  color: var(--mm-text-1);
+}
+
+// ---- Fixed header ----
+.lm-head {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 20px 14px 24px;
+  border-bottom: 1px solid var(--mm-hairline-2);
+}
+
+.lm-title {
+  margin: 0;
+  font-family: var(--mm-font-serif);
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+.lm-nav {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+
+// Segmented doc switcher — ghost buttons, fern when active (design system)
+.lm-tab {
+  padding: 6px 11px;
+  border: 1px solid var(--mm-hairline-2);
+  border-radius: var(--mm-radius-xs);
+  background: transparent;
+  font-family: var(--mm-font-ui);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--mm-text-2);
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background var(--mm-dur-fast) ease,
+    color var(--mm-dur-fast) ease,
+    border-color var(--mm-dur-fast) ease;
+
+  &:hover {
+    background: var(--mm-surface-2);
+    color: var(--mm-text-1);
+  }
+
+  &.on {
+    border-color: var(--mm-brand);
+    color: var(--mm-brand-strong);
+    background: var(--mm-brand-dim);
+  }
+}
+
+.lm-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: var(--mm-radius-sm);
+  background: transparent;
+  color: var(--mm-text-3);
+  cursor: pointer;
+  transition:
+    background var(--mm-dur-fast) ease,
+    color var(--mm-dur-fast) ease;
+
+  &:hover {
+    background: var(--mm-surface-3);
+    color: var(--mm-text-1);
+  }
+}
+
+// ---- Scrolling body ----
+.lm-body {
+  flex: 1;
+  min-height: 0; // allow the flex child to shrink so overflow can scroll
+  overflow-y: auto;
+  overscroll-behavior: contain; // don't chain scroll to the page behind
+  padding: 24px;
+
+  // The shared content constrains to a 660px reading measure; center it.
+  app-legal-content {
+    display: block;
+  }
+
+  ::ng-deep .docs {
+    max-width: none;
+    margin: 0 auto;
+  }
+}
+
+// ---- Responsive ----
+@media (max-width: 560px) {
+  .legal-modal {
+    max-height: 92vh;
+  }
+
+  .lm-head {
+    flex-wrap: wrap;
+    padding: 16px 16px 12px;
+  }
+
+  .lm-nav {
+    order: 3;
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .lm-tab {
+    flex: 1;
+  }
+
+  .lm-body {
+    padding: 18px 16px;
+  }
+}

@@ -272,8 +272,8 @@
     <nav class="foot-links">
       <a routerLink="/login">Sign in</a>
       <a routerLink="/register">Create account</a>
-      <a routerLink="/legal" fragment="terms">Terms</a>
-      <a routerLink="/legal" fragment="privacy">Privacy</a>
+      <a href="#" (click)="openLegal('terms', $event)">Terms</a>
+      <a href="#" (click)="openLegal('privacy', $event)">Privacy</a>
     </nav>
   </footer>
 </div>

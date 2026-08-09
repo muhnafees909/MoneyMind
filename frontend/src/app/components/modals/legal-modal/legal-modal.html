@@ -1,0 +1,32 @@
+<div class="legal-modal">
+  <!-- Fixed header: title, doc nav, close -->
+  <div class="lm-head">
+    <h2 class="lm-title">Terms &amp; Privacy</h2>
+    <nav class="lm-nav" aria-label="Jump to document">
+      <button
+        type="button"
+        class="lm-tab"
+        [class.on]="active === 'terms'"
+        (click)="goto('terms')"
+      >
+        Terms of Service
+      </button>
+      <button
+        type="button"
+        class="lm-tab"
+        [class.on]="active === 'privacy'"
+        (click)="goto('privacy')"
+      >
+        Privacy Policy
+      </button>
+    </nav>
+    <button class="lm-close" (click)="close()" aria-label="Close">
+      <svg lucideX [size]="16"></svg>
+    </button>
+  </div>
+
+  <!-- Scrollable body: the document content scrolls here, not the page -->
+  <div class="lm-body">
+    <app-legal-content></app-legal-content>
+  </div>
+</div>

@@ -23,6 +23,7 @@ import {
 } from '@lucide/angular';
 import { CountUpDirective } from '../../shared/count-up.directive';
 import { WordmarkComponent } from '../../shared/wordmark.component';
+import { ModalService } from '../../services/modal.service';
 
 // Payday waterfall demo figures (mirrors the envelope screen's real math)
 const PAYDAY = {
@@ -95,8 +96,15 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
 
   constructor(
     private zone: NgZone,
-    private host: ElementRef<HTMLElement>
+    private host: ElementRef<HTMLElement>,
+    private modalService: ModalService
   ) {}
+
+  /** Open Terms/Privacy as a modal over the landing page instead of navigating. */
+  openLegal(section: 'terms' | 'privacy', event: Event): void {
+    event.preventDefault();
+    this.modalService.showLegal(section);
+  }
 
   ngAfterViewInit() {
     if (this.reducedMotion) {
