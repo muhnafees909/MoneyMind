@@ -1,0 +1,7 @@
+# Shell scripts must keep LF endings. Committed with CRLF they fail on Linux CI
+# runners with an opaque "\r: command not found", which is a miserable thing to debug.
+*.sh text eol=lf
+
+# The workflow runner reads these on Linux too.
+*.yml text eol=lf
+*.yaml text eol=lf

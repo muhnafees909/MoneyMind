@@ -238,6 +238,15 @@ After deploying to production, configure the webhook URL in your Plaid dashboard
 https://your-production-url.com/api/plaid/webhook
 ```
 
+### Database Backups
+The production Neon database is dumped nightly at 03:00 UTC to Backblaze B2 by the
+[Database Backup](.github/workflows/db-backup.yml) workflow (also runnable on demand via
+Actions → Run workflow). Retention is 14 daily + ~9 weekly snapshots, and failures email
+an alert via Resend.
+
+**[RESTORE.md](RESTORE.md) documents the restore procedure** — read it before you need it.
+It also lists the repository secrets the workflow requires.
+
 ## Contributing
 
 Contributions are welcome. Please follow these guidelines:
