@@ -49,6 +49,10 @@ jobs:
       - name: Verify required secrets are present
         env:
           BACKUP_DATABASE_URL: ${{ secrets.BACKUP_DATABASE_URL }}
+          # Names only are printed below, never values — this is purely to tell
+          # "secret not created" apart from "created in the wrong place".
+          SECRETS_JSON: ${{ toJSON(secrets) }}
+          VARS_JSON: ${{ toJSON(vars) }}
         run: |
           set -euo pipefail
           missing=()
@@ -58,8 +62,23 @@ jobs:
           [ -n "${B2_BUCKET:-}" ]           || missing+=(B2_BUCKET)
           [ -n "${B2_ENDPOINT:-}" ]         || missing+=(B2_ENDPOINT)
           [ -n "${AWS_DEFAULT_REGION:-}" ]  || missing+=(B2_REGION)
+
           if [ ${#missing[@]} -gt 0 ]; then
-            echo "::error::Missing repository secrets: ${missing[*]}. See RESTORE.md."
+            echo "Secret NAMES this job can actually see (values never printed):"
+            jq -r 'keys[]' <<< "$SECRETS_JSON" | sed 's/^/    /' || echo "    (none)"
+            echo "Variable NAMES this job can see:"
+            jq -r 'keys[]' <<< "$VARS_JSON" | sed 's/^/    /' || echo "    (none)"
+            echo ""
+            echo "If the names above are empty or only show github_token, the secrets were"
+            echo "created somewhere this workflow cannot read. Check, in order:"
+            echo "  1. Settings > Secrets and variables > Actions  <- must be the ACTIONS tab,"
+            echo "     not the Codespaces or Dependabot tab next to it."
+            echo "  2. The 'Secrets' tab, not the 'Variables' tab on that same page."
+            echo "  3. 'Repository secrets', not 'Environment secrets' — this job declares no"
+            echo "     environment, so environment-scoped secrets are invisible to it."
+            echo "  4. The muhnafees909/MoneyMind repo itself, not a fork or another repo."
+            echo ""
+            echo "::error::Missing repository secrets: ${missing[*]}. See RESTORE.md and the diagnostics above."
             exit 1
           fi
           echo "All required secrets are set."
@@ -94,7 +113,9 @@ jobs:
           if [[ "$server_num" =~ ^[0-9]+$ ]]; then
             PG_MAJOR=$(( server_num / 10000 ))
           else
-            PG_MAJOR=17
+            # Fallback only. Neon was on 18.4 as of 2026-08-17; keep this at or above
+            # the live server's major, since pg_dump refuses to dump a newer server.
+            PG_MAJOR=18
             echo "::warning::Could not detect the server version; defaulting to pg_dump ${PG_MAJOR}."
           fi
           echo "Server major version: ${PG_MAJOR}"

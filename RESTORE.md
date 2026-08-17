@@ -60,8 +60,8 @@ You need Postgres client tools whose major version is **at least** the server's.
 ```bash
 # macOS
 brew install libpq && brew link --force libpq
-# Ubuntu/Debian
-sudo apt-get install -y postgresql-client-17
+# Ubuntu/Debian — Neon was running Postgres 18.4 as of 2026-08-17
+sudo apt-get install -y postgresql-client-18
 # Windows: install PostgreSQL from postgresql.org and use the bundled psql/pg_restore,
 # or just run the restore from a GitHub Codespace / any Linux box.
 
@@ -279,13 +279,18 @@ the filename and byte size. Confirm the object is really there:
 aws s3 ls s3://$B2_BUCKET/daily/ --endpoint-url $B2_ENDPOINT
 ```
 
+**Last verified end to end: 2026-08-17.** A manual run produced
+`daily/moneymind_backup_2026-08-17.dump` (64 KiB) in B2; the archive was downloaded and
+checked with `pg_restore --list`, showing 182 entries and all 19 tables including
+`alembic_version`. Server was Postgres 18.4.
+
 **Test the restore path, not just the backup.** A backup nobody has restored is a guess.
 Once a quarter, restore the newest dump into a throwaway Neon branch and run the row-count
 query from §3.5. That is the only thing that actually proves this works.
 
 | Symptom | Cause and fix |
 | --- | --- |
-| `server version mismatch` in pg_dump | Neon's major version moved past the installed client. The workflow auto-detects and installs a matching client; if detection failed it logs a warning and falls back to 17 — set that fallback to the real version in the workflow's install step. |
+| `server version mismatch` in pg_dump | Neon's major version moved past the installed client. The workflow auto-detects the server version and installs a matching client, so this should not happen; if detection failed it logs a warning and falls back to major 18. If Neon has since moved to 19+, bump that fallback in the workflow's install step. |
 | `SSL connection has been closed unexpectedly` | Usually the pooled endpoint. Confirm `BACKUP_DATABASE_URL` has no `-pooler`. |
 | `SignatureDoesNotMatch` on upload | `B2_REGION` doesn't match the region inside `B2_ENDPOINT`. They must agree. |
 | `AccessDenied` on upload or prune | The B2 application key lacks write/delete, or is scoped to a different bucket. Recreate it with Read and Write on this bucket. |
