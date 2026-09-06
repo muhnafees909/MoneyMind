@@ -74,7 +74,8 @@ class TestResyncRespectsManual:
         response = {'added': [], 'modified': modified_txns, 'removed': [],
                     'has_more': False, 'next_cursor': 'cursor-1'}
         fake_client = SimpleNamespace(
-            transactions_sync=lambda req: SimpleNamespace(to_dict=lambda: response)
+            # accepts the _request_timeout kwarg the real call passes
+            transactions_sync=lambda req, **kwargs: SimpleNamespace(to_dict=lambda: response)
         )
         monkeypatch.setattr(plaid_routes, 'get_plaid_client', lambda: fake_client)
         return plaid_routes.perform_transaction_sync(
@@ -218,3 +219,71 @@ class TestDownstreamRecalculation:
         # The series keeps its own category label (drives the Budgets subtotal
         # independently of any single transaction's category)
         assert RecurringExpense.query.one().category == 'GENERAL_SERVICES'
+
+
+class TestCustomCategoryLegacyCollision:
+    """A custom category whose slug collides with a legacy alias
+    ('Groceries' -> GROCERIES, which LEGACY_CATEGORY_MAPPING maps to
+    FOOD_AND_DRINK) must be stored as itself, not silently rewritten to the
+    mapped system category. The rewrite made the write look like a no-op: 200
+    OK with category_source flipped to 'manual' but the category unchanged.
+    """
+
+    def _make_custom(self, user, name):
+        from models.category import Category
+        slug = name.replace(' ', '_').upper()
+        cat = Category(user_id=user.id, value=slug, name=name,
+                       color='#e27c4e', icon='tag')
+        db.session.add(cat)
+        db.session.commit()
+        return slug
+
+    @pytest.mark.parametrize('name,collides_with', [
+        ('Groceries', 'FOOD_AND_DRINK'),
+        ('Dining', 'FOOD_AND_DRINK'),
+        ('Education', 'GENERAL_SERVICES'),
+        ('Other', 'GENERAL_SERVICES'),
+        ('Utilities', 'RENT_AND_UTILITIES'),
+    ])
+    def test_colliding_custom_category_is_stored_verbatim(
+            self, client, auth_headers, user, name, collides_with):
+        slug = self._make_custom(user, name)
+        txn = make_plaid_txn(user, category=collides_with)
+
+        res = client.put(f'/api/transactions/{txn.id}', headers=auth_headers,
+                         json={'category': slug})
+        assert res.status_code == 200
+        assert res.get_json()['category'] == slug
+
+        fresh = Transaction.query.filter_by(id=txn.id).one()
+        assert fresh.category == slug
+        assert fresh.category_source == 'manual'
+
+    def test_bulk_recategorize_honours_colliding_custom_category(
+            self, client, auth_headers, user):
+        slug = self._make_custom(user, 'Groceries')
+        txns = [make_plaid_txn(user, plaid_id=f'bulk-{i}', category='FOOD_AND_DRINK')
+                for i in range(3)]
+
+        res = client.post('/api/transactions/recategorize', headers=auth_headers,
+                          json={'transaction_ids': [t.id for t in txns],
+                                'category': slug})
+        assert res.status_code == 200
+        assert res.get_json()['category'] == slug
+        for t in Transaction.query.filter_by(user_id=user.id).all():
+            assert t.category == slug
+
+    def test_legacy_lowercase_values_still_migrate(self, client, auth_headers, user):
+        """The legacy mapping still applies to values that are NOT assignable
+        categories — that is the case it was written for."""
+        txn = make_plaid_txn(user, category='TRAVEL')
+        res = client.put(f'/api/transactions/{txn.id}', headers=auth_headers,
+                         json={'category': 'groceries'})
+        assert res.status_code == 200
+        assert res.get_json()['category'] == 'FOOD_AND_DRINK'
+
+    def test_unknown_category_still_rejected(self, client, auth_headers, user):
+        txn = make_plaid_txn(user)
+        res = client.put(f'/api/transactions/{txn.id}', headers=auth_headers,
+                         json={'category': 'NOPE_NOT_REAL'})
+        assert res.status_code == 400

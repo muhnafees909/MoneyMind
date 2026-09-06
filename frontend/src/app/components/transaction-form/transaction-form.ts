@@ -49,8 +49,8 @@ export class TransactionForm {
 
   categories: CategoryInfo[] = [];
 
-  // Money-in categories — they describe income, so they don't belong in the
-  // expense category picker (the only place the picker is shown).
+  // Money-in categories — they describe income, so they belong in the income
+  // picker only, and are kept out of the expense one.
   private readonly incomeOnlyCategories = ['INCOME', 'TRANSFER_IN'];
 
   constructor(
@@ -67,8 +67,17 @@ export class TransactionForm {
     }
   }
 
-  /** Categories offered in the expense picker — excludes money-in categories. */
+  /**
+   * Categories offered for the current transaction type. Custom categories
+   * carry no income/expense flag of their own, so they show up in both pickers
+   * — a user-made "Freelance" is as valid for income as "Coffee" is for spend.
+   */
   get selectableCategories(): CategoryInfo[] {
+    if (this.transaction.transaction_type === 'income') {
+      return this.categories.filter(
+        (c) => this.incomeOnlyCategories.includes(c.value) || c.isCustom
+      );
+    }
     return this.categories.filter((c) => !this.incomeOnlyCategories.includes(c.value));
   }
 
@@ -90,8 +99,15 @@ export class TransactionForm {
   selectType(type: string): void {
     this.transaction.transaction_type = type;
     this.showTypeDropdown = false;
+    this.showCategoryDropdown = false;
 
-    if (type === 'income') {
+    // Only drop a category that doesn't belong to the new type (e.g. an
+    // expense filed as Food & Drink switched over to income) — the user
+    // re-picks. Anything still valid is kept.
+    if (
+      this.transaction.category &&
+      !this.selectableCategories.some((c) => c.value === this.transaction.category)
+    ) {
       this.transaction.category = '';
     }
   }
@@ -123,7 +139,7 @@ export class TransactionForm {
       !!this.transaction.amount &&
       !!this.transaction.description &&
       this.amountError === null &&
-      !(this.transaction.transaction_type === 'expense' && !this.transaction.category)
+      !!this.transaction.category
     );
   }
 
@@ -140,8 +156,7 @@ export class TransactionForm {
       ...this.transaction,
       transaction_date: this.transaction.transaction_date instanceof Date
         ? this.transaction.transaction_date.toISOString().split('T')[0]
-        : this.transaction.transaction_date,
-      category: this.transaction.transaction_type === 'income' ? '' : this.transaction.category
+        : this.transaction.transaction_date
     };
     this.dialogRef.close(formattedTransaction);
   }

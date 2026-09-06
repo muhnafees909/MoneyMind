@@ -192,7 +192,7 @@ class TestIncomeEventEndpoints:
                 }]}
 
         class FakeClient:
-            def transactions_sync(self, req):
+            def transactions_sync(self, req, **kwargs):
                 return FakeResponse()
 
         monkeypatch.setattr(plaid_module, 'get_plaid_client', lambda: FakeClient())

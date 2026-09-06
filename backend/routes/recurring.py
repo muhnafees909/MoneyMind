@@ -10,7 +10,7 @@ from utils.recurring import (
     detect_recurring, cadence_nominal_days, normalize_merchant, infer_cadence,
     _attach_occurrences,
 )
-from utils.categories import is_valid_category, normalize_legacy_category
+from utils.categories import resolve_category
 
 recurring_bp = Blueprint('recurring', __name__)
 
@@ -26,9 +26,9 @@ def create_manual_recurring():
     # Validate required fields
     if not data.get('category'):
         return jsonify({'error': 'category required'}), 400
-    data['category'] = normalize_legacy_category(data['category'])
-    if not is_valid_category(user_id, data['category']):
-        return jsonify({'error': 'Unknown category.'}), 400
+    data['category'], category_error = resolve_category(user_id, data['category'])
+    if category_error:
+        return jsonify({'error': category_error}), 400
     if 'expected_amount' not in data:
         return jsonify({'error': 'expected_amount required'}), 400
     if not data.get('cadence'):
@@ -197,9 +197,9 @@ def confirm_recurring(series_id):
 
     data = request.get_json(silent=True) or {}
     if 'category' in data:
-        normalized = normalize_legacy_category(data['category'])
-        if not is_valid_category(user_id, normalized):
-            return jsonify({'error': 'Unknown category.'}), 400
+        normalized, category_error = resolve_category(user_id, data['category'])
+        if category_error:
+            return jsonify({'error': category_error}), 400
         series.category = normalized
     series.confirmed_by_user = True
     series.status = 'active'
@@ -233,9 +233,9 @@ def update_recurring(series_id):
 
     data = request.get_json() or {}
     if 'category' in data:
-        normalized = normalize_legacy_category(data['category'])
-        if not is_valid_category(user_id, normalized):
-            return jsonify({'error': 'Unknown category.'}), 400
+        normalized, category_error = resolve_category(user_id, data['category'])
+        if category_error:
+            return jsonify({'error': category_error}), 400
         series.category = normalized
     if 'expected_amount' in data:
         try:

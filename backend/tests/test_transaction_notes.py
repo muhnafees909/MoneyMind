@@ -70,7 +70,7 @@ class TestNotesOnAnyTransaction:
                         'date': datetime.utcnow().date(), 'merchant_name': 'Netflix',
                         'merchant_entity_id': 'ent-nflx', 'account_id': 'acct-1'
                     }]}
-        fake = SimpleNamespace(transactions_sync=lambda req: SimpleNamespace(to_dict=lambda: response))
+        fake = SimpleNamespace(transactions_sync=lambda req, **kwargs: SimpleNamespace(to_dict=lambda: response))
         monkeypatch.setattr(plaid_routes, 'get_plaid_client', lambda: fake)
         plaid_routes.perform_transaction_sync(user.id, 'access-1', plaid_item=PlaidItem.query.one())
 
@@ -112,7 +112,7 @@ class TestNotesOnAnyTransaction:
                         'date': datetime.utcnow().date(), 'merchant_name': 'Blue Bottle',
                         'merchant_entity_id': 'ent-bb', 'account_id': 'acct-1'
                     }]}
-        fake = SimpleNamespace(transactions_sync=lambda req: SimpleNamespace(to_dict=lambda: response))
+        fake = SimpleNamespace(transactions_sync=lambda req, **kwargs: SimpleNamespace(to_dict=lambda: response))
         monkeypatch.setattr(plaid_routes, 'get_plaid_client', lambda: fake)
         plaid_routes.perform_transaction_sync(user.id, 'access-1', plaid_item=PlaidItem.query.one())
 

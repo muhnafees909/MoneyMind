@@ -178,6 +178,32 @@ def color_from(value, lookup):
     return get_category_color(value)
 
 
+def resolve_category(user_id, raw):
+    """Resolve a category value submitted by a client to the value to store.
+
+    A value the user can actually assign — a system default or one of their own
+    custom categories — is authoritative and taken as-is. Only values that are
+    NOT assignable fall through to the legacy lowercase mapping.
+
+    That ordering matters: `normalize_legacy_category` maps a handful of old
+    lowercase names onto Plaid primaries ('groceries' -> FOOD_AND_DRINK), and a
+    custom category whose slug collides with one of those keys (a category named
+    "Groceries" slugifies to GROCERIES) used to be silently rewritten to the
+    mapped system category. The write then looked like a no-op: the API answered
+    200 and flipped category_source to 'manual', but the category never changed.
+
+    Returns (value, None) when assignable, else (None, error message).
+    """
+    value = raw.strip() if isinstance(raw, str) else raw
+    if value and is_valid_category(user_id, value):
+        return value, None
+    # Unrecognised (or empty) — fall back to the legacy migration mapping.
+    normalized = normalize_legacy_category(value)
+    if is_valid_category(user_id, normalized):
+        return normalized, None
+    return None, 'Unknown category.'
+
+
 def is_valid_category(user_id, value):
     """True if `value` is a category the user may assign (system or their own,
     not archived)."""

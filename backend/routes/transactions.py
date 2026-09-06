@@ -4,7 +4,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from models.user import db
 from models.transaction import Transaction
 from datetime import datetime
-from utils.categories import normalize_legacy_category, is_valid_category
+from utils.categories import resolve_category
 from utils.recurring import detect_recurring
 
 transactions_bp = Blueprint("transaction", __name__)
@@ -64,11 +64,11 @@ def create_transaction():
     if amount_error:
         return jsonify({'error': amount_error}), 400
 
-    # Normalize legacy lowercase values, then confirm it's a category the user
-    # can actually use (system default or one of their custom categories).
-    category = normalize_legacy_category(data.get('category', ''))
-    if not is_valid_category(user_id, category):
-        return jsonify({'error': 'Unknown category.'}), 400
+    # A category the user can actually use (system default or one of their own
+    # custom categories); unrecognised values fall back to the legacy mapping.
+    category, category_error = resolve_category(user_id, data.get('category', ''))
+    if category_error:
+        return jsonify({'error': category_error}), 400
 
     transaction = Transaction(
         user_id = int(user_id),
@@ -119,9 +119,9 @@ def update_transaction(transaction_id):
             return jsonify({'error': amount_error}), 400
         transaction.amount = amount
     if 'category' in data:
-        new_category = normalize_legacy_category(data['category'])
-        if not is_valid_category(user_id, new_category):
-            return jsonify({'error': 'Unknown category.'}), 400
+        new_category, category_error = resolve_category(user_id, data['category'])
+        if category_error:
+            return jsonify({'error': category_error}), 400
         if new_category != transaction.category:
             transaction.category = new_category
         # User set it deliberately either way — re-sync must not undo this
@@ -198,9 +198,9 @@ def bulk_recategorize():
     if len(ids) > 500:
         return jsonify({'error': 'Too many transactions at once (max 500).'}), 400
 
-    category = normalize_legacy_category(data.get('category', ''))
-    if not is_valid_category(user_id, category):
-        return jsonify({'error': 'Unknown category.'}), 400
+    category, category_error = resolve_category(user_id, data.get('category', ''))
+    if category_error:
+        return jsonify({'error': category_error}), 400
 
     # Only rows the user owns; ids belonging to others are silently skipped
     transactions = Transaction.query.filter(
